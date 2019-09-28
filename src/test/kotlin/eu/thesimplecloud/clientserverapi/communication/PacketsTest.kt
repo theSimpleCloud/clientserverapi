@@ -48,7 +48,6 @@ class PacketsTest {
         }
         packetPromise.addPacketPromiseListener { println(it.get()) }
         packetPromise.sync()
-        Thread.sleep(20000)
         Assert.assertEquals(packetPromise.get(), "test")
     }
 
