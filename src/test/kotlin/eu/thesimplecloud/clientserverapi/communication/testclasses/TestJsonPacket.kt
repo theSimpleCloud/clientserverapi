@@ -1,4 +1,4 @@
-package me.wetterbericht.clientserverapi.communication.packet
+package eu.thesimplecloud.clientserverapi.communication.testclasses
 
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender

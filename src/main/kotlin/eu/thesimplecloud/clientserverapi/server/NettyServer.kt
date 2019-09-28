@@ -86,6 +86,7 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
         packages.forEach {packageName ->
             val reflections = Reflections(packageName)
             val allClasses = reflections.getSubTypesOf(IPacket::class.java).filter { it != JsonPacket::class.java && it != BytePacket::class.java }
+            println(allClasses)
             allClasses.forEach { packet ->
                 packetManager.registerPacket(packetManager.getUnusedId(), packet)
             }

@@ -1,4 +1,4 @@
-package me.wetterbericht.clientserverapi.communication
+package eu.thesimplecloud.clientserverapi.communication.testclasses
 
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 

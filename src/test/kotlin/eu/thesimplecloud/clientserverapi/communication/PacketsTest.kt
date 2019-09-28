@@ -1,4 +1,4 @@
-package me.wetterbericht.clientserverapi.communication
+package eu.thesimplecloud.clientserverapi.communication
 
 import eu.thesimplecloud.clientserverapi.client.NettyClient
 import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
@@ -6,7 +6,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.server.NettyServer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import me.wetterbericht.clientserverapi.communication.packet.TestJsonPacket
+import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
+import eu.thesimplecloud.clientserverapi.communication.testclasses.TestJsonPacket
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -17,12 +18,12 @@ import org.junit.Test
 class PacketsTest {
 
 
-    var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1900)
-    var nettyClient = NettyClient("127.0.0.1", 1900)
+    var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1917)
+    var nettyClient = NettyClient("127.0.0.1", 1917)
 
     @Before
     fun startServerAndClient() {
-        nettyServer.registerPacketsByPackage("me.wetterbericht.clientserverapi.communication.packet")
+        nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.communication.testclasses")
         GlobalScope.launch {
             nettyServer.start()
         }
@@ -30,7 +31,7 @@ class PacketsTest {
             Thread.sleep(10)
         }
         println("client")
-        nettyClient.addPacketsPackage("me.wetterbericht.clientserverapi.communication.packet")
+        nettyClient.addPacketsPackage("eu.thesimplecloud.clientserverapi.communication.testclasses")
         GlobalScope.launch {
             nettyClient.start()
         }
