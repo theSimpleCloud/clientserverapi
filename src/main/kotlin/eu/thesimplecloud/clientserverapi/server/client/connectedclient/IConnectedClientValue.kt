@@ -1,0 +1,3 @@
+package eu.thesimplecloud.clientserverapi.server.client.connectedclient
+
+interface IConnectedClientValue
