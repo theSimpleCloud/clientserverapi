@@ -59,16 +59,14 @@ class NettyClient(private val host: String, private val port: Int, private val c
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder()) // add without name, name auto generated
 
-                pipeline.addLast(ClientHandler(instance))
+                pipeline.addLast(ClientHandler(instance, connectionHandler))
             }
 
         })
         channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
                 GlobalScope.launch { registerPacketsByPackage() }
-                connectionHandler.onConnectionActive(this)
             } else {
-                connectionHandler.onFailure(this, future.cause())
                 disconnect()
             }
         }.channel()
@@ -76,7 +74,6 @@ class NettyClient(private val host: String, private val port: Int, private val c
 
     override fun disconnect() {
         workerGroup?.shutdownGracefully()
-        connectionHandler.onConnectionInactive(this)
     }
 
     override fun sendPacket(wrappedPacket: eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket) {

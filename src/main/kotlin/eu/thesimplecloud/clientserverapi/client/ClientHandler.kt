@@ -1,5 +1,6 @@
 package eu.thesimplecloud.clientserverapi.client
 
+import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.runBlocking
@@ -10,7 +11,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import java.lang.IllegalArgumentException
 
-class ClientHandler(val nettyClient: NettyClient) : SimpleChannelInboundHandler<WrappedPacket>() {
+class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnectionHandler) : SimpleChannelInboundHandler<WrappedPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
         if (wrappedPacket.packetData.isResponse()) {
@@ -18,7 +19,7 @@ class ClientHandler(val nettyClient: NettyClient) : SimpleChannelInboundHandler<
         } else {
             runBlocking {
                 val packet = wrappedPacket.packet.handle(nettyClient)
-                val id = when (packet){
+                val id = when (packet) {
                     null -> -1
                     is ObjectPacket<*> -> -2
                     is JsonPacket -> -1
@@ -32,7 +33,17 @@ class ClientHandler(val nettyClient: NettyClient) : SimpleChannelInboundHandler<
         }
     }
 
-    override fun channelActive(ctx: ChannelHandlerContext?) {
+    override fun channelActive(ctx: ChannelHandlerContext) {
+        connectionHandler.onConnectionActive(nettyClient)
+    }
+
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        connectionHandler.onConnectionInactive(nettyClient)
+    }
+
+    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        super.exceptionCaught(ctx, cause)
+        connectionHandler.onFailure(nettyClient, cause)
     }
 
 
