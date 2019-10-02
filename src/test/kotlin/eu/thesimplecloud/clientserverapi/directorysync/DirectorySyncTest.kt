@@ -16,8 +16,8 @@ import java.io.File
 class DirectorySyncTest {
 
 
-    var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1917)
-    var nettyClient = NettyClient("127.0.0.1", 1917)
+    var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
+    var nettyClient = NettyClient("127.0.0.1", 1919)
 
     @Test(timeout = 6500)
     fun test(){

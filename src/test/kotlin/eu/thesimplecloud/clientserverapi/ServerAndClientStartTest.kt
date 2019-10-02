@@ -12,7 +12,7 @@ class ServerAndClientStartTest {
 
     @Test(timeout = 3000)
     fun test() {
-        val nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1916)
+        val nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1921)
         nettyServer.registerPacketsByPackage("me.wetterbericht.clientserverapi.communication.packet")
         GlobalScope.launch {
             nettyServer.start()
@@ -20,7 +20,7 @@ class ServerAndClientStartTest {
         while (!nettyServer.isActive()) {
             Thread.sleep(10)
         }
-        val nettyClient = NettyClient("127.0.0.1", 1916)
+        val nettyClient = NettyClient("127.0.0.1", 1921)
         nettyClient.addPacketsPackage("me.wetterbericht.clientserverapi.communication.packet")
         nettyClient.start()
         while (!nettyClient.isOpen()) {
