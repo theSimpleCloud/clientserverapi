@@ -1,5 +1,6 @@
 package eu.thesimplecloud.clientserverapi.server
 
+import eu.thesimplecloud.clientserverapi.filetransfer.directory.DirectorySyncManager
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.runBlocking
@@ -42,7 +43,12 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        nettyServer.clientManager.removeClient(ctx)?.let { connectionHandler.onConnectionInactive(it) }
+        nettyServer.clientManager.removeClient(ctx)?.let {
+            connectionHandler.onConnectionInactive(it)
+            val directorySyncManager = nettyServer.getDirectorySyncManager()
+            directorySyncManager as DirectorySyncManager
+            directorySyncManager.removeFromDirectorySyncs(it)
+        }
     }
 
 
