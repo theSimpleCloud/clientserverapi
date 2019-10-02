@@ -1,6 +1,10 @@
 package eu.thesimplecloud.clientserverapi.client
 
 import eu.thesimplecloud.clientserverapi.client.packets.PacketOutGetPacketId
+import eu.thesimplecloud.clientserverapi.filetransfer.ITransferFileManager
+import eu.thesimplecloud.clientserverapi.filetransfer.TransferFileManager
+import eu.thesimplecloud.clientserverapi.filetransfer.directory.DirectorySyncManager
+import eu.thesimplecloud.clientserverapi.filetransfer.directory.IDirectorySyncManager
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
@@ -20,7 +24,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.DefaultConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
@@ -29,7 +33,7 @@ import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.collections.ArrayList
 
-class NettyClient(private val host: String, private val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : DefaultConnection(PacketManager(), PacketResponseManager()), INettyClient {
+class NettyClient(private val host: String, private val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
     private val sendQueue: Queue<eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket> = LinkedBlockingQueue()
     private var channel: Channel? = null
@@ -38,6 +42,8 @@ class NettyClient(private val host: String, private val port: Int, private val c
     private var packetIdsSynchronized: Boolean = false
     private var packetPackages: MutableList<String> = ArrayList()
     private var running = false
+    private val transferFileManager = TransferFileManager()
+    private val directorySyncManager = DirectorySyncManager()
 
     init {
         packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
@@ -67,12 +73,12 @@ class NettyClient(private val host: String, private val port: Int, private val c
             if (future.isSuccess) {
                 GlobalScope.launch { registerPacketsByPackage() }
             } else {
-                disconnect()
+                this.shutdown()
             }
         }.channel()
     }
 
-    override fun disconnect() {
+    override fun shutdown() {
         workerGroup?.shutdownGracefully()
     }
 
@@ -86,7 +92,13 @@ class NettyClient(private val host: String, private val port: Int, private val c
 
     override fun getChannel(): Channel? = channel
 
-    override fun isRunning(): Boolean = running
+    override fun isActive(): Boolean = running
+
+    override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
+
+    override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
+
+    override fun getCommunicationBootstrap() = this
 
 
     fun addPacketsPackage(vararg packages: String) {
@@ -103,9 +115,7 @@ class NettyClient(private val host: String, private val port: Int, private val c
                 val packetName = packetClass.simpleName
                 val packetPromise = sendQuery(PacketOutGetPacketId(packetName), ObjectPacketResponseHandler(Int::class.java))
                 promises.add(packetPromise)
-                println("Sent packet to get id of packet ${packetClass.simpleName}")
                 packetPromise.addResultListener { id ->
-                    println("response for id of packet ${packetClass.simpleName} : $id")
                     if (id != null) {
                         packetManager.registerPacket(id, packetClass)
                     } else {

@@ -55,7 +55,7 @@ class PacketsTest {
     @After
     fun after() {
         nettyServer.shutdown()
-        nettyClient.disconnect()
+        nettyClient.shutdown()
     }
 
 }

@@ -1,5 +1,9 @@
 package eu.thesimplecloud.clientserverapi.server
 
+import eu.thesimplecloud.clientserverapi.filetransfer.ITransferFileManager
+import eu.thesimplecloud.clientserverapi.filetransfer.TransferFileManager
+import eu.thesimplecloud.clientserverapi.filetransfer.directory.DirectorySyncManager
+import eu.thesimplecloud.clientserverapi.filetransfer.directory.IDirectorySyncManager
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
@@ -27,30 +31,30 @@ import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientMana
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
 import org.reflections.Reflections
-import java.lang.IllegalStateException
 
 
 class NettyServer<T: IConnectedClientValue>(private val host: String, private val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
-
 
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null
     private var eventExecutorGroup: EventExecutorGroup? = null
     val packetManager = PacketManager()
     val packetResponseManager = PacketResponseManager()
-    private var active = false
     val clientManager = ClientManager(this)
-    private var started = false
+    private var active = false
+    private val transferFileManager = TransferFileManager()
+    private val directorySyncManager = DirectorySyncManager()
+    private var listening = false
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
     }
 
     override fun start(){
-        if (started) throw IllegalStateException("Can't start server multiple times.")
-        started = true
-        bossGroup = NioEventLoopGroup()
-        workerGroup = NioEventLoopGroup()
+        check(!this.active) { "Can't start server multiple times." }
+        this.active = true
+        this.bossGroup = NioEventLoopGroup()
+        this.workerGroup = NioEventLoopGroup()
         val bootstrap = ServerBootstrap()
         bootstrap.group(bossGroup, workerGroup)
         bootstrap.channel(NioServerSocketChannel::class.java)
@@ -73,7 +77,7 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true)
         bootstrap.bind(host, port).addListener { future ->
             if (future.isSuccess) {
-                active = true
+                listening = true
                 serverHandler.onServerStarted(this)
             } else {
                 shutdown()
@@ -86,24 +90,30 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
         packages.forEach {packageName ->
             val reflections = Reflections(packageName)
             val allClasses = reflections.getSubTypesOf(IPacket::class.java).filter { it != JsonPacket::class.java && it != BytePacket::class.java }
-            println(allClasses)
             allClasses.forEach { packet ->
-                packetManager.registerPacket(packetManager.getUnusedId(), packet)
+                this.packetManager.registerPacket(this.packetManager.getUnusedId(), packet)
             }
         }
     }
 
-    override fun getClientManager(): IClientManager<T> = clientManager
+    override fun getClientManager(): IClientManager<T> = this.clientManager
 
-    override fun getPacketManager(): IPacketManager = packetManager
+    override fun getPacketManager(): IPacketManager = this.packetManager
 
-    override fun isActive(): Boolean = active
+    override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
+
+    override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
+
+    override fun isActive(): Boolean = this.active
+
+    override fun isListening(): Boolean = this.listening
 
     override fun shutdown() {
-        bossGroup?.shutdownGracefully()
-        workerGroup?.shutdownGracefully()
-        eventExecutorGroup?.shutdownGracefully()
-        serverHandler.onServerShutdown(this)
+        this.listening = false
+        this.bossGroup?.shutdownGracefully()
+        this.workerGroup?.shutdownGracefully()
+        this.eventExecutorGroup?.shutdownGracefully()
+        this.serverHandler.onServerShutdown(this)
     }
 
 

@@ -6,7 +6,7 @@ import kotlinx.coroutines.runBlocking
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.DefaultConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -16,7 +16,7 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
 
     override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
         nettyServer.clientManager.getClient(ctx)?.let {
-            it as DefaultConnection
+            it as AbstractConnection
             if (wrappedPacket.packetData.isResponse()) {
                 nettyServer.packetResponseManager.incomingPacket(wrappedPacket)
             } else {

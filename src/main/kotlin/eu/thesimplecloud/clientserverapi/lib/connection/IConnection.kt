@@ -1,9 +1,12 @@
 package eu.thesimplecloud.clientserverapi.lib.connection
 
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import io.netty.channel.Channel
-import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
-import java.io.IOException
+import eu.thesimplecloud.clientserverapi.server.INettyServer
+import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
+import java.io.File
 
 interface IConnection : IPacketSender {
 
@@ -20,6 +23,20 @@ interface IConnection : IPacketSender {
     fun isOpen(): Boolean {
         return getChannel() != null && getChannel()?.isActive ?: false
     }
+
+    /**
+     * Returns the [ICommunicationBootstrap] of this connection
+     * [INettyServer] when this connection is instantiated on the server side
+     * [INettyClient] when this connection is instantiated on the client side
+     */
+    fun getCommunicationBootstrap() : ICommunicationBootstrap
+
+    /**
+     * Sends a file via this connection
+     * @param file the file to send
+     * @param savePath the path where the file should be saved
+     */
+    fun sendFile(file: File, savePath: String): IPacketPromise<Unit>
 
 
 }

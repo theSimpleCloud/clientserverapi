@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.*
+import java.lang.IllegalArgumentException
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
@@ -18,7 +19,7 @@ class JsonData(private val jsonObject: JsonObject) {
     val jsonStringAsBytes: ByteArray
         get() = asJsonString.toByteArray(StandardCharsets.UTF_8)
 
-    constructor(): this(JsonObject())
+    constructor() : this(JsonObject())
 
     fun useExclusionStrategy(): JsonData {
         if (gson == Companion.GSON_NOT_PRETTY || gson == Companion.GSON_NOT_PRETTY_EXCLUSION) {
@@ -153,8 +154,12 @@ class JsonData(private val jsonObject: JsonObject) {
         }
 
         fun fromJsonString(string: String): JsonData {
-            val jsonObject = GSON.fromJson(string, JsonObject::class.java)
-            return JsonData(jsonObject)
+            try {
+                val jsonObject = GSON.fromJson(string, JsonObject::class.java)
+                return JsonData(jsonObject)
+            } catch (ex: Exception) {
+                throw IllegalArgumentException("Can't parse string $string", ex)
+            }
         }
 
         private fun loadFromInputStream(inputStream: InputStream): String {

@@ -1,5 +1,7 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.packetsender
 
+import eu.thesimplecloud.clientserverapi.filetransfer.packets.PacketIOFileTransfer
+import eu.thesimplecloud.clientserverapi.filetransfer.packets.PacketIOFileTransferComplete
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
@@ -13,13 +15,19 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.PacketPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.IPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.WrappedResponseHandler
+import java.io.File
 import java.io.IOException
+import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 
-abstract class DefaultConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
+abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
+
+    override fun sendQuery(packet: IPacket): IPacketPromise<Unit> {
+        return sendQuery(packet, IPacketResponseHandler.getNullHandler())
+    }
 
     override fun <T : Any> sendQuery(packet: IPacket, packetResponseFunction: (IPacket) -> T?): IPacketPromise<T> {
         return sendQuery(packet, object : IPacketResponseHandler<T> {
@@ -57,6 +65,32 @@ abstract class DefaultConnection(val packetManager: PacketManager, val packetRes
     open fun sendPacket(wrappedPacket: WrappedPacket) {
         if (!isOpen()) throw IOException("Connection is not open.")
         getChannel()?.writeAndFlush(wrappedPacket)?.syncUninterruptibly()
+    }
+
+    override fun sendFile(file: File, savePath: String): IPacketPromise<Unit> {
+        val transferUuid = UUID.randomUUID()
+        val fileBytes = Files.readAllBytes(file.toPath())
+        var bytes = fileBytes.size
+        val packetPromise = PacketPromise<Unit>(this)
+        GlobalScope.launch {
+            while (bytes != 0) {
+                when {
+                    bytes > 5000 -> {
+                        val sendBytes = fileBytes.copyOfRange(fileBytes.size - bytes, (fileBytes.size - bytes) + 5000)
+                        bytes -= 50000
+                        sendQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
+                    }
+                    else -> {
+                        val sendBytes = fileBytes.copyOfRange(fileBytes.size - bytes, fileBytes.size)
+                        bytes = 0
+                        sendQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
+                    }
+                }
+            }
+            sendQuery(PacketIOFileTransferComplete(transferUuid, savePath)).syncUninterruptibly()
+            packetPromise.trySuccess(Unit)
+        }
+        return packetPromise
     }
 
 }

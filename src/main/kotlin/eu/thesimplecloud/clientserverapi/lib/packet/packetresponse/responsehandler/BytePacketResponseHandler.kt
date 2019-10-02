@@ -10,6 +10,6 @@ class BytePacketResponseHandler : IPacketResponseHandler<Array<Byte>> {
     override fun handleResponse(packet: IPacket): Array<Byte> {
         packet as? BytePacket
                 ?: throw IllegalArgumentException("Failed to cast response. Expected 'BytePacket' found: '${packet::class.java.simpleName}'")
-        return packet.byteBuf.array().toTypedArray()
+        return packet.buffer.array().toTypedArray()
     }
 }

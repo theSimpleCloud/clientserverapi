@@ -13,13 +13,14 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import java.lang.IllegalStateException
+import java.util.*
 
 class PacketDecoder(private val packetManager: PacketManager, private val packetResponseManager: IPacketResponseManager) : ByteToMessageDecoder() {
 
 
     override fun decode(ctx: ChannelHandlerContext, byteBuf: ByteBuf, out: MutableList<Any>) {
-        byteBuf.readableBytes()
-        val jsonData = JsonData.fromJsonString(ByteBufStringHelper.nextString(byteBuf))
+        val receivedString = ByteBufStringHelper.nextString(byteBuf)
+        val jsonData = JsonData.fromJsonString(receivedString)
         val packetData = jsonData.getObject("data", PacketData::class.java)
                 ?: throw PacketException("PacketData is not present.")
         //jsonpacket =-1 bytepacket = -2

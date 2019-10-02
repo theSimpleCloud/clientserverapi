@@ -7,16 +7,24 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandl
 
 interface IPacketSender {
 
+
+    /**
+     * Sends a query to the connection and returns a [IPacketPromise].
+     * @return a [IPacketPromise] to wait for the result.
+     */
+    fun sendQuery(packet: IPacket): IPacketPromise<Unit>
+
     /**
      * Sends a query to the connection and returns a [IPacketPromise].
      * @return a [IPacketPromise] to wait for the result.
      */
     fun <T : Any> sendQuery(packet: IPacket, packetResponseFunction: (IPacket) -> T?): IPacketPromise<T>
 
+
     /**
      * Sends a query to the connection and returns a [IPacketPromise].
      * @return a [IPacketPromise] to wait for the result.
      */
-    fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T> = IPacketResponseHandler.getNullHandler()): IPacketPromise<T>
+    fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): IPacketPromise<T>
 
 }

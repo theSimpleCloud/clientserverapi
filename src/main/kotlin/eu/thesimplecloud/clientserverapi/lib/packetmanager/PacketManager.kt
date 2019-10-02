@@ -18,7 +18,6 @@ class PacketManager : IPacketManager {
         val callbacks = packetRegisterCallbacks.filter { it.first == packetClass }
         callbacks.forEach { it.second.complete(id) }
         packetRegisterCallbacks.removeAll(callbacks)
-        println("PacketManager Packet ${packetClass.simpleName} $id was registered")
     }
 
     override fun getIdFromPacket(packet: IPacket): Int? = getIdFromPacket(packet::class.java)

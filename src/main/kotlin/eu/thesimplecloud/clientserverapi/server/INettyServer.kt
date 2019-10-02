@@ -1,25 +1,16 @@
 package eu.thesimplecloud.clientserverapi.server
 
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
-interface INettyServer<T : IConnectedClientValue> {
-
-    /**
-     * Starts the server
-     */
-    fun start()
+interface INettyServer<T : IConnectedClientValue> : ICommunicationBootstrap {
 
     /**
      * Registers all packets in the specified packages
      */
     fun registerPacketsByPackage(vararg packages: String)
-
-    /**
-     * Stops the server
-     */
-    fun shutdown()
 
     /**
      * Returns the [IClientManager] for this server
@@ -32,8 +23,8 @@ interface INettyServer<T : IConnectedClientValue> {
     fun getPacketManager(): IPacketManager
 
     /**
-     * Returns weather the server is active (listening)
+     * Returns weather the server is listening
      */
-    fun isActive(): Boolean
+    fun isListening(): Boolean
 
 }

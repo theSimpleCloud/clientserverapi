@@ -1,11 +1,12 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.packettype
 
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import io.netty.buffer.ByteBuf
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 
 
-abstract class ObjectPacket<T : Any>(val typeParameterClass: Class<out T>) : eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket() {
+abstract class ObjectPacket<T : Any>(val typeParameterClass: Class<out T>) : JsonPacket() {
 
     var value: T? = null
 
@@ -26,7 +27,7 @@ abstract class ObjectPacket<T : Any>(val typeParameterClass: Class<out T>) : eu.
         fun getNewEmptyObjectPacket(): ObjectPacket<Any> = getNewEmptyObjectPacket(Any::class.java)
 
         fun <T : Any> getNewEmptyObjectPacket(type: Class<T>) = object : ObjectPacket<T>(type) {
-            override suspend fun handle(packetSender: IPacketSender): IPacket? {
+            override suspend fun handle(connection: IConnection): IPacket? {
                 return null
             }
         }

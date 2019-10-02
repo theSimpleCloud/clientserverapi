@@ -1,7 +1,7 @@
 package eu.thesimplecloud.clientserverapi.lib.packet
 
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import io.netty.buffer.ByteBuf
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 
 interface IPacket {
 
@@ -21,6 +21,6 @@ interface IPacket {
      * Calls to handle a packet
      * @return the packet that should be sent as result. If the packet is null it will send a response containing null.
      */
-    suspend fun handle(packetSender: IPacketSender): IPacket?
+    suspend fun handle(connection: IConnection): IPacket?
 
 }
