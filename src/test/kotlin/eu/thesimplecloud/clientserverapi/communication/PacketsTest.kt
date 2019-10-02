@@ -22,27 +22,30 @@ class PacketsTest {
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1917)
     var nettyClient = NettyClient("127.0.0.1", 1917)
 
-    @Before
-    fun startServerAndClient() {
+
+
+    @Test(timeout = 3000)
+    fun test() {
         nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.communication.testclasses")
+        println(1)
         GlobalScope.launch {
             nettyServer.start()
         }
+        println(2)
         while (!nettyServer.isActive()) {
             Thread.sleep(10)
         }
-        println("client")
+        println(3)
         nettyClient.addPacketsPackage("eu.thesimplecloud.clientserverapi.communication.testclasses")
         GlobalScope.launch {
             nettyClient.start()
         }
+        println(4)
         while (!nettyClient.isOpen()) {
             Thread.sleep(10)
         }
-    }
+        println(5)
 
-    @Test(timeout = 3000)
-    fun test() {
         val packetPromise: IPacketPromise<String> = nettyClient.sendQuery(TestJsonPacket("test")) { packet ->
             packet as JsonPacket
             packet.jsonData.getString("message")
