@@ -13,7 +13,7 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-
+import kotlin.concurrent.thread
 
 
 class PacketsTest {
@@ -29,7 +29,7 @@ class PacketsTest {
         println(0)
         nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.communication.testclasses")
         println(1)
-        GlobalScope.launch {
+        thread {
             nettyServer.start()
         }
         println(2)
@@ -38,7 +38,7 @@ class PacketsTest {
         }
         println(3)
         nettyClient.addPacketsPackage("eu.thesimplecloud.clientserverapi.communication.testclasses")
-        GlobalScope.launch {
+        thread {
             nettyClient.start()
         }
         println(4)
