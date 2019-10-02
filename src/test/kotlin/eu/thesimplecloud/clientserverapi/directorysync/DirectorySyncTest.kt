@@ -54,7 +54,7 @@ class DirectorySyncTest {
 
         JsonData().append("first", "test5").saveAsFile(file1)
         file2.delete()
-        Thread.sleep(3300)
+        Thread.sleep(3600)
         //test2
         Assert.assertEquals("test5", JsonData.fromJsonFile(File(otherSideDir, "json1.json")).getString("first"))
         Assert.assertFalse(File(otherSideDir, "json2.json").exists())
