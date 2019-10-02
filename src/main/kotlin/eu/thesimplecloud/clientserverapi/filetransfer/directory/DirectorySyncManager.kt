@@ -1,10 +1,22 @@
 package eu.thesimplecloud.clientserverapi.filetransfer.directory
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 
 class DirectorySyncManager : IDirectorySyncManager {
 
     private val directorySyncList: MutableList<DirectorySync> = ArrayList()
+
+    fun startSyncThread(){
+        GlobalScope.launch {
+            while (true) {
+                Thread.sleep(2000)
+                directorySyncList.forEach { it.syncChangesAndUpdateFiles() }
+            }
+        }
+    }
+
 
     override fun createDirectorySync(directory: File, toDirectory: String): IDirectorySync {
         val directorySync = DirectorySync(directory, toDirectory)

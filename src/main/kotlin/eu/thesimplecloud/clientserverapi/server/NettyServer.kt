@@ -53,6 +53,7 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
     override fun start(){
         check(!this.active) { "Can't start server multiple times." }
         this.active = true
+        directorySyncManager.startSyncThread()
         this.bossGroup = NioEventLoopGroup()
         this.workerGroup = NioEventLoopGroup()
         val bootstrap = ServerBootstrap()

@@ -50,7 +50,9 @@ class NettyClient(private val host: String, private val port: Int, private val c
     }
 
     override fun start() {
+        check(!this.running) { "Can't start server multiple times." }
         running = true
+        directorySyncManager.startSyncThread()
         val instance = this
         workerGroup = NioEventLoopGroup()
         val bootstrap = Bootstrap()
