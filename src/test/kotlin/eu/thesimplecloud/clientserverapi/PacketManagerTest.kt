@@ -10,6 +10,7 @@ class PacketManagerTest {
 
     @Test
     fun before() {
+        println("packet manager test")
         val packetManager = PacketManager()
         val packetIdCompletableFuture = packetManager.getPacketIdCompletableFuture(IPacket::class.java)
         packetManager.registerPacket(0, IPacket::class.java)

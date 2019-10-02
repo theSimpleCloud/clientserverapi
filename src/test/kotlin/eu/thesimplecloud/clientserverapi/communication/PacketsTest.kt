@@ -26,6 +26,7 @@ class PacketsTest {
 
     @Test(timeout = 3000)
     fun test() {
+        println(0)
         nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.communication.testclasses")
         println(1)
         GlobalScope.launch {

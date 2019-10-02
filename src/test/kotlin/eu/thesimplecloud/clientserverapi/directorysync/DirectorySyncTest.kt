@@ -19,7 +19,7 @@ class DirectorySyncTest {
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
     var nettyClient = NettyClient("127.0.0.1", 1919)
 
-    @Test(timeout = 6500)
+    @Test(timeout = 7000)
     fun test(){
         nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.filetransfer.packets")
         GlobalScope.launch {
@@ -47,14 +47,14 @@ class DirectorySyncTest {
 
         val directorySync = nettyClient.getCommunicationBootstrap().getDirectorySyncManager().createDirectorySync(file, "syncFolderOtherSide/")
         directorySync.syncDirectory(nettyClient)
-        Thread.sleep(1000)
+        Thread.sleep(1100)
         //test1
         Assert.assertEquals("test1", JsonData.fromJsonFile(File(otherSideDir, "json1.json")).getString("first"))
         Assert.assertEquals("test2", JsonData.fromJsonFile(File(otherSideDir, "json2.json")).getString("second"))
 
         JsonData().append("first", "test5").saveAsFile(file1)
         file2.delete()
-        Thread.sleep(2500)
+        Thread.sleep(2900)
         //test2
         Assert.assertEquals("test5", JsonData.fromJsonFile(File(otherSideDir, "json1.json")).getString("first"))
         Assert.assertFalse(File(otherSideDir, "json2.json").exists())
