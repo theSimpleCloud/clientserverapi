@@ -25,7 +25,7 @@ class DirectorySyncTest {
         GlobalScope.launch {
             nettyServer.start()
         }
-        while (!nettyServer.isActive()) {
+        while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
         nettyClient.addPacketsPackage("eu.thesimplecloud.clientserverapi.filetransfer.packets")

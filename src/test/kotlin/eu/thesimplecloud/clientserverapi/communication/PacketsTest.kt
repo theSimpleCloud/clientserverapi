@@ -32,7 +32,7 @@ class PacketsTest {
             nettyServer.start()
         }
         println(2)
-        while (!nettyServer.isActive()) {
+        while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
         println(3)

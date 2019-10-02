@@ -17,7 +17,7 @@ class ServerAndClientStartTest {
         GlobalScope.launch {
             nettyServer.start()
         }
-        while (!nettyServer.isActive()) {
+        while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
         val nettyClient = NettyClient("127.0.0.1", 1921)
