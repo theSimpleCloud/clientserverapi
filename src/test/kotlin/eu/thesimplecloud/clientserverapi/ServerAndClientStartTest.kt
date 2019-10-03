@@ -9,6 +9,7 @@ import org.junit.Test
 
 class ServerAndClientStartTest {
 
+    /*
 
     @Test(timeout = 3000)
     fun test() {
@@ -27,5 +28,7 @@ class ServerAndClientStartTest {
             Thread.sleep(10)
         }
     }
+    
+     */
 
 }

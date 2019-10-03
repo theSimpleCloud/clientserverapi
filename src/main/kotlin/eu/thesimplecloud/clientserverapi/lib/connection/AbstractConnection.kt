@@ -1,10 +1,9 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.packetsender
+package eu.thesimplecloud.clientserverapi.lib.connection
 
 import eu.thesimplecloud.clientserverapi.filetransfer.packets.PacketIOFileTransfer
 import eu.thesimplecloud.clientserverapi.filetransfer.packets.PacketIOFileTransferComplete
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
@@ -21,7 +20,6 @@ import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 

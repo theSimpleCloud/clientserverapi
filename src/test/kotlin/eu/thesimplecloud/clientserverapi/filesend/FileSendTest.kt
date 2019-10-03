@@ -13,6 +13,8 @@ import java.io.File
 
 class FileSendTest {
 
+    /*
+
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1920)
     var nettyClient = NettyClient("127.0.0.1", 1920)
 
@@ -41,6 +43,8 @@ class FileSendTest {
         Assert.assertTrue(file.exists())
         Assert.assertEquals("Hallo123", JsonData.fromJsonFile(file).getString("test"))
     }
+
+     */
 
 
 }

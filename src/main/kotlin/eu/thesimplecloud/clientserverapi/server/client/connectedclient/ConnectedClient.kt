@@ -2,7 +2,7 @@ package eu.thesimplecloud.clientserverapi.server.client.connectedclient
 
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import io.netty.channel.Channel
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.NettyServer
 

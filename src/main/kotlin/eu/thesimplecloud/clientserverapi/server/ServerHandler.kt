@@ -7,7 +7,7 @@ import kotlinx.coroutines.runBlocking
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
