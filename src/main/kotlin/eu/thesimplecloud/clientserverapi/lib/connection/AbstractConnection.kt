@@ -9,8 +9,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.PacketPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.ConnectionPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.IPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.WrappedResponseHandler
@@ -23,11 +23,11 @@ import java.util.concurrent.TimeoutException
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 
-    override fun sendQuery(packet: IPacket): IPacketPromise<Unit> {
+    override fun sendQuery(packet: IPacket): IConnectionPromise<Unit> {
         return sendQuery(packet, IPacketResponseHandler.getNullHandler())
     }
 
-    override fun <T : Any> sendQuery(packet: IPacket, packetResponseFunction: (IPacket) -> T?): IPacketPromise<T> {
+    override fun <T : Any> sendQuery(packet: IPacket, packetResponseFunction: (IPacket) -> T?): IConnectionPromise<T> {
         return sendQuery(packet, object : IPacketResponseHandler<T> {
             override fun handleResponse(packet: IPacket): T? {
                 return packetResponseFunction(packet)
@@ -35,9 +35,9 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         })
     }
 
-    override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): IPacketPromise<T> {
+    override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): IConnectionPromise<T> {
         val uniqueId = UUID.randomUUID()
-        val packetPromise = PacketPromise<T>(this)
+        val packetPromise = ConnectionPromise<T>(this)
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
         val idFromPacket = packetManager.getIdFromPacket(packet)
         if (idFromPacket == null) {
@@ -65,11 +65,11 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         getChannel()?.writeAndFlush(wrappedPacket)?.syncUninterruptibly()
     }
 
-    override fun sendFile(file: File, savePath: String): IPacketPromise<Unit> {
+    override fun sendFile(file: File, savePath: String): IConnectionPromise<Unit> {
         val transferUuid = UUID.randomUUID()
         val fileBytes = Files.readAllBytes(file.toPath())
         var bytes = fileBytes.size
-        val packetPromise = PacketPromise<Unit>(this)
+        val packetPromise = ConnectionPromise<Unit>(this)
         GlobalScope.launch {
             while (bytes != 0) {
                 when {

@@ -5,7 +5,7 @@ import io.netty.channel.Channel
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.client.INettyClient
-import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
 import java.io.File
 
 interface IConnection : IPacketSender {
@@ -36,7 +36,7 @@ interface IConnection : IPacketSender {
      * @param file the file to send
      * @param savePath the path where the file should be saved
      */
-    fun sendFile(file: File, savePath: String): IPacketPromise<Unit>
+    fun sendFile(file: File, savePath: String): IConnectionPromise<Unit>
 
 
 }

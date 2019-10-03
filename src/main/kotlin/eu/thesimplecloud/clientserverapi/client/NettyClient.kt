@@ -21,7 +21,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
@@ -112,7 +112,7 @@ class NettyClient(private val host: String, private val port: Int, private val c
         packetPackages.forEach { packageName ->
             val reflections = Reflections(packageName)
             val allClasses = reflections.getSubTypesOf(IPacket::class.java).filter { it != JsonPacket::class.java && it != BytePacket::class.java }
-            val promises = ArrayList<IPacketPromise<Int>>()
+            val promises = ArrayList<IConnectionPromise<Int>>()
             allClasses.forEach { packetClass ->
                 val packetName = packetClass.simpleName
                 val packetPromise = sendQuery(PacketOutGetPacketId(packetName), ObjectPacketResponseHandler(Int::class.java))

@@ -1,20 +1,5 @@
 package eu.thesimplecloud.clientserverapi.communication
 
-import eu.thesimplecloud.clientserverapi.client.NettyClient
-import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
-import eu.thesimplecloud.clientserverapi.server.NettyServer
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
-import eu.thesimplecloud.clientserverapi.communication.testclasses.TestJsonPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
-import org.junit.After
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import kotlin.concurrent.thread
-
 
 class PacketsTest {
     /*

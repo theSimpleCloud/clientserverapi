@@ -1,10 +1,9 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.packetresponse
 
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packetpromise.IPacketPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
 import eu.thesimplecloud.clientserverapi.utils.printEmptyLine
 import java.util.*
-import java.util.function.Consumer
 import kotlin.collections.HashMap
 
 class PacketResponseManager : IPacketResponseManager {
@@ -30,8 +29,8 @@ class PacketResponseManager : IPacketResponseManager {
         printEmptyLine()
         wrappedResponseHandler ?: return
         val response = wrappedResponseHandler.packetResponseHandler.handleResponse(wrappedPacket.packet)
-        val packetPromise = wrappedResponseHandler.packetPromise
-        packetPromise as IPacketPromise<Any?>
+        val packetPromise = wrappedResponseHandler.connectionPromise
+        packetPromise as IConnectionPromise<Any?>
         packetPromise.setSuccess(response)
     }
 
