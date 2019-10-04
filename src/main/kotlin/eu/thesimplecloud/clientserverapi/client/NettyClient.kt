@@ -82,6 +82,7 @@ class NettyClient(private val host: String, private val port: Int, private val c
 
     override fun shutdown() {
         workerGroup?.shutdownGracefully()
+        running = false
     }
 
     override fun sendPacket(wrappedPacket: eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket) {

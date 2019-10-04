@@ -115,6 +115,7 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
         this.workerGroup?.shutdownGracefully()
         this.eventExecutorGroup?.shutdownGracefully()
         this.serverHandler.onServerShutdown(this)
+        this.active = false
     }
 
 
