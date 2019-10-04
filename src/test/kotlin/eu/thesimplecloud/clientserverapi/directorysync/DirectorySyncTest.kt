@@ -22,14 +22,14 @@ class DirectorySyncTest {
 
     @Test(timeout = 7000)
     fun test(){
-        nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.filetransfer.packets")
+        nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyServer.start()
         }
         while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
-        nettyClient.addPacketsPackage("eu.thesimplecloud.clientserverapi.filetransfer.packets")
+        nettyClient.addPacketsPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyClient.start()
         }

@@ -1,10 +1,9 @@
-package eu.thesimplecloud.clientserverapi.filetransfer.directory
+package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
-import eu.thesimplecloud.clientserverapi.filetransfer.packets.PacketIODeleteFile
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIODeleteFile
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import org.apache.commons.io.FileUtils
 import java.io.File
-import java.lang.IllegalArgumentException
 
 class DirectorySync(private val directory: File, private val toDirectory: String) : IDirectorySync {
 

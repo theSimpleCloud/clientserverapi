@@ -1,7 +1,7 @@
 package eu.thesimplecloud.clientserverapi.lib.connection
 
-import eu.thesimplecloud.clientserverapi.filetransfer.packets.PacketIOFileTransfer
-import eu.thesimplecloud.clientserverapi.filetransfer.packets.PacketIOFileTransferComplete
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOFileTransfer
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOFileTransferComplete
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket

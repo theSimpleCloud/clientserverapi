@@ -1,9 +1,9 @@
 package eu.thesimplecloud.clientserverapi.server
 
-import eu.thesimplecloud.clientserverapi.filetransfer.ITransferFileManager
-import eu.thesimplecloud.clientserverapi.filetransfer.TransferFileManager
-import eu.thesimplecloud.clientserverapi.filetransfer.directory.DirectorySyncManager
-import eu.thesimplecloud.clientserverapi.filetransfer.directory.IDirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.TransferFileManager
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption

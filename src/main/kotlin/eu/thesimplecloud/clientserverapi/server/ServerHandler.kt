@@ -1,6 +1,6 @@
 package eu.thesimplecloud.clientserverapi.server
 
-import eu.thesimplecloud.clientserverapi.filetransfer.directory.DirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.runBlocking

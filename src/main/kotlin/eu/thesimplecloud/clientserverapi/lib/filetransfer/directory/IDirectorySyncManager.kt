@@ -1,4 +1,4 @@
-package eu.thesimplecloud.clientserverapi.filetransfer.directory
+package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
 import java.io.File
 

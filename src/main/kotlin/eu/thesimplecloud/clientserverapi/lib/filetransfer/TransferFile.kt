@@ -1,4 +1,4 @@
-package eu.thesimplecloud.clientserverapi.filetransfer
+package eu.thesimplecloud.clientserverapi.lib.filetransfer
 
 import org.apache.commons.io.FileUtils
 import java.io.File

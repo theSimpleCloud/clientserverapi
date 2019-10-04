@@ -1,7 +1,7 @@
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
-import eu.thesimplecloud.clientserverapi.filetransfer.ITransferFileManager
-import eu.thesimplecloud.clientserverapi.filetransfer.directory.IDirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
 
 interface ICommunicationBootstrap : IBootstrap {
 
