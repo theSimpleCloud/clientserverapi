@@ -30,6 +30,6 @@ abstract class JsonPacket : IPacket {
     }
 
     override fun write(byteBuf: ByteBuf) {
-        jsonData.asJsonString.let { ByteBufStringHelper.writeString(byteBuf, it) }
+        jsonData.getAsJsonString().let { ByteBufStringHelper.writeString(byteBuf, it) }
     }
 }

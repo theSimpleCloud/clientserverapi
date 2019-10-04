@@ -12,7 +12,7 @@ class PacketEncoder : MessageToByteEncoder<WrappedPacket>() {
         val jsonData = JsonData()
         val packetData = PacketData(wrappedPacket.packetData.uniqueId, wrappedPacket.packetData.id)
         jsonData.append("data", packetData)
-        ByteBufStringHelper.writeString(byteBuf, jsonData.asJsonString)
+        ByteBufStringHelper.writeString(byteBuf, jsonData.getAsJsonString())
         wrappedPacket.packet.write(byteBuf)
     }
 }

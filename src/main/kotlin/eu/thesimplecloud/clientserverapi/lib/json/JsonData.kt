@@ -13,12 +13,6 @@ class JsonData(private val jsonObject: JsonObject) {
 
     private var gson: Gson = GSON
 
-    val asJsonString: String
-        get() = gson.toJson(jsonObject)
-
-    val jsonStringAsBytes: ByteArray
-        get() = asJsonString.toByteArray(StandardCharsets.UTF_8)
-
     constructor() : this(JsonObject())
 
     fun useExclusionStrategy(): JsonData {
@@ -91,6 +85,10 @@ class JsonData(private val jsonObject: JsonObject) {
         return if (!jsonObject.has(property)) null else gson.fromJson(jsonObject.get(property), clazz)
     }
 
+    fun <T> getObject(clazz: Class<T>): T? {
+        return gson.fromJson(getAsJsonString(), clazz)
+    }
+
     fun getString(property: String): String? {
         return if (!jsonObject.has(property)) null else jsonObject.get(property).asString
     }
@@ -115,7 +113,7 @@ class JsonData(private val jsonObject: JsonObject) {
         }
         try {
             val fileOutputStream = FileOutputStream(file)
-            fileOutputStream.write(jsonStringAsBytes)
+            fileOutputStream.write(getJsonStringAsBytes())
             fileOutputStream.flush()
             fileOutputStream.close()
         } catch (e: IOException) {
@@ -126,8 +124,12 @@ class JsonData(private val jsonObject: JsonObject) {
     }
 
 
-    fun getAsJsonString(`object`: Any): String {
-        return gson.toJson(gson.toJsonTree(`object`))
+    fun getAsJsonString(): String {
+        return gson.toJson(jsonObject)
+    }
+
+    fun getJsonStringAsBytes(): ByteArray {
+        return getAsJsonString().toByteArray(StandardCharsets.UTF_8)
     }
 
     companion object {
@@ -140,6 +142,9 @@ class JsonData(private val jsonObject: JsonObject) {
 
         private val GSON_NOT_PRETTY_EXCLUSION = GsonBuilder().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
 
+        fun fromObject(any: Any): JsonData {
+            return fromJsonString(GSON_EXCLUSION.toJson(any))
+        }
 
         fun fromJsonFile(path: String): JsonData {
             return fromJsonFile(File(path))
