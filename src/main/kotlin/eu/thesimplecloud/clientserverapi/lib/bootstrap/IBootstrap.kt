@@ -13,7 +13,7 @@ interface IBootstrap {
     fun shutdown()
 
     /**
-     * Returns weather this bootstrap was started
+     * Returns whether this bootstrap was started
      */
     fun isActive(): Boolean
 

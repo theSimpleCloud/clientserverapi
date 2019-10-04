@@ -23,18 +23,6 @@ import java.util.concurrent.TimeoutException
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 
-    override fun sendQuery(packet: IPacket): IConnectionPromise<Unit> {
-        return sendQuery(packet, IPacketResponseHandler.getNullHandler())
-    }
-
-    override fun <T : Any> sendQuery(packet: IPacket, packetResponseFunction: (IPacket) -> T?): IConnectionPromise<T> {
-        return sendQuery(packet, object : IPacketResponseHandler<T> {
-            override fun handleResponse(packet: IPacket): T? {
-                return packetResponseFunction(packet)
-            }
-        })
-    }
-
     override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): IConnectionPromise<T> {
         val uniqueId = UUID.randomUUID()
         val packetPromise = ConnectionPromise<T>(this)

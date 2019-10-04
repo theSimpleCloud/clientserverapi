@@ -17,7 +17,7 @@ interface IConnection : IPacketSender {
     fun getChannel(): Channel?
 
     /**
-     * Returns weather the connection is open
+     * Returns whether the connection is open
      * @return true if the connection is open
      */
     fun isOpen(): Boolean {
