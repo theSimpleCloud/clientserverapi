@@ -1,8 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler
 
-import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import java.lang.IllegalArgumentException
 

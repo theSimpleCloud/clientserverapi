@@ -13,7 +13,6 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import java.lang.IllegalStateException
-import java.util.*
 
 class PacketDecoder(private val packetManager: PacketManager, private val packetResponseManager: IPacketResponseManager) : ByteToMessageDecoder() {
 

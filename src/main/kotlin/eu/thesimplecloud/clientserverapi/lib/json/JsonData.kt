@@ -1,88 +1,75 @@
 package eu.thesimplecloud.clientserverapi.lib.json
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
+import com.google.gson.*
 import java.io.*
 import java.lang.IllegalArgumentException
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 
-class JsonData(private val jsonObject: JsonObject) {
+class JsonData(private val jsonElement: JsonElement) {
+
 
     private var gson: Gson = GSON
 
     constructor() : this(JsonObject())
 
-    fun useExclusionStrategy(): JsonData {
-        if (gson == Companion.GSON_NOT_PRETTY || gson == Companion.GSON_NOT_PRETTY_EXCLUSION) {
-            this.gson = Companion.GSON_NOT_PRETTY_EXCLUSION
-        } else {
-            this.gson = Companion.GSON_EXCLUSION
-        }
+    fun append(property: String, value: String?): JsonData {
+        if (jsonElement !is JsonObject)
+            throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
+        jsonElement.addProperty(property, value)
         return this
     }
 
-    fun unpretty(): JsonData {
-        if (gson == Companion.GSON_EXCLUSION || gson == Companion.GSON_NOT_PRETTY_EXCLUSION) {
-            this.gson = Companion.GSON_NOT_PRETTY_EXCLUSION
-        } else {
-            this.gson = Companion.GSON_NOT_PRETTY
-        }
+    fun append(property: String, value: Any?): JsonData {
+        if (jsonElement !is JsonObject)
+            throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
+        jsonElement.add(property, gson.toJsonTree(value))
         return this
     }
 
-    fun append(property: String?, value: String?): JsonData {
-        if (property == null)
-            return this
-        jsonObject.addProperty(property, value)
+    fun append(property: String, value: Number?): JsonData {
+        if (jsonElement !is JsonObject)
+            throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
+        jsonElement.addProperty(property, value)
         return this
     }
 
-    fun append(property: String?, value: Any?): JsonData {
-        if (property == null)
-            return this
-        jsonObject.add(property, gson.toJsonTree(value))
-        return this
-    }
-
-    fun append(property: String?, value: Number?): JsonData {
-        if (property == null)
-            return this
-        jsonObject.addProperty(property, value)
-        return this
-    }
-
-    fun append(property: String?, value: Boolean?): JsonData {
-        if (property == null)
-            return this
-        jsonObject.addProperty(property, value)
+    fun append(property: String, value: Boolean?): JsonData {
+        if (jsonElement !is JsonObject)
+            throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
+        jsonElement.addProperty(property, value)
         return this
     }
 
     fun getInt(property: String): Int? {
-        return if (!jsonObject.has(property)) null else jsonObject.get(property).asInt
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else jsonElement.get(property).asInt
     }
 
     fun getLong(property: String): Long? {
-        return if (!jsonObject.has(property)) null else jsonObject.get(property).asLong
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else jsonElement.get(property).asLong
     }
 
     fun getDouble(property: String): Double? {
-        return if (!jsonObject.has(property)) null else jsonObject.get(property).asDouble
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else jsonElement.get(property).asDouble
     }
 
     fun getFloat(property: String): Float? {
-        return if (!jsonObject.has(property)) null else jsonObject.get(property).asFloat
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else jsonElement.get(property).asFloat
     }
 
     fun getBoolean(property: String): Boolean? {
-        return if (!jsonObject.has(property)) null else jsonObject.get(property).asBoolean
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else jsonElement.get(property).asBoolean
     }
 
     fun <T> getObject(property: String, clazz: Class<T>): T? {
-        return if (!jsonObject.has(property)) null else gson.fromJson(jsonObject.get(property), clazz)
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else gson.fromJson(jsonElement.get(property), clazz)
     }
 
     fun <T> getObject(clazz: Class<T>): T? {
@@ -90,7 +77,8 @@ class JsonData(private val jsonObject: JsonObject) {
     }
 
     fun getString(property: String): String? {
-        return if (!jsonObject.has(property)) null else jsonObject.get(property).asString
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else jsonElement.get(property).asString
     }
 
 
@@ -125,7 +113,7 @@ class JsonData(private val jsonObject: JsonObject) {
 
 
     fun getAsJsonString(): String {
-        return gson.toJson(jsonObject)
+        return gson.toJson(jsonElement)
     }
 
     fun getJsonStringAsBytes(): ByteArray {
@@ -134,16 +122,10 @@ class JsonData(private val jsonObject: JsonObject) {
 
     companion object {
 
-        private val GSON_EXCLUSION = GsonBuilder().setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
-
-        private val GSON = GsonBuilder().setPrettyPrinting().serializeNulls().create()
-
-        private val GSON_NOT_PRETTY = GsonBuilder().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
-
-        private val GSON_NOT_PRETTY_EXCLUSION = GsonBuilder().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
+        val GSON = GsonBuilder().setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
 
         fun fromObject(any: Any): JsonData {
-            return fromJsonString(GSON_EXCLUSION.toJson(any))
+            return fromJsonString(GSON.toJson(any))
         }
 
         fun fromJsonFile(path: String): JsonData {
@@ -163,7 +145,12 @@ class JsonData(private val jsonObject: JsonObject) {
                 val jsonObject = GSON.fromJson(string, JsonObject::class.java)
                 return JsonData(jsonObject)
             } catch (ex: Exception) {
-                throw IllegalArgumentException("Can't parse string $string", ex)
+                try {
+                    val jsonPrimitive = GSON.fromJson(string, JsonPrimitive::class.java)
+                    return JsonData(jsonPrimitive)
+                } catch (ex: Exception) {
+                    throw IllegalArgumentException("Can't parse string $string", ex)
+                }
             }
         }
 

@@ -5,7 +5,6 @@ import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnected
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.server.NettyServer
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
 import org.junit.After
@@ -68,6 +67,6 @@ class DirectorySyncTest {
         FileUtils.deleteDirectory(File("syncFolderOtherSide/"))
     }
 
-     */
+    */
 
 }
