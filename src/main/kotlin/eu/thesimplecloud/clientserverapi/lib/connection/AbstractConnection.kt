@@ -25,7 +25,7 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
 
     override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): IConnectionPromise<T> {
         val uniqueId = UUID.randomUUID()
-        val packetPromise = ConnectionPromise<T>(this)
+        val packetPromise = this.newPromise<T>()
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
         val idFromPacket = packetManager.getIdFromPacket(packet)
         if (idFromPacket == null) {
@@ -57,7 +57,7 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         val transferUuid = UUID.randomUUID()
         val fileBytes = Files.readAllBytes(file.toPath())
         var bytes = fileBytes.size
-        val packetPromise = ConnectionPromise<Unit>(this)
+        val packetPromise = this.newPromise<Unit>()
         GlobalScope.launch {
             while (bytes != 0) {
                 when {

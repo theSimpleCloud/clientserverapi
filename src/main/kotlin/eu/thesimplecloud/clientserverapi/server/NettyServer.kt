@@ -30,6 +30,7 @@ import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManag
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
+import io.netty.util.concurrent.EventExecutor
 import org.reflections.Reflections
 
 
@@ -38,6 +39,7 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null
     private var eventExecutorGroup: EventExecutorGroup? = null
+    private lateinit var eventExecutor: EventExecutor
     val packetManager = PacketManager()
     val packetResponseManager = PacketResponseManager()
     val clientManager = ClientManager(this)
@@ -76,7 +78,9 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
             }
         })
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true)
-        bootstrap.bind(host, port).addListener { future ->
+        val channelFuture = bootstrap.bind(host, port)
+        this.eventExecutor = channelFuture.channel().eventLoop()
+        channelFuture.addListener { future ->
             if (future.isSuccess) {
                 listening = true
                 serverHandler.onServerStarted(this)
@@ -85,6 +89,7 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
                 serverHandler.onServerStartException(this, future.cause())
             }
         }.sync().channel().closeFuture().syncUninterruptibly()
+
     }
 
     override fun registerPacketsByPackage(vararg packages: String){
@@ -104,6 +109,8 @@ class NettyServer<T: IConnectedClientValue>(private val host: String, private va
     override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
 
     override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
+
+    override fun getEventExecutor(): EventExecutor = this.eventExecutor
 
     override fun isActive(): Boolean = this.active
 

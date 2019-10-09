@@ -5,8 +5,10 @@ import io.netty.channel.Channel
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.ConnectionPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
 import java.io.File
+import java.lang.IllegalStateException
 
 interface IConnection : IPacketSender {
 
@@ -37,6 +39,24 @@ interface IConnection : IPacketSender {
      * @param savePath the path where the file should be saved
      */
     fun sendFile(file: File, savePath: String): IConnectionPromise<Unit>
+
+    /**
+     * Returns a new [IConnectionPromise] associated with this connection.
+     */
+    fun <T> newPromise(): IConnectionPromise<T> {
+        getChannel() ?: throw IllegalStateException("Can not create promise when connection is not connected.")
+        return ConnectionPromise(getChannel()!!.eventLoop())
+    }
+
+    /**
+     * Closes this connection
+     */
+    fun closeConnection(): IConnectionPromise<Unit> {
+        if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Can not close closed connection.")
+        val connectionPromise = newPromise<Unit>()
+        getChannel()?.close()?.addListener { connectionPromise.trySuccess(Unit) }
+        return connectionPromise
+    }
 
 
 }

@@ -28,6 +28,7 @@ import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import io.netty.util.concurrent.EventExecutor
 import org.reflections.Reflections
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -35,6 +36,7 @@ import kotlin.collections.ArrayList
 
 class NettyClient(private val host: String, private val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
+    private lateinit var eventExecutor: EventExecutor
     private val sendQueue: Queue<eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket> = LinkedBlockingQueue()
     private var channel: Channel? = null
     private var workerGroup: NioEventLoopGroup? = null
@@ -78,6 +80,7 @@ class NettyClient(private val host: String, private val port: Int, private val c
                 this.shutdown()
             }
         }.channel()
+        this.eventExecutor = channel!!.eventLoop()
     }
 
     override fun shutdown() {
@@ -100,6 +103,8 @@ class NettyClient(private val host: String, private val port: Int, private val c
     override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
 
     override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
+
+    override fun getEventExecutor(): EventExecutor = this.eventExecutor
 
     override fun getCommunicationBootstrap() = this
 

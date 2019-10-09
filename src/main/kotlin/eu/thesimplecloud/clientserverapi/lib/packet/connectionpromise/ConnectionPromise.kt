@@ -3,7 +3,7 @@ package eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise
 import io.netty.util.concurrent.*
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 
-class ConnectionPromise<T>(val connection: IConnection): DefaultPromise<T>(), IConnectionPromise<T> {
+class ConnectionPromise<T>(val eventExecutor: EventExecutor): DefaultPromise<T>(), IConnectionPromise<T> {
 
     override fun addResultListener(listener: (T?) -> Unit): IConnectionPromise<T> {
         addConnectionPromiseListener(object: IConnectionPromiseListener<T> {
@@ -74,7 +74,7 @@ class ConnectionPromise<T>(val connection: IConnection): DefaultPromise<T>(), IC
     }
 
     override fun executor(): EventExecutor {
-        return connection.getChannel()!!.eventLoop()
+        return this.eventExecutor
     }
 
     override fun setSuccess(result: T): IConnectionPromise<T> {
