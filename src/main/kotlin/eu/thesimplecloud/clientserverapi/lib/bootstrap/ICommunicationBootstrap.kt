@@ -28,4 +28,13 @@ interface ICommunicationBootstrap : IBootstrap {
      */
     fun <T> newPromise(): IConnectionPromise<T> = ConnectionPromise(getEventExecutor())
 
+    /**
+     * Returns a new [IConnectionPromise]
+     */
+    fun <T> newSucceededPromise(value: T): IConnectionPromise<T> {
+        val promise = newPromise<T>()
+        promise.setSuccess(value)
+        return promise
+    }
+
 }
