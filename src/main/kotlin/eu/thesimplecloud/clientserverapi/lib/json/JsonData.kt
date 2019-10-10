@@ -72,8 +72,17 @@ class JsonData(private val jsonElement: JsonElement) {
         return if (!jsonElement.has(property)) null else gson.fromJson(jsonElement.get(property), clazz)
     }
 
-    fun <T> getObject(clazz: Class<T>): T? {
+    fun <T> getObject(clazz: Class<T>): T {
         return gson.fromJson(getAsJsonString(), clazz)
+    }
+
+    fun <T> getObjectOrNull(clazz: Class<T>): T? {
+        return try {
+            gson.fromJson(getAsJsonString(), clazz)
+        } catch (ex: Exception) {
+            null
+        }
+
     }
 
     fun getString(property: String): String? {
@@ -133,6 +142,7 @@ class JsonData(private val jsonElement: JsonElement) {
         }
 
         fun fromJsonFile(file: File): JsonData {
+            if (!file.exists()) return JsonData()
             return fromJsonString(loadFile(file))
         }
 
