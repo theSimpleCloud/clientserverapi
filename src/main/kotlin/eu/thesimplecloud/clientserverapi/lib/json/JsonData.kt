@@ -77,6 +77,7 @@ class JsonData(private val jsonElement: JsonElement) {
     }
 
     fun <T> getObjectOrNull(clazz: Class<T>): T? {
+        if (getAsJsonString().isBlank()) return null
         return try {
             gson.fromJson(getAsJsonString(), clazz)
         } catch (ex: Exception) {
