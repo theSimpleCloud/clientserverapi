@@ -138,12 +138,12 @@ class JsonData(private val jsonElement: JsonElement) {
             return fromJsonString(GSON.toJson(any))
         }
 
-        fun fromJsonFile(path: String): JsonData {
+        fun fromJsonFile(path: String): JsonData? {
             return fromJsonFile(File(path))
         }
 
-        fun fromJsonFile(file: File): JsonData {
-            if (!file.exists()) return JsonData()
+        fun fromJsonFile(file: File): JsonData? {
+            if (!file.exists()) return null
             return fromJsonString(loadFile(file))
         }
 
