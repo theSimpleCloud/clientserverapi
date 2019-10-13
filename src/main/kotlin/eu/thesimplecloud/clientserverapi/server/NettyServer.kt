@@ -34,7 +34,7 @@ import io.netty.util.concurrent.EventExecutor
 import org.reflections.Reflections
 
 
-class NettyServer<T: IConnectedClientValue>(private val host: String, private val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
+class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
 
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null

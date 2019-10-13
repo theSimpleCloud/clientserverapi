@@ -34,7 +34,7 @@ import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.collections.ArrayList
 
-class NettyClient(private val host: String, private val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
+class NettyClient(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
     private lateinit var eventExecutor: EventExecutor
     private val sendQueue: Queue<eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket> = LinkedBlockingQueue()
