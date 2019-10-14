@@ -5,6 +5,7 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySy
 import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.ConnectionPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
 import io.netty.util.concurrent.EventExecutor
+import io.netty.util.concurrent.GlobalEventExecutor
 
 interface ICommunicationBootstrap : IBootstrap {
 
@@ -24,14 +25,9 @@ interface ICommunicationBootstrap : IBootstrap {
     fun getDirectorySyncManager(): IDirectorySyncManager
 
     /**
-     * Returns the [EventExecutor]
-     */
-    fun getEventExecutor(): EventExecutor
-
-    /**
      * Returns a new [IConnectionPromise]
      */
-    fun <T> newPromise(): IConnectionPromise<T> = ConnectionPromise(getEventExecutor())
+    fun <T> newPromise(): IConnectionPromise<T> = ConnectionPromise(GlobalEventExecutor.INSTANCE)
 
     /**
      * Returns a new [IConnectionPromise]

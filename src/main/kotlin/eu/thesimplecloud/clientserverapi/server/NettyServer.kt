@@ -31,6 +31,7 @@ import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientMana
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
 import io.netty.util.concurrent.EventExecutor
+import io.netty.util.concurrent.GlobalEventExecutor
 import org.reflections.Reflections
 
 
@@ -39,7 +40,6 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null
     private var eventExecutorGroup: EventExecutorGroup? = null
-    private lateinit var eventExecutor: EventExecutor
     val packetManager = PacketManager()
     val packetResponseManager = PacketResponseManager()
     val clientManager = ClientManager(this)
@@ -80,7 +80,6 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
         })
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true)
         val channelFuture = bootstrap.bind(host, port)
-        this.eventExecutor = channelFuture.channel().eventLoop()
         channelFuture.addListener { future ->
             if (future.isSuccess) {
                 listening = true
@@ -110,8 +109,6 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
 
     override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
-
-    override fun getEventExecutor(): EventExecutor = this.eventExecutor
 
     override fun isActive(): Boolean = this.active
 

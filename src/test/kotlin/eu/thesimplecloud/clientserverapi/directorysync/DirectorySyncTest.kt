@@ -21,14 +21,14 @@ class DirectorySyncTest {
 
     @Test(timeout = 7000)
     fun test(){
-        nettyServer.registerPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
+        nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyServer.start()
         }
         while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
-        nettyClient.addPacketsPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
+        nettyClient.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyClient.start()
         }
@@ -49,14 +49,14 @@ class DirectorySyncTest {
         directorySync.syncDirectory(nettyClient)
         Thread.sleep(1100)
         //test1
-        Assert.assertEquals("test1", JsonData.fromJsonFile(File(otherSideDir, "json1.json")).getString("first"))
-        Assert.assertEquals("test2", JsonData.fromJsonFile(File(otherSideDir, "json2.json")).getString("second"))
+        Assert.assertEquals("test1", JsonData.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
+        Assert.assertEquals("test2", JsonData.fromJsonFile(File(otherSideDir, "json2.json"))?.getString("second"))
 
         JsonData().append("first", "test5").saveAsFile(file1)
         file2.delete()
         Thread.sleep(3600)
         //test2
-        Assert.assertEquals("test5", JsonData.fromJsonFile(File(otherSideDir, "json1.json")).getString("first"))
+        Assert.assertEquals("test5", JsonData.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
         Assert.assertFalse(File(otherSideDir, "json2.json").exists())
         Thread.sleep(300)
     }
@@ -67,6 +67,8 @@ class DirectorySyncTest {
         FileUtils.deleteDirectory(File("syncFolderOtherSide/"))
     }
 
-    */
+     */
+
+
 
 }
