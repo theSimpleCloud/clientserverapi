@@ -13,6 +13,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommun
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.IPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.WrappedResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files

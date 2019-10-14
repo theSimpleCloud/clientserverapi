@@ -23,7 +23,7 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
             } else {
                 runBlocking {
                     val packet = wrappedPacket.packet.handle(it)
-                    val id = when (packet){
+                    val id = when (packet) {
                         null -> -1
                         is ObjectPacket<*> -> -2
                         is JsonPacket -> -1

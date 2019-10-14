@@ -6,10 +6,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 interface IPacketResponseHandler<T : Any> {
 
     companion object {
-        private val NULL_HANDLER = object : IPacketResponseHandler<Any> {
-            override fun handleResponse(packet: IPacket): Any? {
-                return null
-            }
+        private val NULL_HANDLER = object: IPacketResponseHandler<Any> {
+            override fun handleResponse(packet: IPacket): Any? = null
         }
 
         fun <T : Any> getNullHandler() = NULL_HANDLER as IPacketResponseHandler<T>

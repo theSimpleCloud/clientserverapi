@@ -7,6 +7,8 @@ import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.IPacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.WrappedResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.IPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
@@ -32,6 +34,11 @@ class PacketDecoder(private val packetManager: PacketManager, private val packet
             -2 -> {
                 val wrappedResponseHandler = packetResponseManager.getResponseHandler(packetData.uniqueId)
                 wrappedResponseHandler ?: throw IllegalStateException("No ResponseHandler was available for packet by id : " + packetData.uniqueId)
+                if (wrappedResponseHandler.packetResponseHandler == IPacketResponseHandler.getNullHandler<Any>()) {
+                    val wrappedResponseHandler = wrappedResponseHandler as WrappedResponseHandler<Any>
+                    wrappedResponseHandler.packetResponseHandler = ObjectPacketResponseHandler.getNullHandler<Any>()
+                } else {
+                }
                 val packetResponseHandler = wrappedResponseHandler.packetResponseHandler as? ObjectPacketResponseHandler
                         ?: throw IllegalStateException("Received ObjectPacket as response but the response handler was no ObjectPacketResponseHandler: " + packetData.uniqueId)
                 val objectPacket = ObjectPacket.getNewEmptyObjectPacket(packetResponseHandler.type)
