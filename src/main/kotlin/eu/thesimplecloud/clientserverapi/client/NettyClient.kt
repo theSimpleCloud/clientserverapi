@@ -30,6 +30,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import io.netty.util.concurrent.EventExecutor
 import org.reflections.Reflections
+import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.collections.ArrayList
@@ -49,6 +50,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
     init {
         packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
+        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
     }
 
     override fun start() {
@@ -111,8 +113,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     override fun getHost(): String = host
 
 
-    fun addPacketsPackage(vararg packages: String) {
-        if (running) throw PacketException("Can't register packets when client is started.")
+    override fun addPacketsByPackage(vararg packages: String) {
+        check(!running) { "Can't register packets when client is started." }
         packetPackages.addAll(packages)
     }
 

@@ -9,6 +9,11 @@ import io.netty.util.concurrent.EventExecutor
 interface ICommunicationBootstrap : IBootstrap {
 
     /**
+     * Registers all packets in the specified packages
+     */
+    fun addPacketsByPackage(vararg packages: String)
+
+    /**
      * Returns the [ITransferFileManager] to transfer files
      */
     fun getTransferFileManager(): ITransferFileManager

@@ -50,6 +50,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
+        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
     }
 
     override fun start(){
@@ -92,7 +93,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
 
     }
 
-    override fun registerPacketsByPackage(vararg packages: String){
+    override fun addPacketsByPackage(vararg packages: String){
         packages.forEach {packageName ->
             val reflections = Reflections(packageName)
             val allClasses = reflections.getSubTypesOf(IPacket::class.java).filter { it != JsonPacket::class.java && it != BytePacket::class.java }

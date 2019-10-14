@@ -8,11 +8,6 @@ import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnecte
 interface INettyServer<T : IConnectedClientValue> : ICommunicationBootstrap {
 
     /**
-     * Registers all packets in the specified packages
-     */
-    fun registerPacketsByPackage(vararg packages: String)
-
-    /**
      * Returns the [IClientManager] for this server
      */
     fun getClientManager(): IClientManager<T>
