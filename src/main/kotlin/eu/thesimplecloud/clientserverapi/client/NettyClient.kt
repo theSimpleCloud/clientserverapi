@@ -21,17 +21,14 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
-import io.netty.util.concurrent.EventExecutor
-import io.netty.util.concurrent.GlobalEventExecutor
 import org.reflections.Reflections
-import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.collections.ArrayList
@@ -119,7 +116,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         packetPackages.forEach { packageName ->
             val reflections = Reflections(packageName)
             val allClasses = reflections.getSubTypesOf(IPacket::class.java).filter { it != JsonPacket::class.java && it != BytePacket::class.java }
-            val promises = ArrayList<IConnectionPromise<Int>>()
+            val promises = ArrayList<ICommunicationPromise<Int>>()
             allClasses.forEach { packetClass ->
                 val packetName = packetClass.simpleName
                 val packetPromise = sendQuery(PacketOutGetPacketId(packetName), ObjectPacketResponseHandler(Int::class.java))

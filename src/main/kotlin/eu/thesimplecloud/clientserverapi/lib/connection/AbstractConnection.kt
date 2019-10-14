@@ -9,8 +9,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.ConnectionPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.IPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.WrappedResponseHandler
@@ -23,9 +22,9 @@ import java.util.concurrent.TimeoutException
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 
-    override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): IConnectionPromise<T> {
+    override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): ICommunicationPromise<T> {
         val uniqueId = UUID.randomUUID()
-        val packetPromise = this.newPromise<T>()
+        val packetPromise = getCommunicationBootstrap().newPromise<T>()
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
         val idFromPacket = packetManager.getIdFromPacket(packet)
         if (idFromPacket == null) {
@@ -53,11 +52,11 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         getChannel()?.writeAndFlush(wrappedPacket)?.syncUninterruptibly()
     }
 
-    override fun sendFile(file: File, savePath: String): IConnectionPromise<Unit> {
+    override fun sendFile(file: File, savePath: String): ICommunicationPromise<Unit> {
         val transferUuid = UUID.randomUUID()
         val fileBytes = Files.readAllBytes(file.toPath())
         var bytes = fileBytes.size
-        val packetPromise = this.newPromise<Unit>()
+        val packetPromise = getCommunicationBootstrap().newPromise<Unit>()
         GlobalScope.launch {
             while (bytes != 0) {
                 when {

@@ -2,9 +2,8 @@ package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
-import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.ConnectionPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
-import io.netty.util.concurrent.EventExecutor
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
 import io.netty.util.concurrent.GlobalEventExecutor
 
 interface ICommunicationBootstrap : IBootstrap {
@@ -25,14 +24,14 @@ interface ICommunicationBootstrap : IBootstrap {
     fun getDirectorySyncManager(): IDirectorySyncManager
 
     /**
-     * Returns a new [IConnectionPromise]
+     * Returns a new [ICommunicationPromise]
      */
-    fun <T> newPromise(): IConnectionPromise<T> = ConnectionPromise(GlobalEventExecutor.INSTANCE)
+    fun <T> newPromise(): ICommunicationPromise<T> = CommunicationPromise(GlobalEventExecutor.INSTANCE)
 
     /**
-     * Returns a new [IConnectionPromise]
+     * Returns a new [ICommunicationPromise]
      */
-    fun <T> newSucceededPromise(value: T): IConnectionPromise<T> {
+    fun <T> newSucceededPromise(value: T): ICommunicationPromise<T> {
         val promise = newPromise<T>()
         promise.setSuccess(value)
         return promise

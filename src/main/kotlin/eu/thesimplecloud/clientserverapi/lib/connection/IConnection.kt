@@ -5,8 +5,7 @@ import io.netty.channel.Channel
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.client.INettyClient
-import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.ConnectionPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
 import java.io.File
 import java.lang.IllegalStateException
 import java.net.InetSocketAddress
@@ -39,22 +38,14 @@ interface IConnection : IPacketSender {
      * @param file the file to send
      * @param savePath the path where the file should be saved
      */
-    fun sendFile(file: File, savePath: String): IConnectionPromise<Unit>
-
-    /**
-     * Returns a new [IConnectionPromise] associated with this connection.
-     */
-    fun <T> newPromise(): IConnectionPromise<T> {
-        getChannel() ?: throw IllegalStateException("Can not create promise when connection is not connected.")
-        return ConnectionPromise(getChannel()!!.eventLoop())
-    }
+    fun sendFile(file: File, savePath: String): ICommunicationPromise<Unit>
 
     /**
      * Closes this [IConnection]
      */
-    fun closeConnection(): IConnectionPromise<Unit> {
+    fun closeConnection(): ICommunicationPromise<Unit> {
         if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Can not close closed connection.")
-        val connectionPromise = newPromise<Unit>()
+        val connectionPromise = getCommunicationBootstrap().newPromise<Unit>()
         getChannel()?.close()?.addListener { connectionPromise.trySuccess(Unit) }
         return connectionPromise
     }
