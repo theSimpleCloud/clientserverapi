@@ -9,6 +9,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.Connection
 import eu.thesimplecloud.clientserverapi.lib.packet.connectionpromise.IConnectionPromise
 import java.io.File
 import java.lang.IllegalStateException
+import java.net.InetSocketAddress
 
 interface IConnection : IPacketSender {
 
@@ -31,7 +32,7 @@ interface IConnection : IPacketSender {
      * [INettyServer] when this connection is instantiated on the server side
      * [INettyClient] when this connection is instantiated on the client side
      */
-    fun getCommunicationBootstrap() : ICommunicationBootstrap
+    fun getCommunicationBootstrap(): ICommunicationBootstrap
 
     /**
      * Sends a file via this connection
@@ -49,13 +50,21 @@ interface IConnection : IPacketSender {
     }
 
     /**
-     * Closes this connection
+     * Closes this [IConnection]
      */
     fun closeConnection(): IConnectionPromise<Unit> {
         if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Can not close closed connection.")
         val connectionPromise = newPromise<Unit>()
         getChannel()?.close()?.addListener { connectionPromise.trySuccess(Unit) }
         return connectionPromise
+    }
+
+    /**
+     * Returns the host of this [IConnection] or null if the [IConnection] is not open.
+     */
+    fun getHost(): String? {
+        if (!isOpen()) return null
+        return (getChannel()!!.remoteAddress() as InetSocketAddress).hostString
     }
 
 
