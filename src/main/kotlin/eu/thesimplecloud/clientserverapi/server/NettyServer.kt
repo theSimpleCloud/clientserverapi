@@ -25,6 +25,7 @@ import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
@@ -95,7 +96,11 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     override fun addPacketsByPackage(vararg packages: String){
         packages.forEach {packageName ->
             val reflections = Reflections(packageName)
-            val allClasses = reflections.getSubTypesOf(IPacket::class.java).filter { it != JsonPacket::class.java && it != BytePacket::class.java }
+            val allClasses = reflections.getSubTypesOf(IPacket::class.java)
+                    .union(reflections.getSubTypesOf(JsonPacket::class.java))
+                    .union(reflections.getSubTypesOf(ObjectPacket::class.java))
+                    .union(reflections.getSubTypesOf(BytePacket::class.java))
+                    .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
             allClasses.forEach { packet ->
                 this.packetManager.registerPacket(this.packetManager.getUnusedId(), packet)
             }

@@ -27,6 +27,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandl
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import org.reflections.Reflections
 import java.util.*
@@ -115,7 +116,11 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     fun registerPacketsByPackage() {
         packetPackages.forEach { packageName ->
             val reflections = Reflections(packageName)
-            val allClasses = reflections.getSubTypesOf(IPacket::class.java).filter { it != JsonPacket::class.java && it != BytePacket::class.java }
+            val allClasses = reflections.getSubTypesOf(IPacket::class.java)
+                    .union(reflections.getSubTypesOf(JsonPacket::class.java))
+                    .union(reflections.getSubTypesOf(ObjectPacket::class.java))
+                    .union(reflections.getSubTypesOf(BytePacket::class.java))
+                    .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
             val promises = ArrayList<ICommunicationPromise<Int>>()
             allClasses.forEach { packetClass ->
                 val packetName = packetClass.simpleName

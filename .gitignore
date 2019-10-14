@@ -34,7 +34,7 @@ gradle-app.setting
 .idea/
 *.ipr
 *.iws
-out/
+/out/
 .idea_modules/
 
 ##########################
