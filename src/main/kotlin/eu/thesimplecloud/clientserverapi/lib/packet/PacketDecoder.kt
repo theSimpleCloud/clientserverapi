@@ -20,6 +20,7 @@ import java.lang.IllegalStateException
 class PacketDecoder(private val packetManager: PacketManager, private val packetResponseManager: IPacketResponseManager) : ByteToMessageDecoder() {
 
 
+    @Synchronized
     override fun decode(ctx: ChannelHandlerContext, byteBuf: ByteBuf, out: MutableList<Any>) {
         val receivedString = ByteBufStringHelper.nextString(byteBuf)
         val jsonData = JsonData.fromJsonString(receivedString)

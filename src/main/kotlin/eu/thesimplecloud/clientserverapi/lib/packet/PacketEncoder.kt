@@ -8,6 +8,7 @@ import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 
 class PacketEncoder : MessageToByteEncoder<WrappedPacket>() {
 
+    @Synchronized
     override fun encode(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket, byteBuf: ByteBuf) {
         val jsonData = JsonData()
         val packetData = PacketData(wrappedPacket.packetData.uniqueId, wrappedPacket.packetData.id)
