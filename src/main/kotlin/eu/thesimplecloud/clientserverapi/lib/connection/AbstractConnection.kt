@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 
+    @Synchronized
     override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): ICommunicationPromise<T> {
         val uniqueId = UUID.randomUUID()
         val packetPromise = getCommunicationBootstrap().newPromise<T>()
@@ -49,11 +50,13 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
      * Sends a packet
      * Can be overridden to prevent packet sending when the connection is not open yet.
      */
+    @Synchronized
     open fun sendPacket(wrappedPacket: WrappedPacket) {
         if (!isOpen()) throw IOException("Connection is not open.")
         getChannel()?.writeAndFlush(wrappedPacket)?.syncUninterruptibly()
     }
 
+    @Synchronized
     override fun sendFile(file: File, savePath: String): ICommunicationPromise<Unit> {
         val transferUuid = UUID.randomUUID()
         val fileBytes = Files.readAllBytes(file.toPath())

@@ -9,7 +9,7 @@ import org.junit.Test
 
 class ObjectPacketTest {
 
-    /*
+
 
     @Test(timeout = 2000)
     fun test() {
@@ -29,10 +29,11 @@ class ObjectPacketTest {
         while (!nettyClient.isOpen()) {
             Thread.sleep(10)
         }
-        nettyClient.sendQuery(PacketIOMessage()).syncUninterruptibly()
+        nettyClient.sendQuery(PacketIOMessage()).syncUninterruptibly().addResultListener { println("test" + it.toString()) }
+        Thread.sleep(200)
     }
 
 
-     */
+
 
 }
