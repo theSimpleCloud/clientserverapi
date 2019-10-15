@@ -9,7 +9,7 @@ import org.junit.Test
 
 class ObjectPacketTest {
 
-
+    /*
 
     @Test(timeout = 2000)
     fun test() {
@@ -33,7 +33,7 @@ class ObjectPacketTest {
         Thread.sleep(200)
     }
 
-
+     */
 
 
 }
