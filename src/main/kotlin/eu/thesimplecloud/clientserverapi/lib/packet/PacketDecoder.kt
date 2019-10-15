@@ -37,7 +37,6 @@ class PacketDecoder(private val packetManager: PacketManager, private val packet
                 if (wrappedResponseHandler.packetResponseHandler == IPacketResponseHandler.getNullHandler<Any>()) {
                     val wrappedResponseHandler = wrappedResponseHandler as WrappedResponseHandler<Any>
                     wrappedResponseHandler.packetResponseHandler = ObjectPacketResponseHandler.getNullHandler<Any>()
-                } else {
                 }
                 val packetResponseHandler = wrappedResponseHandler.packetResponseHandler as? ObjectPacketResponseHandler
                         ?: throw IllegalStateException("Received ObjectPacket as response but the response handler was no ObjectPacketResponseHandler: " + packetData.uniqueId)
