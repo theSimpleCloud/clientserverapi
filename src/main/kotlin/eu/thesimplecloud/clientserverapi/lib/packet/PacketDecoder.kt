@@ -14,6 +14,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import eu.thesimplecloud.clientserverapi.utils.printEmptyLine
 import java.lang.IllegalStateException
 
 class PacketDecoder(private val packetManager: PacketManager, private val packetResponseManager: IPacketResponseManager) : ByteToMessageDecoder() {
