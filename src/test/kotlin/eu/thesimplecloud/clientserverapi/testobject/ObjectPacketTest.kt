@@ -30,6 +30,10 @@ class ObjectPacketTest {
             Thread.sleep(10)
         }
         nettyClient.sendQuery(PacketIOMessage()).syncUninterruptibly().addResultListener { println("test: " + it.toString()) }
+        nettyClient.sendQuery(PacketIOMessage()).syncUninterruptibly().addResultListener { println("test: " + it.toString()) }
+        nettyClient.sendQuery(PacketIOMessage()).syncUninterruptibly().addResultListener { println("test: " + it.toString()) }
+        nettyClient.sendQuery(PacketIOMessage()).syncUninterruptibly().addResultListener { println("test: " + it.toString()) }
+        nettyClient.sendQuery(PacketIOMessage()).syncUninterruptibly().addResultListener { println("test: " + it.toString()) }
         Thread.sleep(200)
     }
 

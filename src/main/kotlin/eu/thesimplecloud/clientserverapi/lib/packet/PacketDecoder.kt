@@ -7,6 +7,7 @@ import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.IPacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.WrappedResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.IPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
@@ -34,6 +35,8 @@ class PacketDecoder(private val packetManager: PacketManager, private val packet
                 jsonPacket
             }
             -2 -> {
+                packetResponseManager as PacketResponseManager
+                println(packetResponseManager.packetResponseHandlers)
                 val wrappedResponseHandler = packetResponseManager.getResponseHandler(packetData.uniqueId)
                 wrappedResponseHandler ?: throw IllegalStateException("No ResponseHandler was available for packet by id : " + packetData.uniqueId)
                 if (wrappedResponseHandler.packetResponseHandler == IPacketResponseHandler.getNullHandler<Any>()) {
