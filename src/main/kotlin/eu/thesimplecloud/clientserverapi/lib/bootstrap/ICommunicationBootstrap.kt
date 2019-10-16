@@ -29,11 +29,38 @@ interface ICommunicationBootstrap : IBootstrap {
     fun <T> newPromise(): ICommunicationPromise<T> = CommunicationPromise(GlobalEventExecutor.INSTANCE)
 
     /**
-     * Returns a new [ICommunicationPromise]
+     * Returns a new succeeded [ICommunicationPromise]
      */
     fun <T> newSucceededPromise(value: T): ICommunicationPromise<T> {
         val promise = newPromise<T>()
         promise.setSuccess(value)
+        return promise
+    }
+
+    /**
+     * Returns a new failed [ICommunicationPromise]
+     */
+    fun <T> newFailedPromise(throwable: Throwable): ICommunicationPromise<T> {
+        val promise = newPromise<T>()
+        promise.setFailure(throwable)
+        return promise
+    }
+
+    /**
+     * Returns a new failed [ICommunicationPromise] containing [Unit]
+     */
+    fun newSucceededUnitPromise(): ICommunicationPromise<Unit> {
+        val promise = newPromise<Unit>()
+        promise.setSuccess(Unit)
+        return promise
+    }
+
+    /**
+     * Returns a new failed [ICommunicationPromise] containing [Unit]
+     */
+    fun newFailedUnitPromise(throwable: Throwable): ICommunicationPromise<Unit> {
+        val promise = newPromise<Unit>()
+        promise.setFailure(throwable)
         return promise
     }
 
