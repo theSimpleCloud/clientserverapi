@@ -1,5 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.packetresponse
 
+import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.utils.printEmptyLine
@@ -8,7 +9,7 @@ import kotlin.collections.HashMap
 
 class PacketResponseManager : IPacketResponseManager {
 
-    private val packetResponseHandlers = HashMap<UUID, WrappedResponseHandler<out Any>>()
+    private val packetResponseHandlers = Maps.newConcurrentMap<UUID, WrappedResponseHandler<out Any>>()
 
 
     @Synchronized
