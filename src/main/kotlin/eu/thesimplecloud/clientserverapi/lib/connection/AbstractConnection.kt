@@ -29,6 +29,7 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         val uniqueId = UUID.randomUUID()
         val packetPromise = getCommunicationBootstrap().newPromise<T>()
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
+        println("registered for packet: ${packet::class.java.simpleName}, handler: ${packetResponseHandler::class.java.simpleName}, id: $uniqueId")
         val idFromPacket = packetManager.getIdFromPacket(packet)
         if (idFromPacket == null) {
             GlobalScope.launch {
