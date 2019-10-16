@@ -15,5 +15,6 @@ class PacketEncoder : MessageToByteEncoder<WrappedPacket>() {
         jsonData.append("data", packetData)
         ByteBufStringHelper.writeString(byteBuf, jsonData.getAsJsonString())
         wrappedPacket.packet.write(byteBuf)
+        println("sent packet : ${wrappedPacket.packet::class.java.simpleName}")
     }
 }
