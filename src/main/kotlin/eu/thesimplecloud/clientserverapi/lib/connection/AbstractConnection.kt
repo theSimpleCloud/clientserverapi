@@ -56,7 +56,11 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
     @Synchronized
     open fun sendPacket(wrappedPacket: WrappedPacket) {
         if (!isOpen()) throw IOException("Connection is not open.")
-        getChannel()?.writeAndFlush(wrappedPacket)?.syncUninterruptibly()
+        if (getChannel()!!.eventLoop().inEventLoop()) {
+            getChannel()?.writeAndFlush(wrappedPacket)
+        } else {
+            getChannel()?.eventLoop()?.execute { getChannel()?.writeAndFlush(wrappedPacket) }
+        }
     }
 
     @Synchronized
