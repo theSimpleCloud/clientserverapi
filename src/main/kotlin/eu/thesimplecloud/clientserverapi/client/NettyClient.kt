@@ -88,14 +88,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         running = false
     }
 
-    override fun sendPacket(wrappedPacket: WrappedPacket) {
-        //if (wrappedPacket.packet !is PacketOutGetPacketId && (!isOpen() || !packetIdsSynchronized)) {
-        //    sendQueue.add(wrappedPacket)
-        //    return
-        //}
-        super.sendPacket(wrappedPacket)
-    }
-
     override fun getChannel(): Channel? = channel
 
     override fun isActive(): Boolean = running
