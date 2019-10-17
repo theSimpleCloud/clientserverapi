@@ -25,6 +25,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommun
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -36,7 +37,7 @@ import kotlin.collections.ArrayList
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
-    private val sendQueue: Queue<eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket> = LinkedBlockingQueue()
+    private val sendQueue: Queue<WrappedPacket> = LinkedBlockingQueue()
     private var channel: Channel? = null
     private var workerGroup: NioEventLoopGroup? = null
 
@@ -87,11 +88,11 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         running = false
     }
 
-    override fun sendPacket(wrappedPacket: eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket) {
-        if (wrappedPacket.packet !is PacketOutGetPacketId && (!isOpen() || !packetIdsSynchronized)) {
-            sendQueue.add(wrappedPacket)
-            return
-        }
+    override fun sendPacket(wrappedPacket: WrappedPacket) {
+        //if (wrappedPacket.packet !is PacketOutGetPacketId && (!isOpen() || !packetIdsSynchronized)) {
+        //    sendQueue.add(wrappedPacket)
+        //    return
+        //}
         super.sendPacket(wrappedPacket)
     }
 
