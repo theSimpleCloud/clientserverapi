@@ -35,8 +35,6 @@ class PacketDecoder(private val packetManager: PacketManager, private val packet
                 jsonPacket
             }
             -2 -> {
-                packetResponseManager as PacketResponseManager
-                println("keys while: ${packetData.uniqueId}" + packetResponseManager.packetResponseHandlers.keys)
                 val wrappedResponseHandler = packetResponseManager.getResponseHandler(packetData.uniqueId)
                 wrappedResponseHandler ?: throw IllegalStateException("No ResponseHandler was available for packet by id : " + packetData.uniqueId)
                 if (wrappedResponseHandler.packetResponseHandler == IPacketResponseHandler.getNullHandler<Any>()) {

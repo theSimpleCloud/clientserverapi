@@ -29,21 +29,18 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         val uniqueId = UUID.randomUUID()
         val packetPromise = getCommunicationBootstrap().newPromise<T>()
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
-        println("registered for packet: ${packet::class.java.simpleName}, handler: ${packetResponseHandler::class.java.simpleName}, id: $uniqueId")
         val idFromPacket = packetManager.getIdFromPacket(packet)
         if (idFromPacket == null) {
             GlobalScope.launch {
                 val packetIdCompletableFuture = packetManager.getPacketIdCompletableFuture(packet::class.java)
                 try {
                     val id = packetIdCompletableFuture.get(1, TimeUnit.SECONDS)
-                    println("sending packet after waiting for id: ${packet::class.java.simpleName}")
                     sendPacket(WrappedPacket(PacketData(uniqueId, id), packet))
                 } catch (ex: TimeoutException) {
                     throw PacketException("No id for packet ${packet::class.java.simpleName} was available after one second. It looks like this packet was not registered.")
                 }
             }
         } else {
-            println("sending packet direct: ${packet::class.java.simpleName}")
             this.sendPacket(WrappedPacket(PacketData(uniqueId, idFromPacket), packet))
         }
         return packetPromise
