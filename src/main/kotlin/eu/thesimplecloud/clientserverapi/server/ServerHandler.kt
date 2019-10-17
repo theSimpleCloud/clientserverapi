@@ -15,6 +15,7 @@ import java.lang.IllegalArgumentException
 
 class ServerHandler(private val nettyServer: NettyServer<*>, private val connectionHandler: IConnectionHandler) : SimpleChannelInboundHandler<WrappedPacket>() {
 
+
     override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
         nettyServer.clientManager.getClient(ctx)?.let {
             it as AbstractConnection
