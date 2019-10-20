@@ -13,6 +13,11 @@ interface IClientManager<T : IConnectedClientValue> {
     fun getClient(ctx: ChannelHandlerContext): IConnectedClient<T>?
 
     /**
+     * Returns the [IConnectedClient] found by the specified [clientValue]
+     */
+    fun getClientByClientValue(clientValue: IConnectedClientValue): IConnectedClient<T>?
+
+    /**
      * Sends the specified packet to all connected clients.
      */
     fun sendPacketToAllClients(packet: IPacket) = getClients().forEach { it.sendQuery(packet) }

@@ -8,7 +8,6 @@ import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnecte
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
 class ClientManager<T : IConnectedClientValue>(private val nettyServer: NettyServer<T>) : IClientManager<T> {
-
     private val clients = ArrayList<IConnectedClient<T>>()
 
     fun addClient(ctx: ChannelHandlerContext): IConnection {
@@ -18,6 +17,8 @@ class ClientManager<T : IConnectedClientValue>(private val nettyServer: NettySer
     }
 
     override fun getClient(ctx: ChannelHandlerContext) = this.clients.firstOrNull { it.getChannel() == ctx.channel() }
+
+    override fun getClientByClientValue(clientValue: IConnectedClientValue): IConnectedClient<T>? = this.clients.firstOrNull { it.getClientValue() == clientValue }
 
     fun removeClient(ctx: ChannelHandlerContext): IConnection? {
         val client = getClient(ctx)
