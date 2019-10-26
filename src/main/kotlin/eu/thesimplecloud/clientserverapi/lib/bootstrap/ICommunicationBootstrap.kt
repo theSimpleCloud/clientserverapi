@@ -26,7 +26,7 @@ interface ICommunicationBootstrap : IBootstrap {
     /**
      * Returns a new [ICommunicationPromise]
      */
-    fun <T> newPromise(): ICommunicationPromise<T> = CommunicationPromise(GlobalEventExecutor.INSTANCE)
+    fun <T> newPromise(): ICommunicationPromise<T> = CommunicationPromise()
 
     /**
      * Returns a new succeeded [ICommunicationPromise]

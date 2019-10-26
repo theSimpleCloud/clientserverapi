@@ -37,11 +37,11 @@ import kotlin.collections.ArrayList
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
-    private val sendQueue: Queue<WrappedPacket> = LinkedBlockingQueue()
     private var channel: Channel? = null
     private var workerGroup: NioEventLoopGroup? = null
 
     private var packetIdsSynchronized: Boolean = false
+    private var packetIdsSyncPromise: ICommunicationPromise<Unit> = newPromise()
     private var packetPackages: MutableList<String> = ArrayList()
     private var running = false
     private val transferFileManager = TransferFileManager()
@@ -130,11 +130,11 @@ class NettyClient(private val host: String, val port: Int, private val connectio
             GlobalScope.launch {
                 promises.forEach { it.syncUninterruptibly() }
                 packetIdsSynchronized = true
-                sendQueue.forEach { sendPacket(it) }
-                sendQueue.clear()
+                packetIdsSyncPromise.trySuccess(Unit)
             }
         }
     }
 
+    override fun getPacketIdsSyncPromise(): ICommunicationPromise<Unit> = this.packetIdsSyncPromise
 
 }

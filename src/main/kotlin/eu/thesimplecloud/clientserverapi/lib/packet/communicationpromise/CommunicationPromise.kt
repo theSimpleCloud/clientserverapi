@@ -2,7 +2,7 @@ package eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise
 
 import io.netty.util.concurrent.*
 
-class CommunicationPromise<T>(val eventExecutor: EventExecutor): DefaultPromise<T>(), ICommunicationPromise<T> {
+class CommunicationPromise<T>: DefaultPromise<T>(), ICommunicationPromise<T> {
 
     override fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T> {
         addCommunicationPromiseListener(object: ICmmunicationPromiseListener<T> {
@@ -73,7 +73,7 @@ class CommunicationPromise<T>(val eventExecutor: EventExecutor): DefaultPromise<
     }
 
     override fun executor(): EventExecutor {
-        return this.eventExecutor
+        return GlobalEventExecutor.INSTANCE
     }
 
     override fun setSuccess(result: T): ICommunicationPromise<T> {
