@@ -114,11 +114,12 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))
                     .union(reflections.getSubTypesOf(BytePacket::class.java))
                     .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
-            val promises = ArrayList<ICommunicationPromise<Int>>()
+            val promises = ArrayList<ICommunicationPromise<Unit>>()
             allClasses.forEach { packetClass ->
                 val packetName = packetClass.simpleName
                 val packetPromise = sendQuery(PacketOutGetPacketId(packetName), ObjectPacketResponseHandler(Int::class.java))
-                promises.add(packetPromise)
+                val unitPromise = newPromise<Unit>()
+                promises.add(unitPromise)
                 packetPromise.addResultListener { id ->
                     if (id != null) {
                         println("Registered packet ${packetClass.simpleName}, id:$id")
@@ -127,6 +128,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                     } else {
                         throw PacketException("Can't register packet ${packetClass.simpleName} : No Server-Packet found")
                     }
+                    unitPromise.trySuccess(Unit)
                 }
             }
             GlobalScope.launch {
