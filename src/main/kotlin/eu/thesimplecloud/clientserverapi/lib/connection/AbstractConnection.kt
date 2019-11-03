@@ -35,13 +35,13 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
                 val packetIdCompletableFuture = packetManager.getPacketIdCompletableFuture(packet::class.java)
                 try {
                     val id = packetIdCompletableFuture.get(1, TimeUnit.SECONDS)
-                    sendPacket(WrappedPacket(PacketData(uniqueId, id), packet))
+                    sendPacket(WrappedPacket(PacketData(uniqueId, id, packet::class.java.simpleName), packet))
                 } catch (ex: TimeoutException) {
                     throw PacketException("No id for packet ${packet::class.java.simpleName} was available after one second. It looks like this packet was not registered.")
                 }
             }
         } else {
-            this.sendPacket(WrappedPacket(PacketData(uniqueId, idFromPacket), packet))
+            this.sendPacket(WrappedPacket(PacketData(uniqueId, idFromPacket, packet::class.java.simpleName), packet))
         }
         return packetPromise
     }

@@ -36,13 +36,13 @@ class PacketDecoder(private val packetManager: PacketManager, private val packet
             }
             -2 -> {
                 val wrappedResponseHandler = packetResponseManager.getResponseHandler(packetData.uniqueId)
-                wrappedResponseHandler ?: throw IllegalStateException("No ResponseHandler was available for packet by id : " + packetData.uniqueId)
+                wrappedResponseHandler ?: throw IllegalStateException("No ResponseHandler was available for packet by uuid : " + packetData.uniqueId + ", sentPacketName: ${packetData.sentPacketName}")
                 if (wrappedResponseHandler.packetResponseHandler == IPacketResponseHandler.getNullHandler<Any>()) {
                     val wrappedResponseHandler = wrappedResponseHandler as WrappedResponseHandler<Any>
                     wrappedResponseHandler.packetResponseHandler = ObjectPacketResponseHandler.getNullHandler<Any>()
                 }
                 val packetResponseHandler = wrappedResponseHandler.packetResponseHandler as? ObjectPacketResponseHandler
-                        ?: throw IllegalStateException("Received ObjectPacket as response but the response handler was no ObjectPacketResponseHandler: " + packetData.uniqueId)
+                        ?: throw IllegalStateException("Received ObjectPacket as response but the response handler was no ObjectPacketResponseHandler: " + packetData.uniqueId + ", sentPacketName: ${packetData.sentPacketName}")
                 val objectPacket = ObjectPacket.getNewEmptyObjectPacket(packetResponseHandler.type)
                 objectPacket.read(byteBuf)
                 objectPacket
@@ -54,7 +54,7 @@ class PacketDecoder(private val packetManager: PacketManager, private val packet
             }
             else -> {
                 val packetClass: Class<out IPacket>? = packetManager.getPacketClassById(packetData.id)
-                packetClass ?: throw PacketException("Can't find packet by id ${packetData.id}")
+                packetClass ?: throw PacketException("Can't find packet by id ${packetData.id}, sentPacketName: ${packetData.sentPacketName}")
                 val packet = packetClass.newInstance()
                 packet.read(byteBuf)
                 packet

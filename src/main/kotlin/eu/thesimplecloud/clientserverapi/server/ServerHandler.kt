@@ -31,9 +31,9 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
                         is BytePacket -> -3
                         else -> throw IllegalArgumentException("Returned packet was not null, ObjectPacket, JsonPacket or BytePacket. It looks like a custom packet.")
                     }
-                    val responseData = PacketData(wrappedPacket.packetData.uniqueId, id)
-                    it.sendPacket(WrappedPacket(responseData, packet
-                            ?: JsonPacket.getNewEmptyJsonPacket()))
+                    val packetToSend = packet ?: JsonPacket.getNewEmptyJsonPacket()
+                    val responseData = PacketData(wrappedPacket.packetData.uniqueId, id, packetToSend::class.java.simpleName)
+                    it.sendPacket(WrappedPacket(responseData, packetToSend))
                 }
             }
         }

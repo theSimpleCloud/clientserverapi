@@ -11,7 +11,7 @@ class PacketEncoder : MessageToByteEncoder<WrappedPacket>() {
     @Synchronized
     override fun encode(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket, byteBuf: ByteBuf) {
         val jsonData = JsonData()
-        val packetData = PacketData(wrappedPacket.packetData.uniqueId, wrappedPacket.packetData.id)
+        val packetData = PacketData(wrappedPacket.packetData.uniqueId, wrappedPacket.packetData.id, wrappedPacket.packet::class.java.simpleName)
         jsonData.append("data", packetData)
         ByteBufStringHelper.writeString(byteBuf, jsonData.getAsJsonString())
         wrappedPacket.packet.write(byteBuf)
