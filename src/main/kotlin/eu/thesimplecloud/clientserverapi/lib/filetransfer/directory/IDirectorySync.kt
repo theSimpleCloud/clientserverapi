@@ -1,6 +1,7 @@
 package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
 import java.io.File
 
 interface IDirectorySync {
@@ -13,8 +14,9 @@ interface IDirectorySync {
     /**
      * Synchronizes the content of the directory with the content of the directory on the other side.
      * It also will update all changes to the specified connection
+     * @return a promise that will be called when the directory was sent.
      */
-    fun syncDirectory(connection: IConnection)
+    fun syncDirectory(connection: IConnection): ICommunicationPromise<Unit>
 
     /**
      * Removes the connection from the list with connections to sync the directory to.
