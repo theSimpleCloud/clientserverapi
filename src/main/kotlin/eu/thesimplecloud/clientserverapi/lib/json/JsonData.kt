@@ -111,7 +111,7 @@ class JsonData(private val jsonElement: JsonElement) {
         }
         try {
             val fileOutputStream = FileOutputStream(file)
-            fileOutputStream.write(getJsonStringAsBytes())
+            fileOutputStream.write(getExcludedJsonStringAsBytes())
             fileOutputStream.flush()
             fileOutputStream.close()
         } catch (e: IOException) {
@@ -126,13 +126,22 @@ class JsonData(private val jsonElement: JsonElement) {
         return gson.toJson(jsonElement)
     }
 
+    fun getAsExcludedJsonString(): String {
+        return GSON_EXCLUDE.toJson(jsonElement)
+    }
+
     fun getJsonStringAsBytes(): ByteArray {
         return getAsJsonString().toByteArray(StandardCharsets.UTF_8)
     }
 
+    fun getExcludedJsonStringAsBytes(): ByteArray {
+        return getAsExcludedJsonString().toByteArray(StandardCharsets.UTF_8)
+    }
+
     companion object {
 
-        val GSON = GsonBuilder().setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
+        val GSON = GsonBuilder().setPrettyPrinting().serializeNulls().create()
+        val GSON_EXCLUDE = GsonBuilder().setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
 
         fun fromObject(any: Any): JsonData {
             return fromJsonString(GSON.toJson(any))
