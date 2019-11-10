@@ -9,7 +9,7 @@ class PacketInGetPacketId : eu.thesimplecloud.clientserverapi.lib.packet.packett
 
     override suspend fun handle(connection: IConnection): IPacket? {
         connection as IConnectedClient<*>
-        val packetName = this.value ?: return null
+        val packetName = this.value ?: return getNewObjectPacketWithContent(-1)
         val packetClass = when {
             packetName.startsWith("PacketOut") -> {
                 val newName = packetName.replaceFirst("PacketOut", "PacketIn")
@@ -21,7 +21,7 @@ class PacketInGetPacketId : eu.thesimplecloud.clientserverapi.lib.packet.packett
             }
             else ->  connection.getNettyServer().getPacketManager().getPacketClassByName(packetName)
         }
-        packetClass ?: return null
+        packetClass ?: return getNewObjectPacketWithContent(-1)
 
         val idFromPacket = connection.getNettyServer().getPacketManager().getIdFromPacket(packetClass)
         if (idFromPacket != null) {
