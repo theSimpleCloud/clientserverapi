@@ -27,7 +27,7 @@ class PacketInGetPacketId : eu.thesimplecloud.clientserverapi.lib.packet.packett
         if (idFromPacket != null) {
             return getNewObjectPacketWithContent(idFromPacket)
         }
-        return null
+        return getNewObjectPacketWithContent(-1)
 
     }
 }

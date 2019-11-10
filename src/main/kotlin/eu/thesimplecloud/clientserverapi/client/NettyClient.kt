@@ -120,7 +120,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 val packetPromise = sendQuery(PacketOutGetPacketId(packetName), ObjectPacketResponseHandler(Int::class.java))
                 val unitPromise = newPromise<Unit>()
                 packetPromise.addResultListener { id ->
-                    if (id != null) {
+                    if (id == -1) {
                         println("Registered packet ${packetClass.simpleName}, id:$id")
                         packetManager.registerPacket(id, packetClass)
                         println("Packet by class ${packetClass.simpleName} id: " + packetManager.getIdFromPacket(packetClass))
