@@ -7,7 +7,11 @@ class CommunicationPromise<T>: DefaultPromise<T>(), ICommunicationPromise<T> {
     override fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T> {
         addCommunicationPromiseListener(object: ICmmunicationPromiseListener<T> {
             override fun operationComplete(future: ICommunicationPromise<T>) {
-                listener(future.get())
+                try {
+                    listener(future.get())
+                } catch (e: Exception) {
+                    throw e
+                }
             }
         })
         return this
@@ -16,7 +20,11 @@ class CommunicationPromise<T>: DefaultPromise<T>(), ICommunicationPromise<T> {
     override fun addCommunicationPromiseListener(listener: (ICommunicationPromise<T>) -> Unit): ICommunicationPromise<T> {
         addCommunicationPromiseListener(object: ICmmunicationPromiseListener<T> {
             override fun operationComplete(future: ICommunicationPromise<T>) {
-                listener(future)
+                try {
+                    listener(future)
+                } catch (e: Exception) {
+                    throw e
+                }
             }
         })
         return this

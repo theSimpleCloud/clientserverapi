@@ -5,7 +5,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
-class PacketInGetPacketId : eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket<String>(String::class.java) {
+class PacketInGetPacketId : ObjectPacket<String>(String::class.java) {
 
     override suspend fun handle(connection: IConnection): IPacket? {
         connection as IConnectedClient<*>
