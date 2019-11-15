@@ -31,6 +31,8 @@ import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManag
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
+import io.netty.handler.logging.LogLevel
+import io.netty.handler.logging.LoggingHandler
 import io.netty.util.concurrent.EventExecutor
 import io.netty.util.concurrent.GlobalEventExecutor
 import org.reflections.Reflections
@@ -73,9 +75,9 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
                 pipeline.addLast(PacketDecoder(packetManager, packetResponseManager))
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder())
-
                 //pipeline.addLast("streamer", ChunkedWriteHandler())
                 pipeline.addLast(eventExecutorGroup, "serverHandler", ServerHandler(instance, connectionHandler))
+                pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
 
             }
         })

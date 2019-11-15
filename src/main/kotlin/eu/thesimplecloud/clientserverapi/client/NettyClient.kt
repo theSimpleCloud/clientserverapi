@@ -30,6 +30,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import io.netty.handler.logging.LogLevel
+import io.netty.handler.logging.LoggingHandler
 import org.reflections.Reflections
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -69,8 +71,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 pipeline.addLast(PacketDecoder(packetManager, packetResponseManager)) // add without name, name auto generated
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder()) // add without name, name auto generated
-
                 pipeline.addLast(ClientHandler(instance, connectionHandler))
+                pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
             }
 
         })
