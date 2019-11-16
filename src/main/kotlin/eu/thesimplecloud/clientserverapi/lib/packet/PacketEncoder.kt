@@ -15,6 +15,5 @@ class PacketEncoder : MessageToByteEncoder<WrappedPacket>() {
         jsonData.append("data", packetData)
         ByteBufStringHelper.writeString(byteBuf, jsonData.getAsJsonString())
         wrappedPacket.packet.write(byteBuf)
-        println("sending packet ${wrappedPacket.packet::class.java.simpleName} uniqueId:${packetData.uniqueId}")
     }
 }

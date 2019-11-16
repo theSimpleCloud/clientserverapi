@@ -9,6 +9,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 
 class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnectionHandler) : SimpleChannelInboundHandler<WrappedPacket>() {
@@ -17,7 +19,7 @@ class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnec
         if (wrappedPacket.packetData.isResponse()) {
             nettyClient.packetResponseManager.incomingPacket(wrappedPacket)
         } else {
-            runBlocking {
+            GlobalScope.launch {
                 val packet = wrappedPacket.packet.handle(nettyClient)
                 val id = when (packet) {
                     null -> -1
