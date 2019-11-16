@@ -26,6 +26,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketRespons
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAll
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -125,18 +126,14 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                     if (id != null && id != -1) {
                         packetManager.registerPacket(id, packetClass)
                     } else {
-                        throw PacketException("Can't register packet ${packetClass.simpleName} : No Server-Packet found")
+                        throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
                     }
                     unitPromise.trySuccess(Unit)
                 }
                 promises.add(unitPromise)
             }
         }
-        GlobalScope.launch {
-            promises.forEach { it.syncUninterruptibly() }
-            packetIdsSynchronized = true
-            packetIdsSyncPromise.trySuccess(Unit)
-        }
+        packetIdsSyncPromise.combineAll(promises)
     }
 
     override fun getPacketIdsSyncPromise(): ICommunicationPromise<Unit> = this.packetIdsSyncPromise

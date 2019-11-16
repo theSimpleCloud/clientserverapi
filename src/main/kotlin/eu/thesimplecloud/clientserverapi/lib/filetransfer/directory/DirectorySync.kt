@@ -1,12 +1,13 @@
 package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIODeleteFile
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOCreateDirectory
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIODeleteFile
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAll
 import org.apache.commons.io.FileUtils
+import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
 
 class DirectorySync(private val directory: File, private val toDirectory: String) : IDirectorySync {
@@ -27,13 +28,9 @@ class DirectorySync(private val directory: File, private val toDirectory: String
     override fun syncDirectory(connection: IConnection): ICommunicationPromise<Unit> {
         val returnPromise = CommunicationPromise<Unit>()
         this.receivers.add(connection)
-        val promises = getAllFiles().map { file -> connection.sendFile(file, getFilePathOnOtherSide(file)) }
-        GlobalScope.launch {
-            promises.forEach {
-                it.syncUninterruptibly()
-            }
-            returnPromise.trySuccess(Unit)
-        }
+        val directoryPromises = getAllDirectories().map { dir -> connection.sendQuery(PacketIOCreateDirectory(dir.path)) }
+        val filePromises = getAllFiles().map { file -> connection.sendFile(file, getFilePathOnOtherSide(file)) }
+        returnPromise.combineAll(filePromises.union(directoryPromises).toList())
         return returnPromise
     }
 
@@ -67,6 +64,19 @@ class DirectorySync(private val directory: File, private val toDirectory: String
         val updatedFiles = getAllFiles().filter { file -> file.lastModified() > this.lastUpdate || !this.allFilesLastUpdate.contains(file) }
         val deletedFiles = this.allFilesLastUpdate.filter { file -> !file.exists() }
         return updatedFiles.union(deletedFiles)
+    }
+
+    private fun getAllDirectories(): Collection<File> {
+        val acceptAllFilter = object : IOFileFilter {
+            override fun accept(file: File?): Boolean {
+                return true
+            }
+
+            override fun accept(dir: File?, name: String?): Boolean {
+                return true
+            }
+        }
+        return FileUtils.listFilesAndDirs(directory, acceptAllFilter, acceptAllFilter).filter { it.isDirectory }
     }
 
     private fun getAllFiles(): Collection<File> {
