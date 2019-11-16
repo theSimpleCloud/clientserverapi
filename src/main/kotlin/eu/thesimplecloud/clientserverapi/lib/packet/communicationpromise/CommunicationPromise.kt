@@ -3,6 +3,7 @@ package eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.CompletableFuture
 
 class CommunicationPromise<T> : DefaultPromise<T>(), ICommunicationPromise<T> {
 

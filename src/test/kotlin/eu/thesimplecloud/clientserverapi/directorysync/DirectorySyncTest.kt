@@ -46,8 +46,8 @@ class DirectorySyncTest {
         JsonData().append("second", "test2").saveAsFile(file2)
 
         val directorySync = nettyClient.getCommunicationBootstrap().getDirectorySyncManager().createDirectorySync(file, "syncFolderOtherSide/")
-        directorySync.syncDirectory(nettyClient)
-        Thread.sleep(1100)
+        val promise = directorySync.syncDirectory(nettyClient)
+        promise.syncUninterruptibly()
         //test1
         Assert.assertEquals("test1", JsonData.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
         Assert.assertEquals("test2", JsonData.fromJsonFile(File(otherSideDir, "json2.json"))?.getString("second"))
@@ -67,7 +67,7 @@ class DirectorySyncTest {
         FileUtils.deleteDirectory(File("syncFolderOtherSide/"))
     }
 
-     */
+    */
 
 
 
