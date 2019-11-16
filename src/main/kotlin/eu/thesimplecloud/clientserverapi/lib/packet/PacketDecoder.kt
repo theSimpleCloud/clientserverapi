@@ -60,7 +60,7 @@ class PacketDecoder(private val packetManager: PacketManager, private val packet
                 packet
             }
         }
-        println("received packet " + packet::class.java.simpleName)
+        println("received packet " + packet::class.java.simpleName + " uniqueId:${packetData.uniqueId}")
         out.add(WrappedPacket(packetData, packet))
     }
 

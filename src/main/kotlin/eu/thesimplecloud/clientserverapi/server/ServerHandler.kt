@@ -20,6 +20,7 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
         nettyServer.clientManager.getClient(ctx)?.let {
             it as AbstractConnection
             if (wrappedPacket.packetData.isResponse()) {
+                println("handling response for packet with uniqueId ${wrappedPacket.packetData.uniqueId}")
                 nettyServer.packetResponseManager.incomingPacket(wrappedPacket)
             } else {
                 runBlocking {
