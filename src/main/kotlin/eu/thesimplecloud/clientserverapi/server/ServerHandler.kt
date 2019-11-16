@@ -17,6 +17,9 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
 
 
     override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
+        if (nettyServer.clientManager.getClient(ctx) == null) {
+            println("ConnectedClient is null packet uuid: ${wrappedPacket.packetData.uniqueId}")
+        }
         nettyServer.clientManager.getClient(ctx)?.let {
             it as AbstractConnection
             if (wrappedPacket.packetData.isResponse()) {
