@@ -1,16 +1,18 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise
 
 import io.netty.util.concurrent.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-class CommunicationPromise<T>: DefaultPromise<T>(), ICommunicationPromise<T> {
+class CommunicationPromise<T> : DefaultPromise<T>(), ICommunicationPromise<T> {
 
     override fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T> {
-        addCommunicationPromiseListener(object: ICmmunicationPromiseListener<T> {
+        addCommunicationPromiseListener(object : ICmmunicationPromiseListener<T> {
             override fun operationComplete(future: ICommunicationPromise<T>) {
                 try {
                     listener(future.get())
                 } catch (e: Exception) {
-                    throw e
+                    GlobalScope.launch { throw e }
                 }
             }
         })
@@ -18,12 +20,12 @@ class CommunicationPromise<T>: DefaultPromise<T>(), ICommunicationPromise<T> {
     }
 
     override fun addCommunicationPromiseListener(listener: (ICommunicationPromise<T>) -> Unit): ICommunicationPromise<T> {
-        addCommunicationPromiseListener(object: ICmmunicationPromiseListener<T> {
+        addCommunicationPromiseListener(object : ICmmunicationPromiseListener<T> {
             override fun operationComplete(future: ICommunicationPromise<T>) {
                 try {
                     listener(future)
                 } catch (e: Exception) {
-                    throw e
+                    GlobalScope.launch { throw e }
                 }
             }
         })
@@ -88,7 +90,6 @@ class CommunicationPromise<T>: DefaultPromise<T>(), ICommunicationPromise<T> {
         super.setSuccess(result)
         return this
     }
-
 
 
 }
