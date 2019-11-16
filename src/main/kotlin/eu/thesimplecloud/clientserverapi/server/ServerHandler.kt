@@ -20,6 +20,7 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
         if (nettyServer.clientManager.getClient(ctx) == null) {
             println("ConnectedClient is null packet uuid: ${wrappedPacket.packetData.uniqueId}")
         }
+        println("handling packet wih id: ${wrappedPacket.packetData.uniqueId} id: ${wrappedPacket.packetData.id}")
         nettyServer.clientManager.getClient(ctx)?.let {
             it as AbstractConnection
             if (wrappedPacket.packetData.isResponse()) {
