@@ -73,10 +73,13 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
                     else -> {
                         val sendBytes = fileBytes.copyOfRange(fileBytes.size - bytes, fileBytes.size)
                         bytes = 0
+                        println("[AbstractConnection] sending last file packet")
                         sendQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
+                        println("[AbstractConnection] last file packet sent")
                     }
                 }
             }
+            println("[AbstractConnection] sending file transfer complete packet")
             sendQuery(PacketIOFileTransferComplete(transferUuid, savePath)).syncUninterruptibly()
             packetPromise.trySuccess(Unit)
         }
