@@ -13,7 +13,10 @@ class TransferFile {
     }
 
     fun buildToFile(file: File) {
-        FileUtils.writeByteArrayToFile(file, byteList.toByteArray())
+        if (file.isDirectory)
+            file.mkdirs()
+        else
+            FileUtils.writeByteArrayToFile(file, byteList.toByteArray())
     }
 
 }

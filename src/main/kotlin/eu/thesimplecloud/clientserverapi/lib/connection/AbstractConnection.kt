@@ -66,12 +66,12 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
             while (bytes != 0) {
                 when {
                     bytes > 5000 -> {
-                        val sendBytes = fileBytes.copyOfRange(fileBytes.size - bytes, (fileBytes.size - bytes) + 5000)
+                        val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, (fileBytes.size - bytes) + 5000)
                         bytes -= 50000
                         sendQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
                     }
                     else -> {
-                        val sendBytes = fileBytes.copyOfRange(fileBytes.size - bytes, fileBytes.size)
+                        val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, fileBytes.size)
                         bytes = 0
                         sendQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
                     }
