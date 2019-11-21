@@ -1,5 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.CommunicationPromise
@@ -22,6 +23,11 @@ interface ICommunicationBootstrap : IBootstrap {
      * Returns the [IDirectorySyncManager] to synchronize directories between server and client
      */
     fun getDirectorySyncManager(): IDirectorySyncManager
+
+    /**
+     * Returns the [IDirectoryWatchManager] to listen for directory changes
+     */
+    fun getDirectoryWatchManager(): IDirectoryWatchManager
 
     /**
      * Returns a new [ICommunicationPromise]

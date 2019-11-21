@@ -8,20 +8,21 @@ class TransferFileManager : ITransferFileManager {
 
     private val transferFiles = HashMap<UUID, TransferFile>()
 
-    private fun getTransferFile(uuid: UUID): TransferFile{
-        val transferFile = transferFiles[uuid] ?: TransferFile()
-        if (!transferFiles.containsKey(uuid)) transferFiles[uuid] = transferFile
-        return transferFile
+    override fun creteFileTransfer(uuid: UUID, savePath: String) {
+        val transferFile = TransferFile(uuid, savePath)
+        this.transferFiles[uuid] = transferFile
     }
 
     override fun addBytesToTransferFile(uuid: UUID, byteArray: Array<Byte>) {
-        getTransferFile(uuid).addBytes(byteArray)
+        val transferFile = transferFiles[uuid] ?: return
+        transferFile.addBytes(byteArray)
     }
 
-    override fun fileTransferComplete(uuid: UUID, savePath: String){
-        getTransferFile(uuid).buildToFile(File(savePath))
+    override fun fileTransferComplete(uuid: UUID) {
         transferFiles.remove(uuid)
     }
+
+
 
 
 }

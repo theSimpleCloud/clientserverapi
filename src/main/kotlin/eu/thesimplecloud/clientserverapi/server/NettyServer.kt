@@ -1,5 +1,7 @@
 package eu.thesimplecloud.clientserverapi.server
 
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.TransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
@@ -48,7 +50,8 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     val clientManager = ClientManager(this)
     private var active = false
     private val transferFileManager = TransferFileManager()
-    private val directorySyncManager = DirectorySyncManager()
+    private val directoryWatchManager = DirectoryWatchManager()
+    private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private var listening = false
 
     init {
@@ -59,7 +62,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     override fun start(){
         check(!this.active) { "Can't start server multiple times." }
         this.active = true
-        directorySyncManager.startSyncThread()
+        directoryWatchManager.startThread()
         this.bossGroup = NioEventLoopGroup()
         this.workerGroup = NioEventLoopGroup()
         val bootstrap = ServerBootstrap()
@@ -116,6 +119,8 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
 
     override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
+
+    override fun getDirectoryWatchManager(): IDirectoryWatchManager = this.directoryWatchManager
 
     override fun isActive(): Boolean = this.active
 

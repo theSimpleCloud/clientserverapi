@@ -22,7 +22,6 @@ class DirectoryWatch(val directoryWatchManager: IDirectoryWatchManager, private 
         addWatchListener(object : IDirectoryWatchListener {
             override fun fileCreated(file: File) {
                 if (file.isDirectory) {
-                    println("creating sub dir")
                     createSubDirectoryWatch(file)
                 }
             }
@@ -31,7 +30,6 @@ class DirectoryWatch(val directoryWatchManager: IDirectoryWatchManager, private 
             }
 
             override fun fileDeleted(file: File) {
-                println("removing sub dir")
                 removeSubDirectoryWatch(file)
             }
 

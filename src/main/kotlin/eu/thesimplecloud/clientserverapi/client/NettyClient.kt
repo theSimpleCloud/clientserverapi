@@ -25,6 +25,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommun
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAll
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
@@ -48,7 +50,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private var packetPackages: MutableList<String> = ArrayList()
     private var running = false
     private val transferFileManager = TransferFileManager()
-    private val directorySyncManager = DirectorySyncManager()
+    private val directoryWatchManager = DirectoryWatchManager()
+    private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
 
     init {
         packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
@@ -58,7 +61,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     override fun start() {
         check(!this.running) { "Can't start server multiple times." }
         running = true
-        directorySyncManager.startSyncThread()
+        directoryWatchManager.startThread()
         val instance = this
         workerGroup = NioEventLoopGroup()
         val bootstrap = Bootstrap()
@@ -98,6 +101,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
 
     override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
+
+    override fun getDirectoryWatchManager(): IDirectoryWatchManager = this.directoryWatchManager
 
     override fun getCommunicationBootstrap() = this
 

@@ -2,21 +2,30 @@ package eu.thesimplecloud.clientserverapi.lib.filetransfer
 
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.io.FileNotFoundException
+import java.nio.file.Files
+import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
-class TransferFile {
+class TransferFile(val uuid: UUID, savePath: String) {
 
-    private val byteList = ArrayList<Byte>()
+    val file = File(savePath)
 
-    fun addBytes(byteArray: Array<Byte>) {
-        byteList.addAll(byteArray)
+    init {
+        file.delete()
+        file.parentFile?.mkdirs()
     }
 
-    fun buildToFile(file: File) {
-        if (file.isDirectory)
-            file.mkdirs()
-        else
-            FileUtils.writeByteArrayToFile(file, byteList.toByteArray())
+    fun addBytes(byteArray: Array<Byte>) {
+        while(true) {
+            try {
+                FileUtils.writeByteArrayToFile(file, byteArray.toByteArray(), true)
+                break
+            } catch (e: FileNotFoundException) {
+                Thread.sleep(3)
+            }
+        }
     }
 
 }

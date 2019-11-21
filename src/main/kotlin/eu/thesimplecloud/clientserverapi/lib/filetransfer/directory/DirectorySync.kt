@@ -1,7 +1,12 @@
 package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOCreateDirectory
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatch
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchListener
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIODeleteFile
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
@@ -13,17 +18,30 @@ import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.StandardWatchEventKinds
 
-class DirectorySync(private val directory: File, private val toDirectory: String) : IDirectorySync {
-
-    private var allFilesLastUpdate: Collection<File> = emptyList()
-
-    private var lastUpdate: Long = 0
+class DirectorySync(private val directory: File, private val toDirectory: String, directoryWatchManager: IDirectoryWatchManager) : IDirectorySync {
 
     private val receivers = ArrayList<IConnection>()
 
+    val directoryWatch: IDirectoryWatch = directoryWatchManager.createDirectoryWatch(directory)
+
     init {
         require(this.directory.isDirectory) { "Specified file must be a directory." }
-        updateFiles()
+
+        directoryWatch.addWatchListener(object : IDirectoryWatchListener {
+            override fun fileCreated(file: File) {
+                receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
+            }
+
+            override fun fileModified(file: File) {
+                receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
+            }
+
+            override fun fileDeleted(file: File) {
+                val otherSidePath = getFilePathOnOtherSide(file)
+                receivers.forEach { connection -> connection.sendQuery(PacketIODeleteFile(otherSidePath)) }
+            }
+
+        })
     }
 
     override fun getDirectory(): File = this.directory
@@ -31,45 +49,20 @@ class DirectorySync(private val directory: File, private val toDirectory: String
     override fun syncDirectory(connection: IConnection): ICommunicationPromise<Unit> {
         val returnPromise = CommunicationPromise<Unit>()
         this.receivers.add(connection)
-        val filePromises = getAllFiles().map { file -> connection.sendFile(file, getFilePathOnOtherSide(file)) }
+        val filePromises = getAllFiles().map { file -> sendFileOrDirectory(file, connection) }
         returnPromise.combineAll(filePromises)
         return returnPromise
     }
 
+    private fun sendFileOrDirectory(file: File, connection: IConnection): ICommunicationPromise<Unit> {
+        return if (file.isDirectory)
+            connection.sendQuery(PacketIOCreateDirectory(getFilePathOnOtherSide(file)))
+        else
+            connection.sendFile(file, getFilePathOnOtherSide(file))
+    }
+
     override fun syncNoLonger(connection: IConnection) {
         this.receivers.remove(connection)
-    }
-
-    fun test() {
-
-    }
-
-
-    fun updateFiles(){
-        this.lastUpdate = System.currentTimeMillis()
-        this.allFilesLastUpdate = getAllFiles()
-    }
-
-    fun syncChanges(){
-        for (file in getChangedFiles()){
-            val otherSidePath = getFilePathOnOtherSide(file)
-            if (!file.exists()){
-                this.receivers.forEach { connection -> connection.sendQuery(PacketIODeleteFile(otherSidePath)) }
-                continue
-            }
-            this.receivers.forEach { connection -> connection.sendFile(file, otherSidePath) }
-        }
-    }
-
-    fun syncChangesAndUpdateFiles(){
-        syncChanges()
-        updateFiles()
-    }
-
-    fun getChangedFiles(): Collection<File> {
-        val updatedFiles = getAllFiles().filter { file -> file.lastModified() > this.lastUpdate || !this.allFilesLastUpdate.contains(file) }
-        val deletedFiles = this.allFilesLastUpdate.filter { file -> !file.exists() }
-        return updatedFiles.union(deletedFiles)
     }
 
     private fun getAllFiles(): Collection<File> {

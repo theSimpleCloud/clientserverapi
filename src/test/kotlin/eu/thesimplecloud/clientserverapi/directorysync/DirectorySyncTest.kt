@@ -6,11 +6,11 @@ import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.server.NettyServer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
+import java.nio.file.Files
 
 class DirectorySyncTest {
 
@@ -19,7 +19,7 @@ class DirectorySyncTest {
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
     var nettyClient = NettyClient("127.0.0.1", 1919)
 
-    @Test(timeout = 7000)
+    @Test()
     fun test(){
         nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
@@ -47,7 +47,10 @@ class DirectorySyncTest {
 
         val directorySync = nettyClient.getCommunicationBootstrap().getDirectorySyncManager().createDirectorySync(file, "syncFolderOtherSide/")
         val promise = directorySync.syncDirectory(nettyClient)
+        val ms = System.currentTimeMillis()
         promise.syncUninterruptibly()
+        println("took ${System.currentTimeMillis() - ms}ms")
+        Thread.sleep(1000)
         //test1
         Assert.assertEquals("test1", JsonData.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
         Assert.assertEquals("test2", JsonData.fromJsonFile(File(otherSideDir, "json2.json"))?.getString("second"))

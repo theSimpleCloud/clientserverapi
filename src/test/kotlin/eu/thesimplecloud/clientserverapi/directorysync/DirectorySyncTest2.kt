@@ -10,12 +10,12 @@ import java.io.File
 
 class DirectorySyncTest2 {
 
-    /*
+
 
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
     var nettyClient = NettyClient("127.0.0.1", 1919)
 
-    @Test(timeout = 7000)
+    @Test()
     fun test() {
         nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
@@ -38,11 +38,13 @@ class DirectorySyncTest2 {
         val directorySync = nettyServer.getDirectorySyncManager().createDirectorySync(dir, "templatesOtherSide/")
         val clientOnServerSide = this.nettyServer.clientManager.getClients()[0]
         val promise = directorySync.syncDirectory(clientOnServerSide)
-        promise.syncUninterruptibly()
+        while(true) {
+
+        }
 
     }
 
-    */
+
 
 
 }
