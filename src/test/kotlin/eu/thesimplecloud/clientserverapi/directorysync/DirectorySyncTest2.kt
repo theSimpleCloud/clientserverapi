@@ -10,7 +10,7 @@ import java.io.File
 
 class DirectorySyncTest2 {
 
-
+    /*
 
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
     var nettyClient = NettyClient("127.0.0.1", 1919)
@@ -45,6 +45,6 @@ class DirectorySyncTest2 {
     }
 
 
-
+    */
 
 }
