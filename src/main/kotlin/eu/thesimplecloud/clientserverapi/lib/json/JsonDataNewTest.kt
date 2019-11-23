@@ -7,36 +7,35 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 
-
-class JsonData(private val jsonElement: JsonElement) {
+class JsonDataNewTest(private val jsonElement: JsonElement) {
 
 
     private var gson: Gson = GSON
 
     constructor() : this(JsonObject())
 
-    fun append(property: String, value: String?): JsonData {
+    fun append(property: String, value: String?): JsonDataNewTest {
         if (jsonElement !is JsonObject)
             throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
         jsonElement.addProperty(property, value)
         return this
     }
 
-    fun append(property: String, value: Any?): JsonData {
+    fun append(property: String, value: Any?): JsonDataNewTest {
         if (jsonElement !is JsonObject)
             throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
         jsonElement.add(property, gson.toJsonTree(value))
         return this
     }
 
-    fun append(property: String, value: Number?): JsonData {
+    fun append(property: String, value: Number?): JsonDataNewTest {
         if (jsonElement !is JsonObject)
             throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
         jsonElement.addProperty(property, value)
         return this
     }
 
-    fun append(property: String, value: Boolean?): JsonData {
+    fun append(property: String, value: Boolean?): JsonDataNewTest {
         if (jsonElement !is JsonObject)
             throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
         jsonElement.addProperty(property, value)
@@ -140,47 +139,39 @@ class JsonData(private val jsonElement: JsonElement) {
         val GSON = GsonBuilder().setPrettyPrinting().serializeNulls().create()
         val GSON_EXCLUDE = GsonBuilder().setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
 
-        fun fromObject(any: Any): JsonData {
-            return fromJsonString(GSON.toJson(any))
+        fun fromObject(any: Any): JsonDataNewTest {
+            return fromJsonString(GSON.toJson(any), GSON)
         }
 
-        fun fromObjectWithGsonExclude(any: Any): JsonData {
-            return fromJsonStringWithGsonExclude(GSON_EXCLUDE.toJson(any))
+        fun fromObjectWithGsonExclude(any: Any): JsonDataNewTest {
+            return fromJsonString(GSON_EXCLUDE.toJson(any), GSON_EXCLUDE)
         }
 
-        fun fromJsonFile(path: String): JsonData? {
+        fun fromJsonFile(path: String): JsonDataNewTest? {
             return fromJsonFile(File(path))
         }
 
-        fun fromJsonFile(file: File): JsonData? {
+        fun fromJsonFile(file: File): JsonDataNewTest? {
             if (!file.exists()) return null
-            return fromJsonString(loadFile(file))
+            return fromJsonString(loadFile(file), GSON)
         }
 
-        fun fromInputStream(inputStream: InputStream): JsonData {
-            return fromJsonString(loadFromInputStream(inputStream))
+        fun fromInputStream(inputStream: InputStream): JsonDataNewTest {
+            return fromJsonString(loadFromInputStream(inputStream), GSON)
         }
 
-        fun fromInputStreamWithGsonExclude(inputStream: InputStream): JsonData {
-            return fromJsonStringWithGsonExclude(loadFromInputStream(inputStream))
+        fun fromInputStreamWithGsonExclude(inputStream: InputStream): JsonDataNewTest {
+            return fromJsonString(loadFromInputStream(inputStream), GSON_EXCLUDE)
         }
 
-        fun fromJsonString(string: String): JsonData {
-            return this.fromJsonString0(string, GSON)
-        }
-
-        fun fromJsonStringWithGsonExclude(string: String): JsonData {
-            return this.fromJsonString0(string, GSON_EXCLUDE)
-        }
-
-        fun fromJsonString0(string: String, gson: Gson): JsonData {
+        fun fromJsonString(string: String, gson: Gson): JsonDataNewTest {
             try {
                 val jsonObject = gson.fromJson(string, JsonObject::class.java)
-                return JsonData(jsonObject)
+                return JsonDataNewTest(jsonObject)
             } catch (ex: Exception) {
                 try {
                     val jsonPrimitive = gson.fromJson(string, JsonPrimitive::class.java)
-                    return JsonData(jsonPrimitive)
+                    return JsonDataNewTest(jsonPrimitive)
                 } catch (ex: Exception) {
                     throw IllegalArgumentException("Can't parse string $string", ex)
                 }
