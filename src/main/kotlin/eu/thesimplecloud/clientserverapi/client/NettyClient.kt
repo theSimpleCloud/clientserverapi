@@ -27,8 +27,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandl
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
-import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAll
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.completeWhenAllCompleted
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -138,7 +137,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 promises.add(unitPromise)
             }
         }
-        packetIdsSyncPromise.combineAll(promises)
+        packetIdsSyncPromise.completeWhenAllCompleted(promises)
     }
 
     override fun getPacketIdsSyncPromise(): ICommunicationPromise<Unit> = this.packetIdsSyncPromise

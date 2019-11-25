@@ -7,12 +7,47 @@ import io.netty.util.concurrent.Promise
 
 interface ICommunicationPromise<T> : Promise<T> {
 
+    /**
+     * Combines this promise with the specified promise.
+     * @return a new promise that is completed once both (this promise and the specified one) are completed.
+     */
+    fun combine(communicationPromise: ICommunicationPromise<*>): ICommunicationPromise<Unit>
+
+    /**
+     * Combines this promise with the specified promises.
+     * @return a new promise that is completed once this and all specified promises are completed.
+     */
+    fun combineAll(promises: List<ICommunicationPromise<*>>): ICommunicationPromise<Unit>
+
+    /**
+     * Adds a failure listener to this promise.
+     * The listener will be notified when the promise fails.
+     */
+    fun addFailureListener(listener: (Throwable) -> Unit): ICommunicationPromise<T>
+
+    /**
+     * Adds a result listener to this future.
+     * The listener will be called once the result is ready.
+     * This listener will not be notified when the promise completes successfully.
+     */
     fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T>
 
-    fun addCommunicationPromiseListener(listener: (ICommunicationPromise<T>) -> Unit): ICommunicationPromise<T>
+    /**
+     * Adds a promise listener to this future.
+     * This listener will be called once the future is done
+     */
+    fun addCompleteListener(listener: (ICommunicationPromise<T>) -> Unit): ICommunicationPromise<T>
 
-    fun addCommunicationPromiseListener(listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T>
+    /**
+     * Adds a promise listener to this future.
+     * This listener will be called once the future is done
+     */
+    fun addCompleteListener(listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T>
 
+    /**
+     * Adds all specified promise listener to this future.
+     * The listeners will be called once the future is done
+     */
     fun addCommunicationPromiseListeners(vararg listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T>
 
     override fun addListener(listener: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T>

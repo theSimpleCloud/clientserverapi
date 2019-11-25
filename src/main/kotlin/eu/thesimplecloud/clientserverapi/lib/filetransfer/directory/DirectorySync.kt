@@ -1,16 +1,13 @@
 package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOCreateDirectory
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatch
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchListener
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIODeleteFile
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAll
+import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAllPromises
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
@@ -47,11 +44,9 @@ class DirectorySync(private val directory: File, private val toDirectory: String
     override fun getDirectory(): File = this.directory
 
     override fun syncDirectory(connection: IConnection): ICommunicationPromise<Unit> {
-        val returnPromise = CommunicationPromise<Unit>()
         this.receivers.add(connection)
         val filePromises = getAllFiles().map { file -> sendFileOrDirectory(file, connection) }
-        returnPromise.combineAll(filePromises)
-        return returnPromise
+        return filePromises.combineAllPromises()
     }
 
     private fun sendFileOrDirectory(file: File, connection: IConnection): ICommunicationPromise<Unit> {
