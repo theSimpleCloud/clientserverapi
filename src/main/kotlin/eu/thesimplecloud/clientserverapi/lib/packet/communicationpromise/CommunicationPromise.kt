@@ -5,7 +5,15 @@ import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class CommunicationPromise<T> : DefaultPromise<T>(), ICommunicationPromise<T> {
+class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> {
+
+    constructor(result: T): this() {
+        trySuccess(result)
+    }
+
+    constructor(throwable: Throwable): this() {
+        tryFailure(throwable)
+    }
 
     override fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T> {
         addCompleteListener { promise ->
