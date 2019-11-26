@@ -44,7 +44,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private var channel: Channel? = null
     private var workerGroup: NioEventLoopGroup? = null
 
-    private var packetIdsSynchronized: Boolean = false
     private var packetIdsSyncPromise: ICommunicationPromise<Unit> = newPromise()
     private var packetPackages: MutableList<String> = ArrayList()
     private var running = false

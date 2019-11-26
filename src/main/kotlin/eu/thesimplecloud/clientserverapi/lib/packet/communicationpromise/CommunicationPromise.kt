@@ -124,6 +124,27 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
             }
             return unitPromise
         }
+
+        /**
+         * Returns a new promise completed with the [value] or if the [value] is null one failed with the specified [exception]
+         */
+        fun <T> ofNullable(value: T?, exception: Throwable): ICommunicationPromise<T> {
+            return if (value == null) failed(exception) else of(value)
+        }
+
+        /**
+         * Returns a new promise completed with the specified [value]
+         */
+        fun <T> of(value: T): ICommunicationPromise<T> {
+            return CommunicationPromise<T>(value)
+        }
+
+        /**
+         * Returns a new promise failed with the specified [throwable]
+         */
+        fun <T> failed(throwable: Throwable): ICommunicationPromise<T> {
+            return CommunicationPromise<T>(throwable)
+        }
     }
 
 
