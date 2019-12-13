@@ -7,11 +7,11 @@ import kotlinx.coroutines.launch
 
 class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> {
 
-    constructor(result: T): this() {
+    constructor(result: T) : this() {
         trySuccess(result)
     }
 
-    constructor(throwable: Throwable): this() {
+    constructor(throwable: Throwable) : this() {
         tryFailure(throwable)
     }
 
@@ -45,6 +45,36 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
     override fun addCommunicationPromiseListeners(vararg listeners: ICmmunicationPromiseListener<T>): ICommunicationPromise<T> {
         super.addListeners(*listeners)
         return this
+    }
+
+    override fun thenAccept(predicate: (T?) -> Unit) {
+        this.addResultListener { predicate(it) }
+    }
+
+    override fun thenAcceptNonNull(predicate: (T) -> Unit) {
+        this.addResultListener { result -> result?.let { predicate(it) } }
+    }
+
+    override fun <R> then(predicate: (T?) -> R): ICommunicationPromise<R> {
+        val newPromise = CommunicationPromise<R>()
+        this.addResultListener { newPromise.trySuccess(predicate(it)) }
+        return newPromise
+    }
+
+    override fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R> {
+        val newPromise = CommunicationPromise<R>()
+        this.addResultListener { result -> result?.let { newPromise.trySuccess(predicate(it)) } }
+        return newPromise
+    }
+
+    override fun copyPromiseConfiguration(otherPromise: ICommunicationPromise<T>) {
+        otherPromise.addCompleteListener {
+            if (it.isSuccess) {
+                this.trySuccess(it.getNow())
+            } else {
+                this.tryFailure(it.cause())
+            }
+        }
     }
 
     override fun addListener(listener: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T> {
@@ -146,6 +176,4 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
             return CommunicationPromise<T>(throwable)
         }
     }
-
-
 }

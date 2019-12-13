@@ -43,6 +43,31 @@ class JsonData(private val jsonElement: JsonElement) {
         return this
     }
 
+    /**
+     * Returns the property found by the specified name
+     */
+    fun getProperty(name: String): JsonData? {
+        if (jsonElement !is JsonObject)
+            return null
+        return jsonElement[name]?.let { JsonData() }
+    }
+
+    /**
+     * Returns a [JsonData] found by the specified path
+     * The path will be split with .
+     */
+    fun getPath(path: String): JsonData? {
+        val array = path.split(".")
+        var currentJsonData: JsonData? = this
+        for (property in array) {
+            currentJsonData = currentJsonData?.getProperty(property)
+            if (currentJsonData == null) {
+                return null
+            }
+        }
+        return currentJsonData
+    }
+
     fun getInt(property: String): Int? {
         if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
         return if (!jsonElement.has(property)) null else jsonElement.get(property).asInt

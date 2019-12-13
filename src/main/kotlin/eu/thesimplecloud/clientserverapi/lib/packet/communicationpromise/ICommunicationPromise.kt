@@ -50,6 +50,33 @@ interface ICommunicationPromise<T> : Promise<T> {
      */
     fun addCommunicationPromiseListeners(vararg listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T>
 
+    /**
+     * Executed the specified [predicate] when this promise is completed successfully.
+     */
+    fun thenAccept(predicate: (T?) -> Unit)
+
+    /**
+     * Executed the specified [predicate] when this promise is completed successfully and its result is not null.
+     */
+    fun thenAcceptNonNull(predicate: (T) -> Unit)
+
+    /**
+     * Executed the specified [predicate] when this promise is completed successfully.
+     * @return a new communication promise completed with the result of the [predicate]
+     */
+    fun <R> then(predicate: (T?) -> R): ICommunicationPromise<R>
+
+    /**
+     * Executed the specified [predicate] when this promise is completed successfully and its result is not null.
+     * @return a new communication promise completed with the result of the [predicate]
+     */
+    fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R>
+
+    /**
+     * Copies the information of the specified promise to this promise when the specified promise completes.
+     */
+    fun copyPromiseConfiguration(otherPromise: ICommunicationPromise<T>)
+
     override fun addListener(listener: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T>
 
     override fun addListeners(vararg listeners: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T>

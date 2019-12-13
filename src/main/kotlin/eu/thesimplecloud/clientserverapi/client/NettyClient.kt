@@ -112,7 +112,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         packetPackages.addAll(packages)
     }
 
-    fun registerPacketsByPackage() {
+    private fun registerPacketsByPackage() {
         val promises = ArrayList<ICommunicationPromise<Unit>>()
         packetPackages.forEach { packageName ->
             val reflections = Reflections(packageName)

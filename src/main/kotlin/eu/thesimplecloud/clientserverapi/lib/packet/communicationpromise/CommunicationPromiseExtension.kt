@@ -13,3 +13,11 @@ fun ICommunicationPromise<Unit>.completeWhenAllCompleted(promises: List<ICommuni
 fun Collection<ICommunicationPromise<*>>.combineAllPromises(): ICommunicationPromise<Unit> {
     return CommunicationPromise.combineAllToUnitPromise(this)
 }
+
+fun <T> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(): ICommunicationPromise<T> {
+    val newPromise = CommunicationPromise<T>()
+    this.thenAccept { innerPromise ->
+        println("innerPromise:$innerPromise")
+        innerPromise?.let { newPromise.copyPromiseConfiguration(it) } }
+    return newPromise
+}
