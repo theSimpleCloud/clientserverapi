@@ -8,7 +8,7 @@ open class ObjectPacketResponseHandler<T : Any>(val type: Class<T>) : IPacketRes
 
     companion object {
 
-        inline fun <reified T : Any> of() = ObjectPacketResponseHandler(T::class.java)
+        inline fun <reified T : Any> new() = ObjectPacketResponseHandler(T::class.java)
 
         private val NULL_HANDLER = object : ObjectPacketResponseHandler<Any>(Any::class.java) {
             override fun handleResponse(packet: IPacket): Any? = null
