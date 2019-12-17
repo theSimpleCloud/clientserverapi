@@ -14,10 +14,15 @@ fun Collection<ICommunicationPromise<*>>.combineAllPromises(): ICommunicationPro
     return CommunicationPromise.combineAllToUnitPromise(this)
 }
 
+/**
+ * Returns a new promise that will complete when the inner promise completes.
+ * The new promise will complete with the same specifications.
+ */
 fun <T> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(): ICommunicationPromise<T> {
     val newPromise = CommunicationPromise<T>()
     this.thenAccept { innerPromise ->
-        println("innerPromise:$innerPromise")
-        innerPromise?.let { newPromise.copyPromiseConfiguration(it) } }
+        innerPromise ?: newPromise.tryFailure(KotlinNullPointerException("Failed to flatten promise: Outer promise completed with null."))
+        innerPromise?.let { newPromise.copyPromiseConfigurationOnComplete(it) }
+    }
     return newPromise
 }

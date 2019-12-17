@@ -75,7 +75,7 @@ interface ICommunicationPromise<T> : Promise<T> {
     /**
      * Copies the information of the specified promise to this promise when the specified promise completes.
      */
-    fun copyPromiseConfiguration(otherPromise: ICommunicationPromise<T>)
+    fun copyPromiseConfigurationOnComplete(otherPromise: ICommunicationPromise<T>)
 
     override fun addListener(listener: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T>
 

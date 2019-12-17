@@ -67,7 +67,7 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
         return newPromise
     }
 
-    override fun copyPromiseConfiguration(otherPromise: ICommunicationPromise<T>) {
+    override fun copyPromiseConfigurationOnComplete(otherPromise: ICommunicationPromise<T>) {
         otherPromise.addCompleteListener {
             if (it.isSuccess) {
                 this.trySuccess(it.getNow())
