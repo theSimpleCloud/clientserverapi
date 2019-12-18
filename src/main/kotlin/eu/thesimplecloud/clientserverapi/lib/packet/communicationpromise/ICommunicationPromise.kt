@@ -62,13 +62,13 @@ interface ICommunicationPromise<T> : Promise<T> {
 
     /**
      * Executed the specified [predicate] when this promise is completed successfully.
-     * @return a new communication promise completed with the result of the [predicate]
+     * @return a new communication promise completed with the result of the [predicate] or if this promise fails the returned promise will fail with the same cause.
      */
     fun <R> then(predicate: (T?) -> R): ICommunicationPromise<R>
 
     /**
      * Executed the specified [predicate] when this promise is completed successfully and its result is not null.
-     * @return a new communication promise completed with the result of the [predicate]
+     * @return a new communication promise completed with the result of the [predicate] or if this promise fails the returned promise will fail with the same cause.
      */
     fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R>
 

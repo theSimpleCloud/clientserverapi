@@ -57,13 +57,18 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
 
     override fun <R> then(predicate: (T?) -> R): ICommunicationPromise<R> {
         val newPromise = CommunicationPromise<R>()
-        this.addResultListener { newPromise.trySuccess(predicate(it)) }
+        this.addCompleteListener { if(this.isSuccess) newPromise.trySuccess(predicate(this.getNow())) else newPromise.tryFailure(this.cause())  }
         return newPromise
     }
 
     override fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R> {
         val newPromise = CommunicationPromise<R>()
-        this.addResultListener { result -> result?.let { newPromise.trySuccess(predicate(it)) } }
+        this.addCompleteListener {
+            if(this.isSuccess)
+                getNow()?.let { newPromise.trySuccess(predicate(it)) }
+            else
+                newPromise.tryFailure(this.cause())
+        }
         return newPromise
     }
 
