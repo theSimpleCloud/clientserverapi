@@ -1,4 +1,4 @@
-package eu.thesimplecloud.clientserverapi.lib.filetransfer.packets
+package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 
 import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
@@ -14,7 +14,7 @@ class PacketIOFileTransfer() : BytePacket() {
         buffer.writeBytes(byteArray)
     }
 
-    override suspend fun handle(connection: IConnection): IPacket? {
+    override suspend fun handle(connection: IConnection): Any? {
         val uuidString = ByteBufStringHelper.nextString(buffer)
         val uuid = UUID.fromString(uuidString)
         val byteArray = ByteArray(buffer.readInt())

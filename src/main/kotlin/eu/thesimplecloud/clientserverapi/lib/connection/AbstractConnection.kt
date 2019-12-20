@@ -1,8 +1,8 @@
 package eu.thesimplecloud.clientserverapi.lib.connection
 
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOFileTransfer
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOFileTransferComplete
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOCreateFileTransfer
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransfer
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransferComplete
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOCreateFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.util.QueuedFile
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -12,9 +12,11 @@ import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.IPacketResponseHandler
-import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
-import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.WrappedResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.IPacketResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -22,7 +24,6 @@ import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import kotlin.concurrent.thread
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 
@@ -33,7 +34,8 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
     val queue = LinkedBlockingQueue<QueuedFile>()
 
     @Synchronized
-    override fun <T : Any> sendQuery(packet: IPacket, packetResponseHandler: IPacketResponseHandler<T>): ICommunicationPromise<T> {
+    override fun <T : Any> sendQuery(packet: IPacket, expectedResponseClass: Class<T>): ICommunicationPromise<T> {
+        val packetResponseHandler = ObjectPacketResponseHandler(expectedResponseClass)
         val uniqueId = UUID.randomUUID()
         val packetPromise = getCommunicationBootstrap().newPromise<T>()
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
@@ -83,22 +85,22 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         val fileBytes = Files.readAllBytes(queuedFile.file.toPath())
         var bytes = fileBytes.size
         GlobalScope.launch {
-            sendQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath)).syncUninterruptibly()
+            sendUnitQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath)).syncUninterruptibly()
             while (bytes != 0) {
                 when {
                     bytes > BYTES_PER_PACKET -> {
                         val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, (fileBytes.size - bytes) + BYTES_PER_PACKET)
                         bytes -= BYTES_PER_PACKET
-                        sendQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
+                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
                     }
                     else -> {
                         val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, fileBytes.size)
                         bytes = 0
-                        sendQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
+                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
                     }
                 }
             }
-            sendQuery(PacketIOFileTransferComplete(transferUuid)).syncUninterruptibly()
+            sendUnitQuery(PacketIOFileTransferComplete(transferUuid)).syncUninterruptibly()
             queuedFile.promise.trySuccess(Unit)
 
             //check for next file

@@ -1,8 +1,6 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.packetresponse
+package eu.thesimplecloud.clientserverapi.lib.packetresponse
 
-import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import java.util.*
-import java.util.function.Consumer
 
 interface IPacketResponseManager {
 

@@ -22,12 +22,13 @@ import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
-import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler.ObjectPacketResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.completeWhenAllCompleted
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -35,8 +36,6 @@ import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import org.reflections.Reflections
-import java.util.*
-import java.util.concurrent.LinkedBlockingQueue
 import kotlin.collections.ArrayList
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
@@ -53,7 +52,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
     init {
         packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
-        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
+        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
     }
 
     override fun start() {
@@ -123,7 +122,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                     .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
             allClasses.forEach { packetClass ->
                 val packetName = packetClass.simpleName
-                val packetPromise = sendQuery(PacketOutGetPacketId(packetName), ObjectPacketResponseHandler(Int::class.java))
+                val packetPromise = sendQuery<Int>(PacketOutGetPacketId(packetName))
                 val unitPromise = newPromise<Unit>()
                 packetPromise.addResultListener { id ->
                     if (id != null && id != -1) {

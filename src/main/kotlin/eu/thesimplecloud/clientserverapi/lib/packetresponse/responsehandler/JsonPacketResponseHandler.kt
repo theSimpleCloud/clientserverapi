@@ -1,4 +1,4 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler
+package eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler
 
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket

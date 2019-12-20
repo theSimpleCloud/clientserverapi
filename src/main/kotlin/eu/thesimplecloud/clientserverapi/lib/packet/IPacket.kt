@@ -19,8 +19,9 @@ interface IPacket {
 
     /**
      * Calls to handle a packet
-     * @return the packet that should be sent as result. If the packet is null it will send a response containing null.
+     * @return the object that should be sent as result. If it is null a response will be sent containing null.
+     * If an exception is thrown the receiving promise will fail with it.
      */
-    suspend fun handle(connection: IConnection): IPacket?
+    suspend fun handle(connection: IConnection): Any?
 
 }

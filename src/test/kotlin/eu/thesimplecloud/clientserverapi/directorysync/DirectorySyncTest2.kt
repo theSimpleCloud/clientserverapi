@@ -34,6 +34,7 @@ class DirectorySyncTest2 {
         }
         nettyClient.getPacketIdsSyncPromise().syncUninterruptibly()
         val dir = File("templates/")
+        dir.mkdirs()
         val otherSideDir = File("templatesOtherSide/")
         val directorySync = nettyServer.getDirectorySyncManager().createDirectorySync(dir, "templatesOtherSide/")
         val clientOnServerSide = this.nettyServer.clientManager.getClients()[0]

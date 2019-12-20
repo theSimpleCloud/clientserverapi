@@ -24,7 +24,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
-import eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.PacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -35,8 +35,6 @@ import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnecte
 import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
-import io.netty.util.concurrent.EventExecutor
-import io.netty.util.concurrent.GlobalEventExecutor
 import org.reflections.Reflections
 
 
@@ -56,7 +54,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
-        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
+        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
     }
 
     override fun start(){

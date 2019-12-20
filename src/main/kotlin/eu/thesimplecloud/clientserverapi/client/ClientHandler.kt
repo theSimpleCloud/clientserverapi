@@ -1,17 +1,14 @@
 package eu.thesimplecloud.clientserverapi.client
 
+import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
-import kotlinx.coroutines.runBlocking
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.IllegalArgumentException
 
 class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnectionHandler) : SimpleChannelInboundHandler<WrappedPacket>() {
 
@@ -20,16 +17,14 @@ class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnec
             nettyClient.packetResponseManager.incomingPacket(wrappedPacket)
         } else {
             GlobalScope.launch {
-                val packet = wrappedPacket.packet.handle(nettyClient)
-                val id = when (packet) {
-                    null -> -1
-                    is ObjectPacket<*> -> -2
-                    is JsonPacket -> -1
-                    is BytePacket -> -3
-                    else -> throw IllegalArgumentException("Returned packet was not null, ObjectPacket, JsonPacket or BytePacket. It looks like a custom packet.")
+                val responseResult = runCatching {
+                    wrappedPacket.packet.handle(nettyClient)
                 }
-                val packetToSend = packet ?: JsonPacket.getNewEmptyJsonPacket()
-                val responseData = PacketData(wrappedPacket.packetData.uniqueId, id, packetToSend::class.java.simpleName)
+                val packetToSend = when {
+                    responseResult.isFailure -> PacketOutErrorResponse(responseResult.exceptionOrNull()!!)
+                    else -> ObjectPacket.getNewObjectPacketWithContent(responseResult.getOrNull())
+                }
+                val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
                 nettyClient.sendPacket(WrappedPacket(responseData, packetToSend))
             }
         }

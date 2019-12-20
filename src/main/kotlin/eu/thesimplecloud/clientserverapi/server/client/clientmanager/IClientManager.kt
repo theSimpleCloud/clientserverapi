@@ -20,7 +20,7 @@ interface IClientManager<T : IConnectedClientValue> {
     /**
      * Sends the specified packet to all connected clients.
      */
-    fun sendPacketToAllClients(packet: IPacket) = getClients().forEach { it.sendQuery(packet) }
+    fun sendPacketToAllClients(packet: IPacket) = getClients().forEach { it.sendUnitQuery(packet) }
     /**
      * Returns a list containing all connected clients.
      */

@@ -1,4 +1,4 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler
+package eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler
 
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 
@@ -6,11 +6,11 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 interface IPacketResponseHandler<T : Any> {
 
     companion object {
-        private val NULL_HANDLER = object: IPacketResponseHandler<Any> {
-            override fun handleResponse(packet: IPacket): Any? = null
+        private val UNIT_HANDLER = object: IPacketResponseHandler<Any> {
+            override fun handleResponse(packet: IPacket): Any? = Unit
         }
 
-        fun <T : Any> getNullHandler() = NULL_HANDLER as IPacketResponseHandler<T>
+        fun <T : Any> getUnitHandler() = UNIT_HANDLER as IPacketResponseHandler<T>
     }
 
     /**

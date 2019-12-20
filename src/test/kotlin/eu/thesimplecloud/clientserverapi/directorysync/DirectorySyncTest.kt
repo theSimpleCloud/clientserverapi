@@ -6,11 +6,11 @@ import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.server.NettyServer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.apache.commons.io.FileUtils
 import org.junit.After
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
-import java.nio.file.Files
 
 class DirectorySyncTest {
 

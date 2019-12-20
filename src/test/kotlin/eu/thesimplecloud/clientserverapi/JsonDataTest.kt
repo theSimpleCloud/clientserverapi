@@ -15,6 +15,15 @@ class JsonDataTest {
         Assert.assertNull(JsonData.fromObjectWithGsonExclude(testDataClass).getString("excludedString"))
     }
 
+    @Test
+    fun test2() {
+        val innerJsonData = JsonData().append("test", 3)
+        val jsonData = JsonData().append("data", innerJsonData)
+        val innerJsonData2 = jsonData.getObject("data", JsonData::class.java)
+        Assert.assertEquals(innerJsonData.toString(), innerJsonData2.toString())
+        Assert.assertEquals(3, innerJsonData2!!.getInt("test"))
+    }
+
 
     enum class TestEnum() {
         TEST_1, TEST_2

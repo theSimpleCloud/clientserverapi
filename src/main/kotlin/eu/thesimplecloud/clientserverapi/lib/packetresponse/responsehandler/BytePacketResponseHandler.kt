@@ -1,8 +1,7 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.packetresponse.responsehandler
+package eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler
 
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import java.lang.IllegalArgumentException
 
 class BytePacketResponseHandler : IPacketResponseHandler<Array<Byte>> {

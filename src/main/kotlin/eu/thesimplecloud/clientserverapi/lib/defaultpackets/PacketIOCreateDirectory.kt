@@ -1,17 +1,17 @@
-package eu.thesimplecloud.clientserverapi.lib.filetransfer.packets
+package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import java.io.File
 
-class PacketIOCreateDirectory() : ObjectPacket<String>(String::class.java) {
+class PacketIOCreateDirectory() : ObjectPacket<String>() {
 
     constructor(path: String) : this() {
         this.value = path
     }
 
-    override suspend fun handle(connection: IConnection): IPacket? {
+    override suspend fun handle(connection: IConnection): Any? {
         val value = this.value ?: return null
         val file = File(value)
         file.mkdirs()

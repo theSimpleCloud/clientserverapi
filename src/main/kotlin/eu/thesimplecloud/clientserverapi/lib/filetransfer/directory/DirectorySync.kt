@@ -1,19 +1,16 @@
 package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIOCreateDirectory
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOCreateDirectory
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatch
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchListener
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.packets.PacketIODeleteFile
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIODeleteFile
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAllPromises
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
-import java.nio.file.StandardWatchEventKinds
 
 class DirectorySync(private val directory: File, private val toDirectory: String, directoryWatchManager: IDirectoryWatchManager) : IDirectorySync {
 
@@ -35,7 +32,7 @@ class DirectorySync(private val directory: File, private val toDirectory: String
 
             override fun fileDeleted(file: File) {
                 val otherSidePath = getFilePathOnOtherSide(file)
-                receivers.forEach { connection -> connection.sendQuery(PacketIODeleteFile(otherSidePath)) }
+                receivers.forEach { connection -> connection.sendUnitQuery(PacketIODeleteFile(otherSidePath)) }
             }
 
         })
@@ -51,7 +48,7 @@ class DirectorySync(private val directory: File, private val toDirectory: String
 
     private fun sendFileOrDirectory(file: File, connection: IConnection): ICommunicationPromise<Unit> {
         return if (file.isDirectory)
-            connection.sendQuery(PacketIOCreateDirectory(getFilePathOnOtherSide(file)))
+            connection.sendUnitQuery(PacketIOCreateDirectory(getFilePathOnOtherSide(file)))
         else
             connection.sendFile(file, getFilePathOnOtherSide(file))
     }

@@ -5,11 +5,11 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
-class PacketInGetPacketId : ObjectPacket<String>(String::class.java) {
+class PacketInGetPacketId : ObjectPacket<String>() {
 
-    override suspend fun handle(connection: IConnection): IPacket? {
+    override suspend fun handle(connection: IConnection): Any? {
         connection as IConnectedClient<*>
-        val packetName = this.value ?: return getNewObjectPacketWithContent(-1)
+        val packetName = this.value ?: return -1
         val packetClass = when {
             packetName.startsWith("PacketOut") -> {
                 val newName = packetName.replaceFirst("PacketOut", "PacketIn")
@@ -21,13 +21,13 @@ class PacketInGetPacketId : ObjectPacket<String>(String::class.java) {
             }
             else ->  connection.getNettyServer().getPacketManager().getPacketClassByName(packetName)
         }
-        packetClass ?: return getNewObjectPacketWithContent(-1)
+        packetClass ?: return -1
 
         val idFromPacket = connection.getNettyServer().getPacketManager().getIdFromPacket(packetClass)
         if (idFromPacket != null) {
-            return getNewObjectPacketWithContent(idFromPacket)
+            return idFromPacket
         }
-        return getNewObjectPacketWithContent(-1)
+        return -1
 
     }
 }

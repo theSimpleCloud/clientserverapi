@@ -4,36 +4,44 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import io.netty.buffer.ByteBuf
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
+import io.netty.util.internal.StringUtil
 
 
-abstract class ObjectPacket<T : Any>(val typeParameterClass: Class<out T>) : JsonPacket() {
+abstract class ObjectPacket<T : Any>() : JsonPacket() {
 
     var value: T? = null
 
-    constructor(value: T) : this(value::class.java)
+    constructor(value: T?) : this() {
+        this.value = value
+    }
 
     override fun read(byteBuf: ByteBuf) {
         super.read(byteBuf)
-        value = this.jsonData.getObject("data", typeParameterClass)
+        val className = this.jsonData.getString("className")
+        //return because the value to sent was null in this case.
+        if (className.isNullOrBlank()) return
+        val clazz = Class.forName(className) as Class<T>
+        value = this.jsonData.getObject("data", clazz)
     }
 
     override fun write(byteBuf: ByteBuf) {
-        this.jsonData.append("data", value)
+        if (this.value != null) {
+            this.jsonData.append("className", value!!::class.java.name)
+            this.jsonData.append("data", value)
+        }
         super.write(byteBuf)
     }
 
     companion object {
 
-        fun getNewEmptyObjectPacket(): ObjectPacket<Any> = getNewEmptyObjectPacket(Any::class.java)
-
-        fun <T : Any> getNewEmptyObjectPacket(type: Class<T>) = object : ObjectPacket<T>(type) {
+        fun <T : Any> getNewEmptyObjectPacket() = object : ObjectPacket<T>() {
             override suspend fun handle(connection: IConnection): IPacket? {
                 return null
             }
         }
 
-        fun <T : Any> getNewObjectPacketWithContent(value: T): ObjectPacket<T> {
-            val objectPacket = getNewEmptyObjectPacket(value::class.java) as ObjectPacket<T>
+        fun <T : Any> getNewObjectPacketWithContent(value: T?): ObjectPacket<T> {
+            val objectPacket = getNewEmptyObjectPacket<T>()
             objectPacket.value = value
             return objectPacket
         }

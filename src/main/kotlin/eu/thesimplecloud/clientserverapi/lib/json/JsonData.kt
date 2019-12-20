@@ -7,11 +7,9 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 
+class JsonData(val jsonElement: JsonElement) {
 
-class JsonData(private val jsonElement: JsonElement) {
-
-
-    private var gson: Gson = GSON
+    private var exclude: Boolean = false
 
     constructor() : this(JsonObject())
 
@@ -25,7 +23,7 @@ class JsonData(private val jsonElement: JsonElement) {
     fun append(property: String, value: Any?): JsonData {
         if (jsonElement !is JsonObject)
             throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
-        jsonElement.add(property, gson.toJsonTree(value))
+        jsonElement.add(property, getGsonToUse().toJsonTree(value))
         return this
     }
 
@@ -49,7 +47,7 @@ class JsonData(private val jsonElement: JsonElement) {
     fun getProperty(name: String): JsonData? {
         if (jsonElement !is JsonObject)
             return null
-        return jsonElement[name]?.let { JsonData() }
+        return jsonElement.get(name)?.let { JsonData(it) }
     }
 
     /**
@@ -95,17 +93,20 @@ class JsonData(private val jsonElement: JsonElement) {
 
     fun <T> getObject(property: String, clazz: Class<T>): T? {
         if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
-        return if (!jsonElement.has(property)) null else gson.fromJson(jsonElement.get(property), clazz)
+        if (clazz == JsonData::class.java) {
+            return getProperty(property) as T
+        }
+        return if (!jsonElement.has(property)) null else getGsonToUse().fromJson(jsonElement.get(property), clazz)
     }
 
     fun <T> getObject(clazz: Class<T>): T {
-        return gson.fromJson(getAsJsonString(), clazz)
+        return getGsonToUse().fromJson(getAsJsonString(), clazz)
     }
 
     fun <T> getObjectOrNull(clazz: Class<T>): T? {
         if (getAsJsonString().isBlank()) return null
         return try {
-            gson.fromJson(getAsJsonString(), clazz)
+            getGsonToUse().fromJson(getAsJsonString(), clazz)
         } catch (ex: Exception) {
             null
         }
@@ -149,7 +150,7 @@ class JsonData(private val jsonElement: JsonElement) {
 
 
     fun getAsJsonString(): String {
-        return gson.toJson(jsonElement)
+        return getGsonToUse().toJson(jsonElement)
     }
 
     fun getJsonStringAsBytes(): ByteArray {
@@ -157,13 +158,18 @@ class JsonData(private val jsonElement: JsonElement) {
     }
 
     fun useGsonExclude() {
-        this.gson = GSON_EXCLUDE
+        this.exclude = true
     }
+
+    private fun getGsonToUse(): Gson {
+        return if (exclude) GSON_EXCLUDE else GSON
+    }
+
 
     companion object {
 
-        val GSON = GsonBuilder().setPrettyPrinting().serializeNulls().create()
-        val GSON_EXCLUDE = GsonBuilder().setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
+        val GSON = GsonBuilder().registerTypeAdapter(JsonData::class.java, JsonDataSerializer()).setPrettyPrinting().serializeNulls().create()
+        val GSON_EXCLUDE = GsonBuilder().registerTypeAdapter(JsonData::class.java, JsonDataSerializer()).setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
 
         fun fromObject(any: Any): JsonData {
             return fromJsonString(GSON.toJson(any))
@@ -242,5 +248,9 @@ class JsonData(private val jsonElement: JsonElement) {
 
             return ""
         }
+    }
+
+    override fun toString(): String {
+        return getAsJsonString()
     }
 }
