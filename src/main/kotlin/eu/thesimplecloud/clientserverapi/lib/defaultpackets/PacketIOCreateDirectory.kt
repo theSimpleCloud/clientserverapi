@@ -11,10 +11,9 @@ class PacketIOCreateDirectory() : ObjectPacket<String>() {
         this.value = path
     }
 
-    override suspend fun handle(connection: IConnection): Any? {
-        val value = this.value ?: return null
+    override suspend fun handle(connection: IConnection) {
+        val value = this.value ?: return
         val file = File(value)
         file.mkdirs()
-        return null
     }
 }

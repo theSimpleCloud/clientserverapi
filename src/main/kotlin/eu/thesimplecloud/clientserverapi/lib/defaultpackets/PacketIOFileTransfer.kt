@@ -14,12 +14,11 @@ class PacketIOFileTransfer() : BytePacket() {
         buffer.writeBytes(byteArray)
     }
 
-    override suspend fun handle(connection: IConnection): Any? {
+    override suspend fun handle(connection: IConnection) {
         val uuidString = ByteBufStringHelper.nextString(buffer)
         val uuid = UUID.fromString(uuidString)
         val byteArray = ByteArray(buffer.readInt())
         buffer.readBytes(byteArray)
         connection.getCommunicationBootstrap().getTransferFileManager().addBytesToTransferFile(uuid, byteArray.toTypedArray())
-        return null
     }
 }

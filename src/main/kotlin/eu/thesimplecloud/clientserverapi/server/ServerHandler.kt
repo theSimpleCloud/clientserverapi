@@ -7,34 +7,17 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.handler.AbstractChannelInboundHandlerImpl
 import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class ServerHandler(private val nettyServer: NettyServer<*>, private val connectionHandler: IConnectionHandler) : SimpleChannelInboundHandler<WrappedPacket>() {
+class ServerHandler(private val nettyServer: NettyServer<*>, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
 
-    override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
-        nettyServer.clientManager.getClient(ctx)?.let {
-            it as AbstractConnection
-            if (wrappedPacket.packetData.isResponse()) {
-                nettyServer.packetResponseManager.incomingPacket(wrappedPacket)
-            } else {
-                GlobalScope.launch {
-                    val responseResult = runCatching {
-                        wrappedPacket.packet.handle(it)
-                    }
-                    val packetToSend = when {
-                        responseResult.isFailure -> PacketOutErrorResponse(responseResult.exceptionOrNull()!!)
-                        else -> ObjectPacket.getNewObjectPacketWithContent(responseResult.getOrNull())
-                    }
-                    val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
-                    it.sendPacket(WrappedPacket(responseData, packetToSend))
-                }
-            }
-        }
-    }
+    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyServer.clientManager.getClient(ctx)!! as AbstractConnection
+
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         nettyServer.clientManager.addClient(ctx).let { connectionHandler.onConnectionActive(it) }

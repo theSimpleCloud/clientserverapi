@@ -1,4 +1,4 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise
+package eu.thesimplecloud.clientserverapi.lib.promise
 
 
 fun ICommunicationPromise<Unit>.completeWhenAllCompleted(promises: List<ICommunicationPromise<*>>): ICommunicationPromise<Unit> {
@@ -19,7 +19,7 @@ fun Collection<ICommunicationPromise<*>>.combineAllPromises(): ICommunicationPro
  * The new promise will complete with the same specifications.
  */
 fun <T> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(): ICommunicationPromise<T> {
-    val newPromise = CommunicationPromise<T>()
+    val newPromise = CommunicationPromise<T>(this.getTimeout())
     this.thenAccept { innerPromise ->
         innerPromise ?: newPromise.tryFailure(KotlinNullPointerException("Failed to flatten promise: Outer promise completed with null."))
         innerPromise?.let { newPromise.copyPromiseConfigurationOnComplete(it) }

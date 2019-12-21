@@ -1,11 +1,12 @@
 package eu.thesimplecloud.clientserverapi.testobject
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.json.JsonData
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
-import java.lang.NullPointerException
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.lang.IllegalArgumentException
 
 class PacketIOMessage() : ObjectPacket<String>() {
 
@@ -13,7 +14,16 @@ class PacketIOMessage() : ObjectPacket<String>() {
         this.value = message
     }
 
-    override suspend fun handle(connection: IConnection): ArrayIndexOutOfBoundsException {
-        return ArrayIndexOutOfBoundsException("test test 123")
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Int> {
+        val promise = CommunicationPromise<Int>(300)
+        handle0(promise)
+        return promise
+    }
+
+    private fun handle0(promise: CommunicationPromise<Int>) {
+        GlobalScope.launch {
+            Thread.sleep(150)
+            promise.setSuccess(2997)
+        }
     }
 }

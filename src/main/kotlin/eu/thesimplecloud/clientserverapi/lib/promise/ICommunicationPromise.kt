@@ -1,4 +1,4 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise
+package eu.thesimplecloud.clientserverapi.lib.promise
 
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
@@ -11,13 +11,13 @@ interface ICommunicationPromise<T> : Promise<T> {
      * Combines this promise with the specified promise.
      * @return a new promise that is completed once both (this promise and the specified one) are completed.
      */
-    fun combine(communicationPromise: ICommunicationPromise<*>): ICommunicationPromise<Unit>
+    fun combine(communicationPromise: ICommunicationPromise<*>, sumUpTimeouts: Boolean = false): ICommunicationPromise<Unit>
 
     /**
      * Combines this promise with the specified promises.
      * @return a new promise that is completed once this and all specified promises are completed.
      */
-    fun combineAll(promises: List<ICommunicationPromise<*>>): ICommunicationPromise<Unit>
+    fun combineAll(promises: List<ICommunicationPromise<*>>, sumUpTimeouts: Boolean = false): ICommunicationPromise<Unit>
 
     /**
      * Adds a failure listener to this promise.
@@ -71,6 +71,11 @@ interface ICommunicationPromise<T> : Promise<T> {
      * @return a new communication promise completed with the result of the [predicate] or if this promise fails the returned promise will fail with the same cause.
      */
     fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R>
+
+    /**
+     * Returns the timeout of this promise
+     */
+    fun getTimeout(): Long
 
     /**
      * Copies the information of the specified promise to this promise when the specified promise completes.

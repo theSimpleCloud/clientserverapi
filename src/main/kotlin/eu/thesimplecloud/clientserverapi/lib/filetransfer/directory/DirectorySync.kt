@@ -6,8 +6,8 @@ import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatch
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchListener
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIODeleteFile
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.combineAllPromises
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
@@ -49,8 +49,10 @@ class DirectorySync(private val directory: File, private val toDirectory: String
     private fun sendFileOrDirectory(file: File, connection: IConnection): ICommunicationPromise<Unit> {
         return if (file.isDirectory)
             connection.sendUnitQuery(PacketIOCreateDirectory(getFilePathOnOtherSide(file)))
-        else
-            connection.sendFile(file, getFilePathOnOtherSide(file))
+        else {
+            val timeToWait = file.length() + 400
+            connection.sendFile(file, getFilePathOnOtherSide(file), timeToWait.toLong())
+        }
     }
 
     override fun syncNoLonger(connection: IConnection) {

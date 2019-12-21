@@ -1,5 +1,7 @@
 package eu.thesimplecloud.clientserverapi.client
 
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.handler.AbstractChannelInboundHandlerImpl
 import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import io.netty.channel.ChannelHandlerContext
@@ -10,25 +12,11 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnectionHandler) : SimpleChannelInboundHandler<WrappedPacket>() {
+class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
-    override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
-        if (wrappedPacket.packetData.isResponse()) {
-            nettyClient.packetResponseManager.incomingPacket(wrappedPacket)
-        } else {
-            GlobalScope.launch {
-                val responseResult = runCatching {
-                    wrappedPacket.packet.handle(nettyClient)
-                }
-                val packetToSend = when {
-                    responseResult.isFailure -> PacketOutErrorResponse(responseResult.exceptionOrNull()!!)
-                    else -> ObjectPacket.getNewObjectPacketWithContent(responseResult.getOrNull())
-                }
-                val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
-                nettyClient.sendPacket(WrappedPacket(responseData, packetToSend))
-            }
-        }
-    }
+
+
+    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyClient
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         connectionHandler.onConnectionActive(nettyClient)

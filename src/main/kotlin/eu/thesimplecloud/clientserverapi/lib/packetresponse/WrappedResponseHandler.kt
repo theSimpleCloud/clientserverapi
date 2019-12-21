@@ -1,6 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.packetresponse
 
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.IPacketResponseHandler
 
 

@@ -1,18 +1,25 @@
-package eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise
+package eu.thesimplecloud.clientserverapi.lib.promise
 
-import com.sun.corba.se.impl.ior.iiop.IIOPAddressClosureImpl
+import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromiseTimeoutHandler
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> {
+class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout: Boolean = true) : DefaultPromise<T>(), ICommunicationPromise<T> {
 
-    constructor(result: T) : this() {
+    constructor(result: T, timeout: Long = 200) : this(timeout) {
         trySuccess(result)
     }
 
-    constructor(throwable: Throwable) : this() {
+    constructor(throwable: Throwable, timeout: Long = 200) : this(timeout) {
         tryFailure(throwable)
+    }
+
+    constructor(enableTimeout: Boolean) : this(200, enableTimeout)
+
+    init {
+        if (enableTimeout)
+            CommunicationPromiseTimeoutHandler.INSTANCE.handleTimeout(this, timeout)
     }
 
     override fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T> {
@@ -42,8 +49,8 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
         return this
     }
 
-    override fun addCommunicationPromiseListeners(vararg listeners: ICmmunicationPromiseListener<T>): ICommunicationPromise<T> {
-        super.addListeners(*listeners)
+    override fun addCommunicationPromiseListeners(vararg listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T> {
+        super.addListeners(*listener)
         return this
     }
 
@@ -56,21 +63,23 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
     }
 
     override fun <R> then(predicate: (T?) -> R): ICommunicationPromise<R> {
-        val newPromise = CommunicationPromise<R>()
-        this.addCompleteListener { if(this.isSuccess) newPromise.trySuccess(predicate(this.getNow())) else newPromise.tryFailure(this.cause())  }
+        val newPromise = CommunicationPromise<R>(this.timeout)
+        this.addCompleteListener { if (this.isSuccess) newPromise.trySuccess(predicate(this.getNow())) else newPromise.tryFailure(this.cause()) }
         return newPromise
     }
 
     override fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R> {
-        val newPromise = CommunicationPromise<R>()
+        val newPromise = CommunicationPromise<R>(this.timeout)
         this.addCompleteListener {
-            if(this.isSuccess)
+            if (this.isSuccess)
                 getNow()?.let { newPromise.trySuccess(predicate(it)) }
             else
                 newPromise.tryFailure(this.cause())
         }
         return newPromise
     }
+
+    override fun getTimeout(): Long = this.timeout
 
     override fun copyPromiseConfigurationOnComplete(otherPromise: ICommunicationPromise<T>) {
         otherPromise.addCompleteListener {
@@ -131,12 +140,12 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
         return this
     }
 
-    override fun combine(communicationPromise: ICommunicationPromise<*>): ICommunicationPromise<Unit> {
-        return combineAllToUnitPromise(listOf(communicationPromise, this))
+    override fun combine(communicationPromise: ICommunicationPromise<*>, sumUpTimeouts: Boolean): ICommunicationPromise<Unit> {
+        return combineAllToUnitPromise(listOf(communicationPromise, this), sumUpTimeouts)
     }
 
-    override fun combineAll(promises: List<ICommunicationPromise<*>>): ICommunicationPromise<Unit> {
-        return combineAllToUnitPromise(promises.union(listOf(this)))
+    override fun combineAll(promises: List<ICommunicationPromise<*>>, sumUpTimeouts: Boolean): ICommunicationPromise<Unit> {
+        return combineAllToUnitPromise(promises.union(listOf(this)), sumUpTimeouts)
     }
 
     override fun addFailureListener(listener: (Throwable) -> Unit): ICommunicationPromise<T> {
@@ -147,8 +156,9 @@ class CommunicationPromise<T>() : DefaultPromise<T>(), ICommunicationPromise<T> 
     }
 
     companion object {
-        fun combineAllToUnitPromise(promises: Collection<ICommunicationPromise<*>>): ICommunicationPromise<Unit> {
-            val unitPromise = CommunicationPromise<Unit>()
+        fun combineAllToUnitPromise(promises: Collection<ICommunicationPromise<*>>, sumUpTimeouts: Boolean = false): ICommunicationPromise<Unit> {
+            val timeout = if (sumUpTimeouts) promises.sumBy { it.getTimeout().toInt() }.toLong() else 400
+            val unitPromise = CommunicationPromise<Unit>(timeout)
             if (promises.isEmpty()) unitPromise.trySuccess(Unit)
             promises.forEach { promise ->
                 promise.addCompleteListener { _ ->

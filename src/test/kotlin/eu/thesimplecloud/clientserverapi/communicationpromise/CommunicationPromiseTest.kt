@@ -1,10 +1,8 @@
 package eu.thesimplecloud.clientserverapi.communicationpromise
 
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.CommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.flatten
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.flatten
 import org.junit.Test
-import java.lang.Exception
 
 class CommunicationPromiseTest {
 

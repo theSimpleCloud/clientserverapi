@@ -12,5 +12,7 @@ class PacketOutErrorResponse(exception: Throwable) : ObjectPacket<Throwable>() {
         this.value = exception
     }
 
-    override suspend fun handle(connection: IConnection): Any? = null
+    override suspend fun handle(connection: IConnection) {
+
+    }
 }

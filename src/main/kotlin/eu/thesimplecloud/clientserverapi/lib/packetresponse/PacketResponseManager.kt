@@ -2,7 +2,7 @@ package eu.thesimplecloud.clientserverapi.lib.packetresponse
 
 import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import java.lang.IllegalStateException
 import java.util.*
 
@@ -31,9 +31,10 @@ class PacketResponseManager : IPacketResponseManager {
         val packetPromise = wrappedResponseHandler.communicationPromise
         packetPromise as ICommunicationPromise<Any?>
         if (response is Throwable) {
-            packetPromise.setFailure(response)
+            println("trying failure PacketResponseManager ${response::class.java.simpleName}")
+            packetPromise.tryFailure(response)
         } else {
-            packetPromise.setSuccess(response)
+            packetPromise.trySuccess(response)
         }
     }
 

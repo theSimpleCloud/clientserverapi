@@ -12,8 +12,8 @@ class PacketIODeleteFile() : ObjectPacket<String>() {
         this.value = path
     }
 
-    override suspend fun handle(connection: IConnection): Any? {
-        val value = this.value ?: return null
+    override suspend fun handle(connection: IConnection) {
+        val value = this.value ?: return
         val file = File(value)
         if (file.exists()) {
             if (file.isDirectory) {
@@ -22,6 +22,5 @@ class PacketIODeleteFile() : ObjectPacket<String>() {
                 file.delete()
             }
         }
-        return null
     }
 }

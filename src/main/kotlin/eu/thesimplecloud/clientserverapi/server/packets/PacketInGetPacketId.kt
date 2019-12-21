@@ -7,7 +7,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
 class PacketInGetPacketId : ObjectPacket<String>() {
 
-    override suspend fun handle(connection: IConnection): Any? {
+    override suspend fun handle(connection: IConnection): Int {
         connection as IConnectedClient<*>
         val packetName = this.value ?: return -1
         val packetClass = when {

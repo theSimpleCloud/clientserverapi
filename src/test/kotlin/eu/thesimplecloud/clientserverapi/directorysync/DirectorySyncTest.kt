@@ -70,7 +70,7 @@ class DirectorySyncTest {
         FileUtils.deleteDirectory(File("syncFolderOtherSide/"))
     }
 
-    */
+       */
 
 
 

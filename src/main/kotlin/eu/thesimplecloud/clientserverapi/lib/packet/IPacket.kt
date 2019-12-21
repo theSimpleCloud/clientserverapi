@@ -2,6 +2,7 @@ package eu.thesimplecloud.clientserverapi.lib.packet
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import io.netty.buffer.ByteBuf
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 interface IPacket {
 
@@ -20,7 +21,8 @@ interface IPacket {
     /**
      * Calls to handle a packet
      * @return the object that should be sent as result. If it is null a response will be sent containing null.
-     * If an exception is thrown the receiving promise will fail with it.
+     * If an exception is thrown it will be sent as response and the receiving promise will fail with it.
+     * If a [ICommunicationPromise] is returned the result of it will be sent as response.
      */
     suspend fun handle(connection: IConnection): Any?
 

@@ -12,9 +12,9 @@ import org.junit.Test
 
 class ObjectPacketTest {
 
-    /*
 
-    @Test(timeout = 2000)
+    /*
+    @Test
     fun test() {
         val nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1921)
         nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.testobject")
@@ -29,7 +29,8 @@ class ObjectPacketTest {
         GlobalScope.launch {
             nettyClient.start()
         }
-        nettyClient.sendQuery<String>(PacketIOMessage("hi")).then { println("2w-----${it}") }
+        nettyClient.sendQuery<Int>(PacketIOMessage("hi"), 250).then { println("2w-----${it}") }
+                .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
         //nettyClient.sendQuery<JsonData>(PacketIOMessage("hi"))
         //        .thenNonNull { println(it.getString("test")) }
         //        .addFailureListener { println(it.message) }
@@ -37,10 +38,10 @@ class ObjectPacketTest {
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //7nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
-        Thread.sleep(200)
+        Thread.sleep(250)
     }
 
-    */
+   */
 
 
 }

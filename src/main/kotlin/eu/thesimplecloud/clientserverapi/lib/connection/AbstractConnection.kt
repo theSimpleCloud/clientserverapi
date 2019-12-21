@@ -11,12 +11,11 @@ import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.communicationpromise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.IPacketResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -34,10 +33,10 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
     val queue = LinkedBlockingQueue<QueuedFile>()
 
     @Synchronized
-    override fun <T : Any> sendQuery(packet: IPacket, expectedResponseClass: Class<T>): ICommunicationPromise<T> {
+    override fun <T : Any> sendQuery(packet: IPacket, expectedResponseClass: Class<T>, timeout: Long): ICommunicationPromise<T> {
         val packetResponseHandler = ObjectPacketResponseHandler(expectedResponseClass)
         val uniqueId = UUID.randomUUID()
-        val packetPromise = getCommunicationBootstrap().newPromise<T>()
+        val packetPromise = CommunicationPromise<T>(timeout)
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
         val idFromPacket = packetManager.getIdFromPacket(packet)
         if (idFromPacket == null) {
@@ -67,8 +66,8 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
     }
 
     @Synchronized
-    override fun sendFile(file: File, savePath: String): ICommunicationPromise<Unit> {
-        val unitPromise = getCommunicationBootstrap().newPromise<Unit>()
+    override fun sendFile(file: File, savePath: String, timeout: Long): ICommunicationPromise<Unit> {
+        val unitPromise = CommunicationPromise<Unit>(timeout)
         val queuedFile = QueuedFile(file, savePath, unitPromise)
         sendQueuedFile(queuedFile)
         return unitPromise

@@ -11,10 +11,9 @@ class PacketIOCreateFileTransfer() : JsonPacket() {
         this.jsonData.append("uuid", uuid).append("path", path)
     }
 
-    override suspend fun handle(connection: IConnection): Any? {
-        val uuid = this.jsonData.getObject("uuid", UUID::class.java) ?: return null
-        val path = this.jsonData.getString("path") ?: return null
+    override suspend fun handle(connection: IConnection) {
+        val uuid = this.jsonData.getObject("uuid", UUID::class.java) ?: return
+        val path = this.jsonData.getString("path") ?: return
         connection.getCommunicationBootstrap().getTransferFileManager().creteFileTransfer(uuid, path)
-        return null
     }
 }
