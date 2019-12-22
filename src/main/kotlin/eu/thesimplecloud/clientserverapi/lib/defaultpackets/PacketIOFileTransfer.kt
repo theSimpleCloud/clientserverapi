@@ -4,6 +4,7 @@ import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import java.util.*
 
 class PacketIOFileTransfer() : BytePacket() {
@@ -14,11 +15,12 @@ class PacketIOFileTransfer() : BytePacket() {
         buffer.writeBytes(byteArray)
     }
 
-    override suspend fun handle(connection: IConnection) {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
         val uuidString = ByteBufStringHelper.nextString(buffer)
         val uuid = UUID.fromString(uuidString)
         val byteArray = ByteArray(buffer.readInt())
         buffer.readBytes(byteArray)
         connection.getCommunicationBootstrap().getTransferFileManager().addBytesToTransferFile(uuid, byteArray.toTypedArray())
+        return unit()
     }
 }

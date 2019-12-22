@@ -4,6 +4,7 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import io.netty.buffer.ByteBuf
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import io.netty.util.internal.StringUtil
 
 
@@ -35,8 +36,8 @@ abstract class ObjectPacket<T : Any>() : JsonPacket() {
     companion object {
 
         fun <T : Any> getNewEmptyObjectPacket() = object : ObjectPacket<T>() {
-            override suspend fun handle(connection: IConnection): IPacket? {
-                return null
+            override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+                return success(Unit)
             }
         }
 

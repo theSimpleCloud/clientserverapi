@@ -3,6 +3,7 @@ package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import java.io.File
 
 class PacketIOCreateDirectory() : ObjectPacket<String>() {
@@ -11,9 +12,10 @@ class PacketIOCreateDirectory() : ObjectPacket<String>() {
         this.value = path
     }
 
-    override suspend fun handle(connection: IConnection) {
-        val value = this.value ?: return
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
+        val value = this.value ?: return contentException("value")
         val file = File(value)
         file.mkdirs()
+        return unit()
     }
 }

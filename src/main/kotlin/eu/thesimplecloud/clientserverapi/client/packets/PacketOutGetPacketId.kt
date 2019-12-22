@@ -4,6 +4,7 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 class PacketOutGetPacketId() : ObjectPacket<String>() {
 
@@ -12,7 +13,5 @@ class PacketOutGetPacketId() : ObjectPacket<String>() {
        this.value = packetName
     }
 
-    override suspend fun handle(connection: IConnection): Any? {
-        return null
-    }
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> = unit()
 }

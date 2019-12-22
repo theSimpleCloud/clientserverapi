@@ -34,29 +34,23 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
         }
     }
 
-    fun getPacketFromResponse(responseResult: Result<Any?>): ICommunicationPromise<ObjectPacket<out Any>> {
+    fun getPacketFromResponse(responseResult: Result<ICommunicationPromise<out Any>>): ICommunicationPromise<ObjectPacket<out Any>> {
         when {
             responseResult.isFailure -> {
                 return CommunicationPromise.of(PacketOutErrorResponse(responseResult.exceptionOrNull()!!))
             }
             else -> {
-                val result = responseResult.getOrNull()
-                when {
-                    result is ICommunicationPromise<*> -> {
-                        val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(result.getTimeout())
-                        result.addCompleteListener {
-                            if (it.isSuccess) {
-                                returnPromise.setSuccess(ObjectPacket.getNewObjectPacketWithContent(it.getNow()))
-                            } else {
-                                returnPromise.setSuccess(PacketOutErrorResponse(it.cause()))
-                            }
-                        }
-                        return returnPromise
+                val result = responseResult.getOrNull()!!
+                val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(result.getTimeout())
+                result.addCompleteListener {
+                    if (it.isSuccess) {
+                        returnPromise.setSuccess(ObjectPacket.getNewObjectPacketWithContent(it.get()))
+                    } else {
+                        returnPromise.setSuccess(PacketOutErrorResponse(it.cause()))
                     }
-                    else -> return CommunicationPromise.of(ObjectPacket.getNewObjectPacketWithContent(result))
                 }
+                return returnPromise
             }
         }
     }
-
 }

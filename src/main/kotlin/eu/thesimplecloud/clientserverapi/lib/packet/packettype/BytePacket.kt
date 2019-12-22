@@ -4,13 +4,14 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 abstract class BytePacket : IPacket {
 
     companion object {
         fun getNewEmptyBytePacket() = object: BytePacket() {
-            override suspend fun handle(connection: IConnection): IPacket? {
-                return null
+            override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
+                return unit()
             }
         }
         fun getNewBytePacketWithContent(byteArray: ByteArray): BytePacket {

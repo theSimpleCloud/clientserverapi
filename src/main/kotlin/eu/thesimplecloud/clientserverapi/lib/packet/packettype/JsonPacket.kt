@@ -5,13 +5,14 @@ import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 abstract class JsonPacket : IPacket {
 
     companion object {
         fun getNewEmptyJsonPacket() = object: JsonPacket() {
-            override suspend fun handle(connection: IConnection): IPacket? {
-                return null
+            override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+                return success(Unit)
             }
         }
         fun getNewJsonPacketWithContent(jsonData: JsonData): JsonPacket {
