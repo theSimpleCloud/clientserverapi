@@ -3,6 +3,7 @@ package eu.thesimplecloud.clientserverapi.lib.promise
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.Promise
+import java.util.concurrent.TimeUnit
 
 
 interface ICommunicationPromise<T> : Promise<T> {
@@ -30,7 +31,7 @@ interface ICommunicationPromise<T> : Promise<T> {
      * The listener will be called once the result is ready.
      * This listener will not be notified when the promise completes successfully.
      */
-    fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T>
+    fun addResultListener(listener: (T) -> Unit): ICommunicationPromise<T>
 
     /**
      * Adds a promise listener to this future.
@@ -53,24 +54,13 @@ interface ICommunicationPromise<T> : Promise<T> {
     /**
      * Executed the specified [predicate] when this promise is completed successfully.
      */
-    fun thenAccept(predicate: (T?) -> Unit)
-
-    /**
-     * Executed the specified [predicate] when this promise is completed successfully and its result is not null.
-     */
-    fun thenAcceptNonNull(predicate: (T) -> Unit)
+    fun thenAccept(predicate: (T) -> Unit)
 
     /**
      * Executed the specified [predicate] when this promise is completed successfully.
      * @return a new communication promise completed with the result of the [predicate] or if this promise fails the returned promise will fail with the same cause.
      */
-    fun <R> then(predicate: (T?) -> R): ICommunicationPromise<R>
-
-    /**
-     * Executed the specified [predicate] when this promise is completed successfully and its result is not null.
-     * @return a new communication promise completed with the result of the [predicate] or if this promise fails the returned promise will fail with the same cause.
-     */
-    fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R>
+    fun <R> then(predicate: (T) -> R): ICommunicationPromise<R>
 
     /**
      * Returns the timeout of this promise
@@ -99,6 +89,8 @@ interface ICommunicationPromise<T> : Promise<T> {
     override fun awaitUninterruptibly(): ICommunicationPromise<T>
 
     override fun setSuccess(result: T): ICommunicationPromise<T>
+
+    override fun setFailure(cause: Throwable): ICommunicationPromise<T>
 
 
 }

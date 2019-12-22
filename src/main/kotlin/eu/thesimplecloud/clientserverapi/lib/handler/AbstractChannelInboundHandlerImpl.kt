@@ -26,7 +26,7 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
                     wrappedPacket.packet.handle(connection)
                 }
                 val packetPromise = getPacketFromResponse(responseResult)
-                packetPromise.thenAcceptNonNull { packetToSend ->
+                packetPromise.thenAccept { packetToSend ->
                     val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
                     connection.sendPacket(WrappedPacket(responseData, packetToSend))
                 }

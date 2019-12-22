@@ -22,10 +22,10 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
             CommunicationPromiseTimeoutHandler.INSTANCE.handleTimeout(this, timeout)
     }
 
-    override fun addResultListener(listener: (T?) -> Unit): ICommunicationPromise<T> {
+    override fun addResultListener(listener: (T) -> Unit): ICommunicationPromise<T> {
         addCompleteListener { promise ->
             if (promise.isSuccess) {
-                listener(promise.getNow())
+                listener(promise.get())
             }
         }
         return this
@@ -54,28 +54,13 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
         return this
     }
 
-    override fun thenAccept(predicate: (T?) -> Unit) {
+    override fun thenAccept(predicate: (T) -> Unit) {
         this.addResultListener { predicate(it) }
     }
 
-    override fun thenAcceptNonNull(predicate: (T) -> Unit) {
-        this.addResultListener { result -> result?.let { predicate(it) } }
-    }
-
-    override fun <R> then(predicate: (T?) -> R): ICommunicationPromise<R> {
+    override fun <R> then(predicate: (T) -> R): ICommunicationPromise<R> {
         val newPromise = CommunicationPromise<R>(this.timeout)
-        this.addCompleteListener { if (this.isSuccess) newPromise.trySuccess(predicate(this.getNow())) else newPromise.tryFailure(this.cause()) }
-        return newPromise
-    }
-
-    override fun <R> thenNonNull(predicate: (T) -> R): ICommunicationPromise<R> {
-        val newPromise = CommunicationPromise<R>(this.timeout)
-        this.addCompleteListener {
-            if (this.isSuccess)
-                getNow()?.let { newPromise.trySuccess(predicate(it)) }
-            else
-                newPromise.tryFailure(this.cause())
-        }
+        this.addCompleteListener { if (this.isSuccess) newPromise.trySuccess(predicate(this.get())) else newPromise.tryFailure(this.cause()) }
         return newPromise
     }
 
@@ -84,7 +69,7 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
     override fun copyPromiseConfigurationOnComplete(otherPromise: ICommunicationPromise<T>) {
         otherPromise.addCompleteListener {
             if (it.isSuccess) {
-                this.trySuccess(it.getNow())
+                this.trySuccess(it.get())
             } else {
                 this.tryFailure(it.cause())
             }
@@ -140,6 +125,11 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
         return this
     }
 
+    override fun setFailure(cause: Throwable): ICommunicationPromise<T> {
+        super.setFailure(cause)
+        return this
+    }
+
     override fun combine(communicationPromise: ICommunicationPromise<*>, sumUpTimeouts: Boolean): ICommunicationPromise<Unit> {
         return combineAllToUnitPromise(listOf(communicationPromise, this), sumUpTimeouts)
     }
@@ -153,6 +143,16 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
             promise.cause()?.let { listener(it) }
         }
         return this
+    }
+
+    //override methods to prevent completing with nulls
+
+    override fun tryFailure(cause: Throwable?): Boolean {
+        return super.tryFailure(cause)
+    }
+
+    override fun trySuccess(result: T): Boolean {
+        return super.trySuccess(result)
     }
 
     companion object {
