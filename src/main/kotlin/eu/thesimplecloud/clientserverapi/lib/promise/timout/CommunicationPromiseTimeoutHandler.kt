@@ -27,6 +27,7 @@ class CommunicationPromiseTimeoutHandler private constructor() : ICommunicationP
                 val timedOutPromises = promiseToTimeout.entries.filter { it.value < System.currentTimeMillis() }.map { it.key }
                 timedOutPromises.forEach { it.tryFailure(TimeoutException("Timed out")) }
                 timedOutPromises.forEach { promiseToTimeout.remove(it) }
+                Thread.sleep(10)
             }
         }
     }
