@@ -3,6 +3,7 @@ package eu.thesimplecloud.clientserverapi.lib.handler
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -22,10 +23,12 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
             connection.packetResponseManager.incomingPacket(wrappedPacket)
         } else {
             GlobalScope.launch {
-                val responseResult = runCatching {
+                val result = try {
                     wrappedPacket.packet.handle(connection)
+                } catch (e: Exception) {
+                    throw PacketException("An error occurred while attempting to handle packet: ${wrappedPacket.packet::class.java.simpleName}", e)
                 }
-                val packetPromise = getPacketFromResponse(responseResult)
+                val packetPromise = getPacketFromResult(result)
                 packetPromise.thenAccept { packetToSend ->
                     val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
                     connection.sendPacket(WrappedPacket(responseData, packetToSend))
@@ -34,23 +37,15 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
         }
     }
 
-    fun getPacketFromResponse(responseResult: Result<ICommunicationPromise<out Any>>): ICommunicationPromise<ObjectPacket<out Any>> {
-        when {
-            responseResult.isFailure -> {
-                return CommunicationPromise.of(PacketOutErrorResponse(responseResult.exceptionOrNull()!!))
-            }
-            else -> {
-                val result = responseResult.getOrNull()!!
-                val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(result.getTimeout())
-                result.addCompleteListener {
-                    if (it.isSuccess) {
-                        returnPromise.setSuccess(ObjectPacket.getNewObjectPacketWithContent(it.get()))
-                    } else {
-                        returnPromise.setSuccess(PacketOutErrorResponse(it.cause()))
-                    }
-                }
-                return returnPromise
+    fun getPacketFromResult(result: ICommunicationPromise<out Any>): ICommunicationPromise<ObjectPacket<out Any>> {
+        val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(result.getTimeout())
+        result.addCompleteListener {
+            if (it.isSuccess) {
+                returnPromise.setSuccess(ObjectPacket.getNewObjectPacketWithContent(it.get()))
+            } else {
+                returnPromise.setSuccess(PacketOutErrorResponse(it.cause()))
             }
         }
+        return returnPromise
     }
 }

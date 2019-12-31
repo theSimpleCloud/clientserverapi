@@ -31,7 +31,7 @@ class PacketResponseManager : IPacketResponseManager {
         val packetPromise = wrappedResponseHandler.communicationPromise
         packetPromise as ICommunicationPromise<Any?>
         if (response is Throwable) {
-            println("trying failure PacketResponseManager ${response::class.java.simpleName}")
+            //println("trying failure PacketResponseManager ${response::class.java.simpleName}")
             packetPromise.tryFailure(response)
         } else {
             packetPromise.trySuccess(response)
