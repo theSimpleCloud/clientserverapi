@@ -33,6 +33,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import org.reflections.Reflections
@@ -49,6 +50,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private val transferFileManager = TransferFileManager()
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
+    private val classLoaders = ArrayList<ClassLoader>()
 
     init {
         packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
@@ -111,10 +113,15 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         packetPackages.addAll(packages)
     }
 
+    override fun addClassLoader(vararg classLoaders: ClassLoader) {
+        this.classLoaders.addAll(classLoaders)
+    }
+
     private fun registerPacketsByPackage() {
+        if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
         val promises = ArrayList<ICommunicationPromise<Unit>>()
         packetPackages.forEach { packageName ->
-            val reflections = Reflections(packageName)
+            val reflections = Reflections(packageName, this.classLoaders.toTypedArray())
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))

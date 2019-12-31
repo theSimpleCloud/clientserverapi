@@ -29,6 +29,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
+import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
@@ -51,6 +52,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private var listening = false
+    private val classLoaders = ArrayList<ClassLoader>()
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
@@ -98,7 +100,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
 
     override fun addPacketsByPackage(vararg packages: String){
         packages.forEach {packageName ->
-            val reflections = Reflections(packageName)
+            val reflections = Reflections(packageName, if (this.classLoaders.isNotEmpty()) this.classLoaders.toTypedArray() else ResourceFinder.getSystemClassLoader())
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))
@@ -109,6 +111,11 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
             }
         }
     }
+
+    override fun addClassLoader(vararg classLoaders: ClassLoader) {
+        this.classLoaders.addAll(classLoaders)
+    }
+
 
     override fun getClientManager(): IClientManager<T> = this.clientManager
 
@@ -132,6 +139,5 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
         this.serverHandler.onServerShutdown(this)
         this.active = false
     }
-
 
 }

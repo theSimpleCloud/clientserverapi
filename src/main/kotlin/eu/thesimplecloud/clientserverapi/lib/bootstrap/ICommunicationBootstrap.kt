@@ -14,6 +14,11 @@ interface ICommunicationBootstrap : IBootstrap {
     fun addPacketsByPackage(vararg packages: String)
 
     /**
+     * Adds the [ClassLoader]s to find the packets. If no class loader was given, the system classloader will be used.
+     */
+    fun addClassLoader(vararg classLoaders: ClassLoader)
+
+    /**
      * Returns the [ITransferFileManager] to transfer files
      */
     fun getTransferFileManager(): ITransferFileManager
