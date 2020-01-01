@@ -20,7 +20,7 @@ class PacketManager : IPacketManager {
     @Synchronized
     fun registerPacket(id: Int, packetClass: Class<out IPacket>) {
         packets[id] = packetClass
-        val callbacks = packetRegisterCallbacks.filter { it.first == packetClass }
+        val callbacks = packetRegisterCallbacks.filter { it.first.simpleName == packetClass.simpleName }
         callbacks.forEach { it.second.complete(id) }
         packetRegisterCallbacks.removeAll(callbacks)
     }
@@ -29,7 +29,7 @@ class PacketManager : IPacketManager {
     override fun getIdFromPacket(packet: IPacket): Int? = getIdFromPacket(packet::class.java)
 
     @Synchronized
-    override fun getIdFromPacket(packetClass: Class<out IPacket>): Int? = packets.entries.firstOrNull { it.value == packetClass }?.key
+    override fun getIdFromPacket(packetClass: Class<out IPacket>): Int? = packets.entries.firstOrNull { it.value.simpleName == packetClass.simpleName }?.key
 
     fun clearPackets() = this.packets.clear()
 
