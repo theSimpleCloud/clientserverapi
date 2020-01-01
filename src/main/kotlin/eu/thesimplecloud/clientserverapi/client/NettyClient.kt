@@ -37,6 +37,7 @@ import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import org.reflections.Reflections
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.collections.ArrayList
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
@@ -45,26 +46,26 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private var workerGroup: NioEventLoopGroup? = null
 
     private var packetIdsSyncPromise: ICommunicationPromise<Unit> = CommunicationPromise(enableTimeout = false)
-    private var packetPackages: MutableList<String> = ArrayList()
+    private var packetPackages: MutableList<String> = CopyOnWriteArrayList()
     private var running = false
     private val transferFileManager = TransferFileManager()
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
-    private val classLoaders = ArrayList<ClassLoader>()
+    private val classLoaders = CopyOnWriteArrayList<ClassLoader>()
 
     init {
-        packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
+        this.packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
         addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
     }
 
     override fun start() {
         check(!this.running) { "Can't start server multiple times." }
-        running = true
+        this.running = true
         directoryWatchManager.startThread()
         val instance = this
-        workerGroup = NioEventLoopGroup()
+        this.workerGroup = NioEventLoopGroup()
         val bootstrap = Bootstrap()
-        bootstrap.group(workerGroup)
+        bootstrap.group(this.workerGroup)
         bootstrap.channel(NioSocketChannel::class.java)
         bootstrap.handler(object : ChannelInitializer<Channel>() {
             override fun initChannel(channel: Channel) {
@@ -79,7 +80,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
             }
 
         })
-        channel = bootstrap.connect(host, port).addListener { future ->
+        this.channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
                 GlobalScope.launch { registerPacketsByPackage() }
             } else {
@@ -89,13 +90,13 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     }
 
     override fun shutdown() {
-        workerGroup?.shutdownGracefully()
-        running = false
+        this.workerGroup?.shutdownGracefully()
+        this.running = false
     }
 
-    override fun getChannel(): Channel? = channel
+    override fun getChannel(): Channel? = this.channel
 
-    override fun isActive(): Boolean = running
+    override fun isActive(): Boolean = this.running
 
     override fun getTransferFileManager(): ITransferFileManager = this.transferFileManager
 
@@ -110,7 +111,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
     override fun addPacketsByPackage(vararg packages: String) {
         check(!running) { "Can't register packets when client is started." }
-        packetPackages.addAll(packages)
+        this.packetPackages.addAll(packages)
     }
 
     override fun addClassLoader(vararg classLoaders: ClassLoader) {
@@ -120,7 +121,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private fun registerPacketsByPackage() {
         if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
         val promises = ArrayList<ICommunicationPromise<Unit>>()
-        packetPackages.forEach { packageName ->
+        this.packetPackages.forEach { packageName ->
             val reflections = Reflections(packageName, this.classLoaders.toTypedArray())
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
@@ -142,7 +143,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 promises.add(unitPromise)
             }
         }
-        packetIdsSyncPromise.completeWhenAllCompleted(promises)
+        this.packetIdsSyncPromise.completeWhenAllCompleted(promises)
     }
 
     override fun getPacketIdsSyncPromise(): ICommunicationPromise<Unit> = this.packetIdsSyncPromise

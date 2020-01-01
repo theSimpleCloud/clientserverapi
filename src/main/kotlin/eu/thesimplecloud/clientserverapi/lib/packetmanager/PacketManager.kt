@@ -1,15 +1,18 @@
 package eu.thesimplecloud.clientserverapi.lib.packetmanager
 
+import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class PacketManager : IPacketManager {
 
-    private val packets = HashMap<Int, Class<out IPacket>>()
+    private val packets = Maps.newConcurrentMap<Int, Class<out IPacket>>()
 
-    private val packetRegisterCallbacks = ArrayList<Pair<Class<out IPacket>, CompletableFuture<Int>>>()
-
+    private val packetRegisterCallbacks = Collections.synchronizedCollection(ArrayList<Pair<Class<out IPacket>, CompletableFuture<Int>>>())
 
     override fun getPacketClassById(id: Int) = packets[id]
 
@@ -36,7 +39,6 @@ class PacketManager : IPacketManager {
         it.simpleName == name
     }
 
-    @Synchronized
     fun <T : IPacket> getPacketIdCompletableFuture(packetClass: Class<T>): CompletableFuture<Int> {
         val completableFuture = CompletableFuture<Int>()
         val id = getIdFromPacket(packetClass)

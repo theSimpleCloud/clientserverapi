@@ -24,6 +24,6 @@ interface IClientManager<T : IConnectedClientValue> {
     /**
      * Returns a list containing all connected clients.
      */
-    fun getClients(): List<IConnectedClient<T>>
+    fun getClients(): Collection<IConnectedClient<T>>
 
 }

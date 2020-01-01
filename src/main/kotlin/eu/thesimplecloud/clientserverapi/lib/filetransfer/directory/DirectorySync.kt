@@ -11,10 +11,11 @@ import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 
 class DirectorySync(private val directory: File, private val toDirectory: String, directoryWatchManager: IDirectoryWatchManager) : IDirectorySync {
 
-    private val receivers = ArrayList<IConnection>()
+    private val receivers = CopyOnWriteArrayList<IConnection>()
 
     val directoryWatch: IDirectoryWatch = directoryWatchManager.createDirectoryWatch(directory)
 

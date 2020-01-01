@@ -37,6 +37,7 @@ import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import org.reflections.Reflections
+import java.util.concurrent.CopyOnWriteArrayList
 
 
 class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
@@ -52,7 +53,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private var listening = false
-    private val classLoaders = ArrayList<ClassLoader>()
+    private val classLoaders = CopyOnWriteArrayList<ClassLoader>()
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
@@ -66,10 +67,10 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
         this.bossGroup = NioEventLoopGroup()
         this.workerGroup = NioEventLoopGroup()
         val bootstrap = ServerBootstrap()
-        bootstrap.group(bossGroup, workerGroup)
+        bootstrap.group(this.bossGroup, this.workerGroup)
         bootstrap.channel(NioServerSocketChannel::class.java)
         val instance = this
-        eventExecutorGroup = DefaultEventExecutorGroup(20)
+        this.eventExecutorGroup = DefaultEventExecutorGroup(20)
         bootstrap.childHandler(object : ChannelInitializer<SocketChannel>() {
             @Throws(Exception::class)
             override fun initChannel(ch: SocketChannel) {
@@ -88,7 +89,7 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
         val channelFuture = bootstrap.bind(host, port)
         channelFuture.addListener { future ->
             if (future.isSuccess) {
-                listening = true
+                this.listening = true
                 serverHandler.onServerStarted(this)
             } else {
                 shutdown()

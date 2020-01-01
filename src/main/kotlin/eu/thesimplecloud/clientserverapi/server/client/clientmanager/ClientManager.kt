@@ -6,9 +6,10 @@ import eu.thesimplecloud.clientserverapi.server.NettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.ConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
+import java.util.*
 
 class ClientManager<T : IConnectedClientValue>(private val nettyServer: NettyServer<T>) : IClientManager<T> {
-    private val clients = ArrayList<IConnectedClient<T>>()
+    private val clients: MutableCollection<IConnectedClient<T>> = Collections.synchronizedCollection(ArrayList<IConnectedClient<T>>())
 
     fun addClient(ctx: ChannelHandlerContext): IConnection {
         val connection = ConnectedClient<T>(ctx.channel(), nettyServer)
@@ -26,6 +27,6 @@ class ClientManager<T : IConnectedClientValue>(private val nettyServer: NettySer
         return client
     }
 
-    override fun getClients(): List<IConnectedClient<T>> = clients
+    override fun getClients(): Collection<IConnectedClient<T>> = clients
 
 }
