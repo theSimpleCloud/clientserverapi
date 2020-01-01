@@ -133,7 +133,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 val packetPromise = sendQuery<Int>(PacketOutGetPacketId(packetName))
                 val unitPromise = CommunicationPromise<Unit>()
                 packetPromise.addResultListener { id ->
-                    if (id != null && id != -1) {
+                    if (id != -1) {
+                        println("registered packet: ${packetClass.simpleName} id: $id")
                         packetManager.registerPacket(id, packetClass)
                     } else {
                         throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
