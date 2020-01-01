@@ -157,8 +157,9 @@ class JsonData(val jsonElement: JsonElement) {
         return getAsJsonString().toByteArray(StandardCharsets.UTF_8)
     }
 
-    fun useGsonExclude() {
+    fun useGsonExclude(): JsonData {
         this.exclude = true
+        return this
     }
 
     private fun getGsonToUse(): Gson {
