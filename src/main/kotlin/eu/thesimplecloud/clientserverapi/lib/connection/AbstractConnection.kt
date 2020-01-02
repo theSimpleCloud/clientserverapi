@@ -44,13 +44,13 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
                 val packetIdCompletableFuture = packetManager.getPacketIdCompletableFuture(packet::class.java)
                 try {
                     val id = packetIdCompletableFuture.get(1, TimeUnit.SECONDS)
-                    sendPacket(WrappedPacket(PacketData(uniqueId, id, packet::class.java.simpleName), packet))
+                    sendPacket(WrappedPacket(PacketData(uniqueId, id, packet::class.java.simpleName), packet), packetPromise)
                 } catch (ex: TimeoutException) {
                     throw PacketException("No id for packet ${packet::class.java.simpleName} was available after one second. It looks like this packet was not registered.")
                 }
             }
         } else {
-            this.sendPacket(WrappedPacket(PacketData(uniqueId, idFromPacket, packet::class.java.simpleName), packet))
+            this.sendPacket(WrappedPacket(PacketData(uniqueId, idFromPacket, packet::class.java.simpleName), packet), packetPromise)
         }
         return packetPromise
     }
@@ -60,9 +60,15 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
      * Can be overridden to prevent packet sending when the connection is not open yet.
      */
     @Synchronized
-    open fun sendPacket(wrappedPacket: WrappedPacket) {
+    open fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
         if (!isOpen()) throw IOException("Connection is not open.")
-        getChannel()?.eventLoop()?.execute { getChannel()?.writeAndFlush(wrappedPacket) }
+        val channel = getChannel()!!
+        channel.eventLoop().execute {
+            channel.writeAndFlush(wrappedPacket).addListener {
+                if (!it.isSuccess)
+                    promise.tryFailure(it.cause())
+            }
+        }
     }
 
     @Synchronized
