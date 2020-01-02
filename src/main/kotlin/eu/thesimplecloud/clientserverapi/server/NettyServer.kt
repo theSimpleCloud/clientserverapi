@@ -1,5 +1,8 @@
 package eu.thesimplecloud.clientserverapi.server
 
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
+import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
@@ -42,6 +45,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
 
+    private val debugMessageManager = DebugMessageManager()
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null
     private var eventExecutorGroup: EventExecutorGroup? = null
@@ -76,9 +80,9 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
             override fun initChannel(ch: SocketChannel) {
                 val pipeline = ch.pipeline()
                 pipeline.addLast("frameDecoder", LengthFieldBasedFrameDecoder(Int.MAX_VALUE, 0, 4, 0, 4))
-                pipeline.addLast(PacketDecoder(packetManager, packetResponseManager))
+                pipeline.addLast(PacketDecoder(instance, packetManager, packetResponseManager))
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
-                pipeline.addLast(PacketEncoder())
+                pipeline.addLast(PacketEncoder(instance))
                 //pipeline.addLast("streamer", ChunkedWriteHandler())
                 pipeline.addLast(eventExecutorGroup, "serverHandler", ServerHandler(instance, connectionHandler))
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
@@ -107,8 +111,10 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))
                     .union(reflections.getSubTypesOf(BytePacket::class.java))
                     .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
-            allClasses.forEach { packet ->
-                this.packetManager.registerPacket(this.packetManager.getUnusedId(), packet)
+            allClasses.forEach { packetClass ->
+                val packetId = this.packetManager.getUnusedId()
+                if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $packetId")
+                this.packetManager.registerPacket(packetId, packetClass)
             }
         }
     }
@@ -127,6 +133,8 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
     override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
 
     override fun getDirectoryWatchManager(): IDirectoryWatchManager = this.directoryWatchManager
+
+    override fun getDebugMessageManager(): IDebugMessageManager = this.debugMessageManager
 
     override fun isActive(): Boolean = this.active
 

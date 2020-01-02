@@ -1,6 +1,8 @@
 package eu.thesimplecloud.clientserverapi.lib.packetmanager
 
 import com.google.common.collect.Maps
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -8,7 +10,7 @@ import java.util.function.Consumer
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-class PacketManager : IPacketManager {
+class PacketManager() : IPacketManager {
 
     private val packets = HashMap<Int, Class<out IPacket>>()
 

@@ -1,5 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
+import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
@@ -32,5 +33,10 @@ interface ICommunicationBootstrap : IBootstrap {
      * Returns the [IDirectoryWatchManager] to listen for directory changes
      */
     fun getDirectoryWatchManager(): IDirectoryWatchManager
+
+    /**
+     * Returns the [IDebugMessageManager] to handle debug messages.
+     */
+    fun getDebugMessageManager(): IDebugMessageManager
 
 }

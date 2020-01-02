@@ -26,11 +26,11 @@ import java.util.concurrent.TimeoutException
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 
-    val BYTES_PER_PACKET = 50000
+    private val BYTES_PER_FILEPACKET = 50000
 
     @Volatile
-    var sendingFile = false
-    val queue = LinkedBlockingQueue<QueuedFile>()
+    private var sendingFile = false
+    private val fileQueue = LinkedBlockingQueue<QueuedFile>()
 
     @Synchronized
     override fun <T : Any> sendQuery(packet: IPacket, expectedResponseClass: Class<T>, timeout: Long): ICommunicationPromise<T> {
@@ -76,7 +76,7 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
     @Synchronized
     private fun sendQueuedFile(queuedFile: QueuedFile) {
         if (sendingFile) {
-            this.queue.add(queuedFile)
+            this.fileQueue.add(queuedFile)
             return
         }
         this.sendingFile = true
@@ -87,9 +87,9 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
             sendUnitQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath)).syncUninterruptibly()
             while (bytes != 0) {
                 when {
-                    bytes > BYTES_PER_PACKET -> {
-                        val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, (fileBytes.size - bytes) + BYTES_PER_PACKET)
-                        bytes -= BYTES_PER_PACKET
+                    bytes > BYTES_PER_FILEPACKET -> {
+                        val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, (fileBytes.size - bytes) + BYTES_PER_FILEPACKET)
+                        bytes -= BYTES_PER_FILEPACKET
                         sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
                     }
                     else -> {
@@ -104,8 +104,8 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
 
             //check for next file
             sendingFile = false
-            if (queue.isNotEmpty()) {
-                sendQueuedFile(queue.poll())
+            if (fileQueue.isNotEmpty()) {
+                sendQueuedFile(fileQueue.poll())
             }
         }
     }

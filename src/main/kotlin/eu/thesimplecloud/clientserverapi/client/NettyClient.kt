@@ -24,6 +24,9 @@ import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
+import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.promise.completeWhenAllCompleted
@@ -42,6 +45,7 @@ import kotlin.collections.ArrayList
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
+    private val debugMessageManager = DebugMessageManager()
     private var channel: Channel? = null
     private var workerGroup: NioEventLoopGroup? = null
 
@@ -72,9 +76,9 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 val pipeline = channel.pipeline()
                 pipeline.addLast("idleStateHandler", IdleStateHandler(0, 0, 5)) // add with name
                 pipeline.addLast("frameDecoder", LengthFieldBasedFrameDecoder(1048576000, 0, 4, 0, 4))
-                pipeline.addLast(PacketDecoder(packetManager, packetResponseManager)) // add without name, name auto generated
+                pipeline.addLast(PacketDecoder(instance, packetManager, packetResponseManager)) // add without name, name auto generated
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
-                pipeline.addLast(PacketEncoder()) // add without name, name auto generated
+                pipeline.addLast(PacketEncoder(instance)) // add without name, name auto generated
                 pipeline.addLast(ClientHandler(instance, connectionHandler))
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
             }
@@ -103,6 +107,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     override fun getDirectorySyncManager(): IDirectorySyncManager = this.directorySyncManager
 
     override fun getDirectoryWatchManager(): IDirectoryWatchManager = this.directoryWatchManager
+
+    override fun getDebugMessageManager(): IDebugMessageManager = this.debugMessageManager
 
     override fun getCommunicationBootstrap() = this
 
@@ -134,7 +140,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 val unitPromise = CommunicationPromise<Unit>()
                 packetPromise.addResultListener { id ->
                     if (id != -1) {
-                        packetManager.registerPacket(id, packetClass)
+                        if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $id")
+                        this.packetManager.registerPacket(id, packetClass)
                     } else {
                         throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
                     }
