@@ -27,6 +27,6 @@ class ClientManager<T : IConnectedClientValue>(private val nettyServer: NettySer
         return client
     }
 
-    override fun getClients(): Collection<IConnectedClient<T>> = clients
+    override fun getClients(): Collection<IConnectedClient<T>> = clients.filter { it.isOpen() }
 
 }
