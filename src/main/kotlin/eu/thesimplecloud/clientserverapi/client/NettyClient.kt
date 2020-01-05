@@ -20,7 +20,6 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
-import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
@@ -29,7 +28,7 @@ import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
-import eu.thesimplecloud.clientserverapi.lib.promise.completeWhenAllCompleted
+import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
@@ -126,31 +125,30 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
     private fun registerPacketsByPackage() {
         if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
-        val promises = ArrayList<ICommunicationPromise<Unit>>()
+        val allPacketClasses = ArrayList<Class<out IPacket>>()
         this.packetPackages.forEach { packageName ->
             val reflections = Reflections(packageName, this.classLoaders.toTypedArray())
-            val allClasses = reflections.getSubTypesOf(IPacket::class.java)
+            val packageClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))
                     .union(reflections.getSubTypesOf(BytePacket::class.java))
                     .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
-            allClasses.forEach { packetClass ->
-                val packetName = packetClass.simpleName
-                val packetPromise = sendQuery<Int>(PacketOutGetPacketId(packetName))
-                val unitPromise = CommunicationPromise<Unit>()
-                packetPromise.addResultListener { id ->
-                    if (id != -1) {
-                        if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $id")
-                        this.packetManager.registerPacket(id, packetClass)
-                    } else {
-                        throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
-                    }
-                    unitPromise.trySuccess(Unit)
-                }
-                promises.add(unitPromise)
-            }
+
+            allPacketClasses.addAll(packageClasses)
         }
-        this.packetIdsSyncPromise.completeWhenAllCompleted(promises)
+        val packetPromise = sendQuery<ArrayList<Int>>(PacketOutGetPacketId(ArrayList(allPacketClasses.map { it.simpleName })))
+        packetPromise.addResultListener { list ->
+            list.forEachIndexed { index, id ->
+                val packetClass = allPacketClasses[index]
+                if (id != -1) {
+                    if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $id")
+                    this.packetManager.registerPacket(id, packetClass)
+                } else {
+                    throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
+                }
+            }
+            this.packetIdsSyncPromise.trySuccess(Unit)
+        }
     }
 
     override fun getPacketIdsSyncPromise(): ICommunicationPromise<Unit> = this.packetIdsSyncPromise

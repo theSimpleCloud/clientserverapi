@@ -6,11 +6,11 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
-class PacketOutGetPacketId() : ObjectPacket<String>() {
+class PacketOutGetPacketId() : ObjectPacket<ArrayList<String>>() {
 
 
-    constructor(packetName: String) : this() {
-       this.value = packetName
+    constructor(packetNames: ArrayList<String>) : this() {
+       this.value = packetNames
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> = unit()

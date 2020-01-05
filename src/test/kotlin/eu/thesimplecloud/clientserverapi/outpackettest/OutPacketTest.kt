@@ -16,7 +16,7 @@ class OutPacketTest {
     @Test
     fun test() {
         val nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1921)
-        //nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.outpackettest.in")
+        nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.outpackettest.in")
         GlobalScope.launch {
             nettyServer.start()
         }
