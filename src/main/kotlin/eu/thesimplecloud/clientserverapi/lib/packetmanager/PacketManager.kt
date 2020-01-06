@@ -29,6 +29,10 @@ class PacketManager() : IPacketManager {
         packetRegisterCallbacks.removeAll(callbacks)
     }
 
+    override fun registerPacket(packetClass: Class<out IPacket>) {
+        registerPacket(getUnusedId(), packetClass)
+    }
+
     override fun unregisterPacket(packetClass: Class<out IPacket>): Boolean {
         val key = packets.getKey { it.simpleName == packetClass.simpleName }
         key?.let { packets.remove(it) }

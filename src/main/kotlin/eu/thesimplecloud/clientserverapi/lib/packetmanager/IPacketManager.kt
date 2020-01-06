@@ -29,6 +29,10 @@ interface IPacketManager {
      */
     fun registerPacket(id: Int, packetClass: Class<out IPacket>)
 
+    /**
+     * Registers the specified [packetClass] with a unused id
+     */
+    fun registerPacket(packetClass: Class<out IPacket>)
 
     /**
      * Unregisters the specified [packetClass]
