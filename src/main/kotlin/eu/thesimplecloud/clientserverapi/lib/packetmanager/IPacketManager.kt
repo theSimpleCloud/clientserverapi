@@ -23,4 +23,16 @@ interface IPacketManager {
      * Returns the packet class found by the specified name
      */
     fun getPacketClassByName(name: String): Class<out IPacket>?
+
+    /**
+     * Registers the specified [packetClass] with the specified [id]
+     */
+    fun registerPacket(id: Int, packetClass: Class<out IPacket>)
+
+
+    /**
+     * Unregisters the specified [packetClass]
+     * @return whether the packet was registered
+     */
+    fun unregisterPacket(packetClass: Class<out IPacket>): Boolean
 }
