@@ -3,7 +3,6 @@ package eu.thesimplecloud.clientserverapi.lib.promise
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.Promise
-import java.util.concurrent.TimeUnit
 
 
 interface ICommunicationPromise<T> : Promise<T> {
@@ -52,15 +51,24 @@ interface ICommunicationPromise<T> : Promise<T> {
     fun addCommunicationPromiseListeners(vararg listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T>
 
     /**
-     * Executed the specified [predicate] when this promise is completed successfully.
+     * Executed the specified [function] when this promise is completed successfully.
      */
-    fun thenAccept(predicate: (T) -> Unit)
+    fun thenAccept(function: (T) -> Unit)
 
     /**
-     * Executed the specified [predicate] when this promise is completed successfully.
-     * @return a new communication promise completed with the result of the [predicate] or if this promise fails the returned promise will fail with the same cause.
+     * Executed the specified [function] when this promise is completed successfully.
+     * @param function that what shall be happened when this promise is successfully done.
+     * @param additionalDelay the timeout for the returned promise.
+     * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
      */
-    fun <R> then(predicate: (T) -> R): ICommunicationPromise<R>
+    fun <R> then(additionalDelay: Long, function: (T) -> R): ICommunicationPromise<R>
+
+    /**
+     * Executed the specified [function] when this promise is completed successfully.
+     * @param function that what shall be happened when this promise is successfully done.
+     * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
+     */
+    fun <R> then(function: (T) -> R): ICommunicationPromise<R> = then(0, function)
 
     /**
      * Returns the timeout of this promise

@@ -54,13 +54,13 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
         return this
     }
 
-    override fun thenAccept(predicate: (T) -> Unit) {
-        this.addResultListener { predicate(it) }
+    override fun thenAccept(function: (T) -> Unit) {
+        this.addResultListener { function(it) }
     }
 
-    override fun <R> then(predicate: (T) -> R): ICommunicationPromise<R> {
-        val newPromise = CommunicationPromise<R>(this.timeout)
-        this.addCompleteListener { if (this.isSuccess) newPromise.trySuccess(predicate(this.get())) else newPromise.tryFailure(this.cause()) }
+    override fun <R> then(additionalDelay: Long, function: (T) -> R): ICommunicationPromise<R> {
+        val newPromise = CommunicationPromise<R>(this.timeout + additionalDelay)
+        this.addCompleteListener { if (this.isSuccess) newPromise.trySuccess(function(this.get())) else newPromise.tryFailure(this.cause()) }
         return newPromise
     }
 
