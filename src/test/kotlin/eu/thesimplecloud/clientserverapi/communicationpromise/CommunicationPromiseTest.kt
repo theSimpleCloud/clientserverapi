@@ -3,6 +3,7 @@ package eu.thesimplecloud.clientserverapi.communicationpromise
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.flatten
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class CommunicationPromiseTest {
 
@@ -15,11 +16,15 @@ class CommunicationPromiseTest {
             println("promise1: $it")
             promise2
         }
+        promise1.thenDelayed(7000, TimeUnit.MILLISECONDS) {
+            println("promise1300: $it")
+        }
         promise.flatten().thenAccept { println("test: $it") }
         promise1.then { println("testttt: $it") }
         promise1.trySuccess(111)
         promise2.trySuccess(3333)
         println(2222)
+        Thread.sleep(10000)
     }
 
     @Test

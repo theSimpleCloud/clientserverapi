@@ -4,6 +4,7 @@ import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromise
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout: Boolean = true) : DefaultPromise<T>(), ICommunicationPromise<T> {
 
@@ -54,13 +55,17 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
         return this
     }
 
-    override fun thenAccept(function: (T) -> Unit) {
-        this.addResultListener { function(it) }
+    override fun thenAcceptDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> Unit) {
+        this.addResultListener { GlobalEventExecutor.INSTANCE.schedule({ function(it) }, delay, timeUnit) }
     }
 
-    override fun <R> then(additionalDelay: Long, function: (T) -> R): ICommunicationPromise<R> {
-        val newPromise = CommunicationPromise<R>(this.timeout + additionalDelay)
-        this.addCompleteListener { if (this.isSuccess) newPromise.trySuccess(function(this.get())) else newPromise.tryFailure(this.cause()) }
+    override fun <R> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R): ICommunicationPromise<R> {
+        val newPromise = CommunicationPromise<R>(this.timeout + delay)
+        this.addCompleteListener {
+            GlobalEventExecutor.INSTANCE.schedule({
+                if (this.isSuccess) newPromise.trySuccess(function(this.get())) else newPromise.tryFailure(this.cause())
+            }, delay, timeUnit)
+        }
         return newPromise
     }
 
