@@ -85,7 +85,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
-                GlobalScope.launch { registerPacketsByPackage() }
+                GlobalScope.launch { registerPacketsByPackage(packetPackages.toTypedArray()) }
             } else {
                 this.shutdown()
             }
@@ -115,18 +115,21 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
 
     override fun addPacketsByPackage(vararg packages: String) {
-        check(!running) { "Can't register packets when client is started." }
-        this.packetPackages.addAll(packages)
+        if (this.running) {
+            this.registerPacketsByPackage(packages as Array<String>)
+        } else {
+            this.packetPackages.addAll(packages)
+        }
     }
 
     override fun addClassLoader(vararg classLoaders: ClassLoader) {
         this.classLoaders.addAll(classLoaders)
     }
 
-    private fun registerPacketsByPackage() {
+    private fun registerPacketsByPackage(array: Array<String>) {
         if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
         val allPacketClasses = ArrayList<Class<out IPacket>>()
-        this.packetPackages.forEach { packageName ->
+        array.forEach { packageName ->
             val reflections = Reflections(packageName, this.classLoaders.toTypedArray())
             val packageClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))

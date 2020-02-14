@@ -4,8 +4,10 @@ import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.server.INettyServer
 
 interface ICommunicationBootstrap : IBootstrap {
 
@@ -38,5 +40,10 @@ interface ICommunicationBootstrap : IBootstrap {
      * Returns the [IDebugMessageManager] to handle debug messages.
      */
     fun getDebugMessageManager(): IDebugMessageManager
+
+    /**
+     * Returns whether this is a server.
+     */
+    fun isServer() = this is INettyServer<*>
 
 }
