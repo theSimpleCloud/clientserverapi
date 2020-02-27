@@ -91,6 +91,12 @@ class JsonData(val jsonElement: JsonElement) {
         return if (!jsonElement.has(property)) null else jsonElement.get(property).asBoolean
     }
 
+    fun getAsJsonArray(property: String): JsonArray? {
+        if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
+        return if (!jsonElement.has(property)) null else jsonElement.get(property).asJsonArray
+    }
+
+
     fun <T> getObject(property: String, clazz: Class<T>): T? {
         if (jsonElement !is JsonObject) throw UnsupportedOperationException("Can't get element from JsonPrimitive.")
         if (clazz == JsonData::class.java) {
