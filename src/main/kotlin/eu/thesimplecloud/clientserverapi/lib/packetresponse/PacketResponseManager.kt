@@ -29,7 +29,7 @@ class PacketResponseManager : IPacketResponseManager {
                 ?: throw IllegalStateException("Incoming: No response handler was available for packet by id ${wrappedPacket.packetData.uniqueId}")
         val response = wrappedResponseHandler.packetResponseHandler.handleResponse(wrappedPacket.packet)
         val packetPromise = wrappedResponseHandler.communicationPromise
-        packetPromise as ICommunicationPromise<Any?>
+        packetPromise as ICommunicationPromise<Any>
         if (response is Throwable) {
             //println("trying failure PacketResponseManager ${response::class.java.simpleName}")
             packetPromise.tryFailure(response)

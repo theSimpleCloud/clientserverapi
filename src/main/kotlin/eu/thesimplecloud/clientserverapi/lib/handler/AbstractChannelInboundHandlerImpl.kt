@@ -29,7 +29,7 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
                     throw PacketException("An error occurred while attempting to handle packet: ${wrappedPacket.packet::class.java.simpleName}", e)
                 }
                 val packetPromise = getPacketFromResult(result)
-                packetPromise.thenAccept { packetToSend ->
+                packetPromise.then { packetToSend ->
                     val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
                     connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
                 }

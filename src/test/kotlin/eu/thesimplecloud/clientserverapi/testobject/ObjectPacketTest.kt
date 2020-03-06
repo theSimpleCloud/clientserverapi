@@ -12,7 +12,6 @@ import org.junit.Test
 
 class ObjectPacketTest {
 
-
     /*
     @Test
     fun test() {
@@ -34,14 +33,14 @@ class ObjectPacketTest {
         //nettyClient.sendQuery<JsonData>(PacketIOMessage("hi"))
         //        .thenNonNull { println(it.getString("test")) }
         //        .addFailureListener { println(it.message) }
-        nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
+        GlobalScope.launch {
+            nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
+        }
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //7nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
-        Thread.sleep(250)
+        Thread.sleep(650)
     }
-
-   */
-
+    */
 
 }

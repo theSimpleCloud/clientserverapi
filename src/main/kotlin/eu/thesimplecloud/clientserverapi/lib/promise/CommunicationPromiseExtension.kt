@@ -18,11 +18,15 @@ fun Collection<ICommunicationPromise<*>>.combineAllPromises(): ICommunicationPro
  * Returns a new promise that will complete when the inner promise completes.
  * The new promise will complete with the same specifications.
  */
-fun <T> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(): ICommunicationPromise<T> {
+fun <T : Any> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(): ICommunicationPromise<T> {
     val newPromise = CommunicationPromise<T>(this.getTimeout())
-    this.thenAccept { innerPromise ->
-        innerPromise ?: newPromise.tryFailure(KotlinNullPointerException("Failed to flatten promise: Outer promise completed with null."))
-        innerPromise?.let { newPromise.copyPromiseConfigurationOnComplete(it) }
+    this.addCompleteListener {
+        if (it.isSuccess) {
+            val innerPromise = it.get()
+            newPromise.copyStateFromOtherPromise(innerPromise)
+        } else {
+            newPromise.tryFailure(it.cause())
+        }
     }
     return newPromise
 }

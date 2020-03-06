@@ -6,7 +6,7 @@ import io.netty.util.concurrent.Promise
 import java.util.concurrent.TimeUnit
 
 
-interface ICommunicationPromise<T> : Promise<T> {
+interface ICommunicationPromise<T : Any> : Promise<T> {
 
     /**
      * Combines this promise with the specified promise.
@@ -43,42 +43,29 @@ interface ICommunicationPromise<T> : Promise<T> {
      * Adds a promise listener to this future.
      * This listener will be called once the future is done
      */
-    fun addCompleteListener(listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T>
+    fun addCompleteListener(listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T>
 
     /**
      * Adds all specified promise listener to this future.
      * The listeners will be called once the future is done
      */
-    fun addCommunicationPromiseListeners(vararg listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T>
+    fun addCommunicationPromiseListeners(vararg listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T>
 
     /**
      * Executes the specified [function] when this promise is completed successfully.
-     */
-    fun thenAccept(function: (T) -> Unit) = thenAcceptDelayed(0, TimeUnit.MILLISECONDS, function)
-
-
-    /**
-     * Executes the specified [function] when this promise is completed successfully.
-     * @param function that what shall be happened when this promise is successfully done.
+     * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [NullPointerException]
      * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
      */
-    fun <R> then(function: (T) -> R): ICommunicationPromise<R> = thenDelayed(0, TimeUnit.MILLISECONDS, function)
+    fun <R : Any> then(function: (T) -> R?): ICommunicationPromise<R> = thenDelayed(0, TimeUnit.MILLISECONDS, function)
 
     /**
      * Executes the specified [function] when this promise is completed and the [delay] is over.
      * @param delay the time to wait after this promise is completed before calling the [function]
      * @param timeUnit the unit for the [delay]
+     * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [NullPointerException]
      * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
      */
-    fun thenAcceptDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> Unit)
-
-    /**
-     * Executes the specified [function] when this promise is completed and the [delay] is over.
-     * @param delay the time to wait after this promise is completed before calling the [function]
-     * @param timeUnit the unit for the [delay]
-     * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
-     */
-    fun <R> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R): ICommunicationPromise<R>
+    fun <R : Any> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R?): ICommunicationPromise<R>
 
     /**
      * Returns the timeout of this promise
@@ -88,7 +75,7 @@ interface ICommunicationPromise<T> : Promise<T> {
     /**
      * Copies the information of the specified promise to this promise when the specified promise completes.
      */
-    fun copyPromiseConfigurationOnComplete(otherPromise: ICommunicationPromise<T>)
+    fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>)
 
     override fun addListener(listener: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T>
 

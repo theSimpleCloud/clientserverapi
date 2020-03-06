@@ -9,7 +9,7 @@ interface IPacketHelperMethods {
     /**
      * Returns a promise succeeded with the specified [value]
      */
-    fun <T> success(value: T) = CommunicationPromise(value)
+    fun <T : Any> success(value: T) = CommunicationPromise(value)
 
     /**
      * Returns a promise completed with [Unit]
@@ -19,11 +19,11 @@ interface IPacketHelperMethods {
     /**
      * Returns a promise failed with the specified [throwable]
      */
-    fun <T> failure(throwable: Throwable) = CommunicationPromise<T>(throwable)
+    fun <T : Any> failure(throwable: Throwable) = CommunicationPromise<T>(throwable)
 
     /**
      * Returns a promise failed with [MissingPacketContentException]
      */
-    fun <T> contentException(unavailableProperty: String) = failure<T>(MissingPacketContentException(unavailableProperty))
+    fun <T : Any> contentException(unavailableProperty: String) = failure<T>(MissingPacketContentException(unavailableProperty))
 
 }

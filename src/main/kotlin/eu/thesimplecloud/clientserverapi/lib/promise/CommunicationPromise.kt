@@ -4,9 +4,10 @@ import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromise
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.NullPointerException
 import java.util.concurrent.TimeUnit
 
-class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout: Boolean = true) : DefaultPromise<T>(), ICommunicationPromise<T> {
+class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableTimeout: Boolean = true) : DefaultPromise<T>(), ICommunicationPromise<T> {
 
     constructor(result: T, timeout: Long = 200) : this(timeout) {
         trySuccess(result)
@@ -33,7 +34,7 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
     }
 
     override fun addCompleteListener(listener: (ICommunicationPromise<T>) -> Unit): ICommunicationPromise<T> {
-        addCompleteListener(object : ICmmunicationPromiseListener<T> {
+        addCompleteListener(object : ICommunicationPromiseListener<T> {
             override fun operationComplete(future: ICommunicationPromise<T>) {
                 try {
                     listener(future)
@@ -45,33 +46,58 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
         return this
     }
 
-    override fun addCompleteListener(listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T> {
+    override fun addCompleteListener(listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T> {
         super.addListener(listener)
         return this
     }
 
-    override fun addCommunicationPromiseListeners(vararg listener: ICmmunicationPromiseListener<T>): ICommunicationPromise<T> {
+    override fun addCommunicationPromiseListeners(vararg listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T> {
         super.addListeners(*listener)
         return this
     }
 
-    override fun thenAcceptDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> Unit) {
-        this.addResultListener { GlobalEventExecutor.INSTANCE.schedule({ function(it) }, delay, timeUnit) }
-    }
-
-    override fun <R> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R): ICommunicationPromise<R> {
+    override fun <R : Any> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R?): ICommunicationPromise<R> {
         val newPromise = CommunicationPromise<R>(this.timeout + timeUnit.toMillis(delay))
         this.addCompleteListener {
             GlobalEventExecutor.INSTANCE.schedule({
-                if (this.isSuccess) newPromise.trySuccess(function(this.get())) else newPromise.tryFailure(this.cause())
+                if (this.isSuccess) {
+                    try {
+                        val functionValue = function(this.get())
+                        if (functionValue == null) {
+                            newPromise.tryFailure(NullPointerException())
+                        } else {
+                            newPromise.trySuccess(functionValue)
+                        }
+                    } catch (ex: Exception) {
+                        newPromise.tryFailure(ex)
+                    }
+                } else {
+                    newPromise.tryFailure(this.cause())
+                }
             }, delay, timeUnit)
+        }
+        return newPromise
+    }
+
+    fun notNull(): ICommunicationPromise<T> {
+        val newPromise = CommunicationPromise<T>()
+        addCompleteListener {
+            if (it.isSuccess) {
+                if (it.get() == null) {
+                    newPromise.tryFailure(NullPointerException())
+                } else {
+                    newPromise.trySuccess(it.get())
+                }
+            } else {
+                newPromise.tryFailure(it.cause())
+            }
         }
         return newPromise
     }
 
     override fun getTimeout(): Long = this.timeout
 
-    override fun copyPromiseConfigurationOnComplete(otherPromise: ICommunicationPromise<T>) {
+    override fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>) {
         otherPromise.addCompleteListener {
             if (it.isSuccess) {
                 this.trySuccess(it.get())
@@ -152,7 +178,7 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
 
     //override methods to prevent completing with nulls
 
-    override fun tryFailure(cause: Throwable?): Boolean {
+    override fun tryFailure(cause: Throwable): Boolean {
         return super.tryFailure(cause)
     }
 
@@ -178,21 +204,21 @@ class CommunicationPromise<T>(private val timeout: Long = 200, val enableTimeout
         /**
          * Returns a new promise completed with the [value] or if the [value] is null one failed with the specified [exception]
          */
-        fun <T> ofNullable(value: T?, exception: Throwable): ICommunicationPromise<T> {
+        fun <T : Any> ofNullable(value: T?, exception: Throwable): ICommunicationPromise<T> {
             return if (value == null) failed(exception) else of(value)
         }
 
         /**
          * Returns a new promise completed with the specified [value]
          */
-        fun <T> of(value: T): ICommunicationPromise<T> {
+        fun <T : Any> of(value: T): ICommunicationPromise<T> {
             return CommunicationPromise<T>(value)
         }
 
         /**
          * Returns a new promise failed with the specified [throwable]
          */
-        fun <T> failed(throwable: Throwable): ICommunicationPromise<T> {
+        fun <T : Any> failed(throwable: Throwable): ICommunicationPromise<T> {
             return CommunicationPromise<T>(throwable)
         }
     }
