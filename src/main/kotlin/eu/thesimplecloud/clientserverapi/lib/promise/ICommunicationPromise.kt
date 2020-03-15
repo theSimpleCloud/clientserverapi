@@ -73,6 +73,11 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
     fun getTimeout(): Long
 
     /**
+     * Returns whether the timeout is enabled for this promise
+     */
+    fun isTimeoutEnabled(): Boolean
+
+    /**
      * Copies the information of the specified promise to this promise when the specified promise completes.
      */
     fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>)

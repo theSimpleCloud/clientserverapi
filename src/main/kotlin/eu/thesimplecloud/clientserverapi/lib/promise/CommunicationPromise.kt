@@ -97,6 +97,8 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
 
     override fun getTimeout(): Long = this.timeout
 
+    override fun isTimeoutEnabled(): Boolean = this.enableTimeout
+
     override fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>) {
         otherPromise.addCompleteListener {
             if (it.isSuccess) {
