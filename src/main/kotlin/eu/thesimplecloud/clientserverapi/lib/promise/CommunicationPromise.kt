@@ -57,7 +57,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
     }
 
     override fun <R : Any> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R?): ICommunicationPromise<R> {
-        val newPromise = CommunicationPromise<R>(this.timeout + timeUnit.toMillis(delay))
+        val newPromise = CommunicationPromise<R>(this.timeout + timeUnit.toMillis(delay), this.isTimeoutEnabled())
         this.addCompleteListener {
             GlobalEventExecutor.INSTANCE.schedule({
                 if (this.isSuccess) {
