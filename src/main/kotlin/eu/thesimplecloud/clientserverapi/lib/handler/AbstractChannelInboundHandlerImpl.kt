@@ -37,7 +37,7 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
         }
     }
 
-    fun getPacketFromResult(result: ICommunicationPromise<out Any>): ICommunicationPromise<ObjectPacket<out Any>> {
+    private fun getPacketFromResult(result: ICommunicationPromise<out Any>): ICommunicationPromise<ObjectPacket<out Any>> {
         val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(result.getTimeout())
         result.addCompleteListener {
             if (it.isSuccess) {

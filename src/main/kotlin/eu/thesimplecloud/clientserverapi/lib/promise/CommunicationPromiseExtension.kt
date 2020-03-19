@@ -18,8 +18,8 @@ fun Collection<ICommunicationPromise<*>>.combineAllPromises(): ICommunicationPro
  * Returns a new promise that will complete when the inner promise completes.
  * The new promise will complete with the same specifications.
  */
-fun <T : Any> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(): ICommunicationPromise<T> {
-    val newPromise = CommunicationPromise<T>(this.getTimeout(), this.isTimeoutEnabled())
+fun <T : Any> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(additionalTimeout: Long = 0): ICommunicationPromise<T> {
+    val newPromise = CommunicationPromise<T>(this.getTimeout() + additionalTimeout, this.isTimeoutEnabled())
     this.addCompleteListener {
         if (it.isSuccess) {
             val innerPromise = it.get()
@@ -29,4 +29,12 @@ fun <T : Any> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(): ICo
         }
     }
     return newPromise
+}
+
+fun <T : Any> List<ICommunicationPromise<T>>.toListPromise(): ICommunicationPromise<List<T>> {
+    return this.combineAllPromises().then { this.map { it.getNow() } }
+}
+
+fun <T : Any> ICommunicationPromise<List<ICommunicationPromise<T>>>.toListPromise(): ICommunicationPromise<List<T>> {
+    return this.then { list -> list.toListPromise()  }.flatten(400)
 }
