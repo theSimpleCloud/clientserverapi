@@ -223,5 +223,20 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
         fun <T : Any> failed(throwable: Throwable): ICommunicationPromise<T> {
             return CommunicationPromise<T>(throwable)
         }
+
+        /**
+         * Runs the specified [block] async and return it result.
+         */
+        fun <R : Any> runAsync(block: () -> R): ICommunicationPromise<R> {
+            val promise = CommunicationPromise<R>(enableTimeout = false)
+            GlobalScope.launch {
+                try {
+                    promise.trySuccess(block())
+                } catch (ex: Exception) {
+                    promise.tryFailure(ex)
+                }
+            }
+            return promise
+        }
     }
 }

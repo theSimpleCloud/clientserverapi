@@ -21,4 +21,10 @@ interface IDirectorySyncManager {
      */
     fun getDirectorySync(directory: File): IDirectorySync?
 
+    /**
+     * Sets the directory where zip files will be stored.
+     * This function can only be called before creating the first [IDirectorySync]
+     */
+    fun setTmpZipDirectory(tmpZipDir: File)
+
 }

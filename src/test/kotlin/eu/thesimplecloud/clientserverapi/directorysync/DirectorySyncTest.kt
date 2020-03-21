@@ -21,14 +21,12 @@ class DirectorySyncTest {
 
     @Test()
     fun test(){
-        nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyServer.start()
         }
         while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
-        nettyClient.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyClient.start()
         }
@@ -70,7 +68,7 @@ class DirectorySyncTest {
         FileUtils.deleteDirectory(File("syncFolderOtherSide/"))
     }
 
-       */
+     */
 
 
 

@@ -1,19 +1,33 @@
 package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.concurrent.thread
 
-class DirectorySyncManager(val directoryWatchManager: IDirectoryWatchManager) : IDirectorySyncManager {
+class DirectorySyncManager(private val directoryWatchManager: IDirectoryWatchManager) : IDirectorySyncManager {
 
     private val directorySyncList: MutableList<DirectorySync> = ArrayList()
+    @Volatile
+    var tmpZipDir: File = File("tmpZip/")
+        private set
+
+    init {
+        startThread()
+    }
+
+    private fun startThread() {
+        thread(start = true, isDaemon = true) {
+            while (true) {
+                this.directorySyncList.forEach { it.checkForReZip() }
+                Thread.sleep(1000)
+            }
+        }
+    }
 
 
     override fun createDirectorySync(directory: File, toDirectory: String): IDirectorySync {
-        val directorySync = DirectorySync(directory, toDirectory, directoryWatchManager)
+        val directorySync = DirectorySync(directory, toDirectory, this.tmpZipDir, this.directoryWatchManager.createDirectoryWatch(directory))
         directorySyncList.add(directorySync)
         return directorySync
     }
@@ -26,7 +40,12 @@ class DirectorySyncManager(val directoryWatchManager: IDirectoryWatchManager) : 
 
     override fun getDirectorySync(directory: File): IDirectorySync? = this.directorySyncList.firstOrNull { it.getDirectory() == directory }
 
-    fun removeFromDirectorySyncs(connection: IConnection){
+    override fun setTmpZipDirectory(tmpZipDir: File) {
+        if (this.directorySyncList.isNotEmpty()) throw IllegalStateException("There must be no registered DirectorySyncs when calling this")
+        this.tmpZipDir = tmpZipDir
+    }
+
+    fun removeFromDirectorySyncs(connection: IConnection) {
         directorySyncList.forEach { it.syncNoLonger(connection) }
     }
 }

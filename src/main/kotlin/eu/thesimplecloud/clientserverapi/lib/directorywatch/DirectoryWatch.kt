@@ -6,10 +6,10 @@ import java.nio.file.FileSystems
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchService
 
-class DirectoryWatch(val directoryWatchManager: IDirectoryWatchManager, private val directory: File) : IDirectoryWatch {
+class DirectoryWatch(private val directoryWatchManager: IDirectoryWatchManager, private val directory: File) : IDirectoryWatch {
 
     lateinit var watchService: WatchService
-    val subDirectoryWatches = HashSet<IDirectoryWatch>()
+    private val subDirectoryWatches = HashSet<IDirectoryWatch>()
     val listeners = ArrayList<IDirectoryWatchListener>()
 
     init {

@@ -17,14 +17,12 @@ class DirectorySyncTest2 {
 
     @Test()
     fun test() {
-        nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyServer.start()
         }
         while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
-        nettyClient.addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.filetransfer.packets")
         GlobalScope.launch {
             nettyClient.start()
         }
@@ -35,17 +33,14 @@ class DirectorySyncTest2 {
         nettyClient.getPacketIdsSyncPromise().syncUninterruptibly()
         val dir = File("templates/")
         dir.mkdirs()
-        val otherSideDir = File("templatesOtherSide/")
+        nettyServer.getDirectorySyncManager().setTmpZipDirectory(File("storage/zippedTemplates/"))
         val directorySync = nettyServer.getDirectorySyncManager().createDirectorySync(dir, "templatesOtherSide/")
-        val clientOnServerSide = this.nettyServer.clientManager.getClients()[0]
+        val clientOnServerSide = this.nettyServer.clientManager.getClients().firstOrNull()!!
         val promise = directorySync.syncDirectory(clientOnServerSide)
-        while(true) {
-
-        }
-
+        promise.awaitUninterruptibly()
     }
 
-
     */
+
 
 }
