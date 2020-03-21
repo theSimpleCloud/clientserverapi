@@ -22,10 +22,6 @@ class DirectorySync(private val directory: File, private val toDirectory: String
 
     private val receivers = CopyOnWriteArrayList<IConnection>()
     private val zipFile = File(tmpZipDir, directory.name + ".zip")
-    @Volatile
-    private var changesDetected = false
-    @Volatile
-    private var lastChangeDetectedTimestamp = System.currentTimeMillis()
 
 
     init {
@@ -59,15 +55,9 @@ class DirectorySync(private val directory: File, private val toDirectory: String
     }
 
     private fun changesDetected() {
-        this.changesDetected = true
-        this.lastChangeDetectedTimestamp = System.currentTimeMillis()
-    }
-
-    fun checkForReZip() {
-        if (this.changesDetected && (System.currentTimeMillis() - this.lastChangeDetectedTimestamp) >= 2000) {
-            this.changesDetected = false
-            zipDirectory()
-        }
+       synchronized(this) {
+           this.zipFile.delete()
+       }
     }
 
     override fun getDirectory(): File = this.directory

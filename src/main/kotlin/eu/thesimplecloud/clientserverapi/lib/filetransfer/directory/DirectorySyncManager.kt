@@ -12,20 +12,6 @@ class DirectorySyncManager(private val directoryWatchManager: IDirectoryWatchMan
     var tmpZipDir: File = File("tmpZip/")
         private set
 
-    init {
-        startThread()
-    }
-
-    private fun startThread() {
-        thread(start = true, isDaemon = true) {
-            while (true) {
-                this.directorySyncList.forEach { it.checkForReZip() }
-                Thread.sleep(1000)
-            }
-        }
-    }
-
-
     override fun createDirectorySync(directory: File, toDirectory: String): IDirectorySync {
         val directorySync = DirectorySync(directory, toDirectory, this.tmpZipDir, this.directoryWatchManager.createDirectoryWatch(directory))
         directorySyncList.add(directorySync)
