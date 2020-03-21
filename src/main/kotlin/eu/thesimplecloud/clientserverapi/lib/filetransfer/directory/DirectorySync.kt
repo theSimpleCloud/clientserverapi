@@ -15,10 +15,11 @@ import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 
-class DirectorySync(private val directory: File, private val toDirectory: String, private val tmpZipDir: File,  directoryWatch: IDirectoryWatch) : IDirectorySync {
+class DirectorySync(private val directory: File, private val toDirectory: String, private val tmpZipDir: File, directoryWatch: IDirectoryWatch) : IDirectorySync {
 
     private val receivers = CopyOnWriteArrayList<IConnection>()
     private val zipFile = File(tmpZipDir, directory.name + ".zip")
@@ -36,13 +37,22 @@ class DirectorySync(private val directory: File, private val toDirectory: String
 
         directoryWatch.addWatchListener(object : IDirectoryWatchListener {
             override fun fileCreated(file: File) {
-                changesDetected()
-                receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
+                try {
+                    changesDetected()
+                    receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
+                } catch (e: Exception) {
+                    throw IOException(e)
+                    //ignore "file is in use by another process"
+                }
             }
 
             override fun fileModified(file: File) {
-                changesDetected()
-                receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
+                try {
+                    changesDetected()
+                    receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
+                } catch (e: Exception) {
+                    throw IOException(e)
+                }
             }
 
             override fun fileDeleted(file: File) {
@@ -55,23 +65,23 @@ class DirectorySync(private val directory: File, private val toDirectory: String
     }
 
     private fun changesDetected() {
-       synchronized(this) {
-           this.zipFile.delete()
-       }
+        synchronized(this) {
+            this.zipFile.delete()
+        }
     }
 
     override fun getDirectory(): File = this.directory
 
     override fun syncDirectory(connection: IConnection): ICommunicationPromise<Unit> {
         synchronized(this) {
-           return CommunicationPromise.runAsync {
-               if(!zipFile.exists())
-                   zipDirectory()
-               this.receivers.add(connection)
-               val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(1))
-               val sizeInMB = (zipFile.length() / 1000) / 1000
-               promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, toDirectory), (sizeInMB * 100) * 2) }.flatten()
-           }.flatten()
+            return CommunicationPromise.runAsync {
+                if (!zipFile.exists())
+                    zipDirectory()
+                this.receivers.add(connection)
+                val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(1))
+                val sizeInMB = (zipFile.length() / 1000) / 1000
+                promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, toDirectory), (sizeInMB * 100) * 2) }.flatten()
+            }.flatten()
         }
     }
 
