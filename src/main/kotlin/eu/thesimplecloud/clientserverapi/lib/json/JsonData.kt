@@ -235,7 +235,7 @@ class JsonData(val jsonElement: JsonElement) {
                 val data = ByteArray(inputStream.available())
                 inputStream.read(data)
                 inputStream.close()
-                return String(data, Charset.defaultCharset())
+                return String(data, Charsets.UTF_8)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -247,18 +247,7 @@ class JsonData(val jsonElement: JsonElement) {
         private fun loadFile(file: File): String {
             if (!file.exists())
                 return ""
-            try {
-                val fis = FileInputStream(file)
-                val data = ByteArray(file.length().toInt())
-                fis.read(data)
-                fis.close()
-
-                return String(data, Charset.defaultCharset())
-            } catch (e: IOException) {
-                // TODO: handle exception
-            }
-
-            return ""
+            return loadFromInputStream(FileInputStream(file))
         }
     }
 
