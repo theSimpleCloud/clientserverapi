@@ -212,15 +212,20 @@ class JsonData(val jsonElement: JsonElement) {
         }
 
         fun fromJsonString0(string: String, gson: Gson): JsonData {
-            try {
+            return try {
                 val jsonObject = gson.fromJson(string, JsonObject::class.java)
-                return JsonData(jsonObject)
+                JsonData(jsonObject)
             } catch (ex: Exception) {
                 try {
-                    val jsonPrimitive = gson.fromJson(string, JsonPrimitive::class.java)
-                    return JsonData(jsonPrimitive)
-                } catch (ex: Exception) {
-                    throw IllegalArgumentException("Can't parse string $string", ex)
+                    val jsonPrimitive = gson.fromJson(string, JsonArray::class.java)
+                    JsonData(jsonPrimitive)
+                } catch (ex: java.lang.Exception) {
+                    try {
+                        val jsonPrimitive = gson.fromJson(string, JsonPrimitive::class.java)
+                        JsonData(jsonPrimitive)
+                    } catch (ex: Exception) {
+                        throw IllegalArgumentException("Can't parse string $string", ex)
+                    }
                 }
             }
         }

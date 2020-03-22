@@ -24,6 +24,11 @@ class JsonDataTest {
         Assert.assertEquals(3, innerJsonData2!!.getInt("test"))
     }
 
+    @Test
+    fun json_array_test() {
+        JsonData.fromObject(listOf("1", "2", "3", "4"))
+    }
+
 
     enum class TestEnum() {
         TEST_1, TEST_2

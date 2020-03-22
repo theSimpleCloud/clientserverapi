@@ -8,7 +8,8 @@ class JsonTest {
 
     @Test
     fun test() {
-        println(JsonData.fromObject(TestObj(listOf("test", "test222"))).getAsJsonString())
+        val list = listOf("test1", "test2", "test3")
+        println(JsonData.fromObject("test2224").getAsJsonString())
     }
 
 }
