@@ -1,5 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.promise
 
+import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.PromiseCreationException
 import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromiseTimeoutHandler
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
@@ -8,6 +9,8 @@ import java.lang.NullPointerException
 import java.util.concurrent.TimeUnit
 
 class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableTimeout: Boolean = true) : DefaultPromise<T>(), ICommunicationPromise<T> {
+
+    val creationError = PromiseCreationException()
 
     constructor(result: T, timeout: Long = 200) : this(timeout) {
         trySuccess(result)
