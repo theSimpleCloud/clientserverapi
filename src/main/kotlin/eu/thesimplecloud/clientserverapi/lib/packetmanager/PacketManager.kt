@@ -43,7 +43,10 @@ class PacketManager() : IPacketManager {
 
     override fun getIdFromPacket(packetClass: Class<out IPacket>): Int? = packets.entries.firstOrNull { it.value.simpleName == packetClass.simpleName }?.key
 
-    fun clearPackets() = this.packets.clear()
+    fun clearPackets() {
+        this.packets.clear()
+        this.packetRegisterCallbacks.clear()
+    }
 
     fun getUnusedId(): Int {
         var id = 0

@@ -65,7 +65,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         check(!this.running) { "Can't start client multiple times." }
         this.running = true
         this.lastStartPromise = CommunicationPromise(enableTimeout = false)
-        directoryWatchManager.startThread()
+        this.directoryWatchManager.startThread()
         val instance = this
         this.workerGroup = NioEventLoopGroup()
         val bootstrap = Bootstrap()
@@ -103,6 +103,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     override fun shutdown(): ICommunicationPromise<Unit> {
         val shutdownPromise = CommunicationPromise<Unit>()
         if (this.channel == null) shutdownPromise.trySuccess(Unit)
+        this.directoryWatchManager.stopThread()
         this.workerGroup?.shutdownGracefully()
         this.running = false
         this.channel?.closeFuture()?.addListener {

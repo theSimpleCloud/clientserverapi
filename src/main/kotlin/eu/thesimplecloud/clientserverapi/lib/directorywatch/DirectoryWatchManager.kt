@@ -12,8 +12,10 @@ class DirectoryWatchManager : IDirectoryWatchManager {
 
     private val list = CopyOnWriteArrayList<DirectoryWatch>()
 
+    private lateinit var runningThread: Thread
+
     fun startThread() {
-        thread(start = true, isDaemon = true) {
+        runningThread = thread(start = true, isDaemon = true) {
             while (true) {
                 for (directoryWatch in list) {
                     if (!directoryWatch.getDirectory().exists()) continue
@@ -42,6 +44,10 @@ class DirectoryWatchManager : IDirectoryWatchManager {
 
             }
         }
+    }
+
+    fun stopThread() {
+        this.runningThread.interrupt()
     }
 
     override fun createDirectoryWatch(directory: File): IDirectoryWatch {
