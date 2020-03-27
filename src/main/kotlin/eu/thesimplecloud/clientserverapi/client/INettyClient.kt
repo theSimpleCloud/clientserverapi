@@ -8,6 +8,5 @@ interface INettyClient : IConnection, ICommunicationBootstrap {
 
     override fun getCommunicationBootstrap(): INettyClient
 
-    fun getPacketIdsSyncPromise(): ICommunicationPromise<Unit>
 
 }

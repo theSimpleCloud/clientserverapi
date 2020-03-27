@@ -32,6 +32,8 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
@@ -43,7 +45,7 @@ import org.reflections.Reflections
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
+class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
 
     private val debugMessageManager = DebugMessageManager()
     private var bossGroup: NioEventLoopGroup? = null
@@ -64,9 +66,10 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
         addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
     }
 
-    override fun start(){
+    override fun start(): ICommunicationPromise<Unit> {
         check(!this.active) { "Can't start server multiple times." }
         this.active = true
+        val startPromise = CommunicationPromise<Unit>(enableTimeout = false)
         directoryWatchManager.startThread()
         this.bossGroup = NioEventLoopGroup()
         this.workerGroup = NioEventLoopGroup()
@@ -95,16 +98,18 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
             if (future.isSuccess) {
                 this.listening = true
                 serverHandler.onServerStarted(this)
+                startPromise.trySuccess(Unit)
             } else {
                 shutdown()
                 serverHandler.onServerStartException(this, future.cause())
+                startPromise.tryFailure(future.cause())
             }
-        }.sync().channel().closeFuture().syncUninterruptibly()
-
+        }
+        return startPromise
     }
 
-    override fun addPacketsByPackage(vararg packages: String){
-        packages.forEach {packageName ->
+    override fun addPacketsByPackage(vararg packages: String) {
+        packages.forEach { packageName ->
             val reflections = Reflections(packageName, if (this.classLoaders.isNotEmpty()) this.classLoaders.toTypedArray() else ResourceFinder.getSystemClassLoader())
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
@@ -140,13 +145,22 @@ class NettyServer<T: IConnectedClientValue>(val host: String, val port: Int, pri
 
     override fun isListening(): Boolean = this.listening
 
-    override fun shutdown() {
+    override fun shutdown(): ICommunicationPromise<Unit> {
+        if (!listening) return CommunicationPromise.of(Unit)
+        val shutdownPromise = CommunicationPromise<Unit>()
         this.listening = false
         this.bossGroup?.shutdownGracefully()
         this.workerGroup?.shutdownGracefully()
-        this.eventExecutorGroup?.shutdownGracefully()
+        this.eventExecutorGroup?.shutdownGracefully()?.addListener {
+            if (it.isSuccess) {
+                shutdownPromise.trySuccess(Unit)
+            } else {
+                shutdownPromise.tryFailure(it.cause())
+            }
+        }
         this.serverHandler.onServerShutdown(this)
         this.active = false
+        return shutdownPromise
     }
 
 }

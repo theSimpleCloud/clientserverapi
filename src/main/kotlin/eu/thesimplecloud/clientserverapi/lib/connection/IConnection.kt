@@ -45,7 +45,7 @@ interface IConnection : IPacketSender {
      * Closes this [IConnection]
      */
     fun closeConnection(): ICommunicationPromise<Unit> {
-        if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Can not close closed connection.")
+        if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Connection already closed.")
         val connectionPromise = CommunicationPromise<Unit>(2000)
         getChannel()?.close()?.addListener { connectionPromise.trySuccess(Unit) }
         return connectionPromise

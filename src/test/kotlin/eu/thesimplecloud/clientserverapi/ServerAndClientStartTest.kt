@@ -5,28 +5,30 @@ import eu.thesimplecloud.clientserverapi.server.NettyServer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
+import kotlinx.coroutines.delay
 import org.junit.Test
 
 class ServerAndClientStartTest {
 
     /*
 
-    @Test(timeout = 3000)
+    @Test
     fun test() {
-        val nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1921)
-        nettyServer.addPacketsByPackage("me.wetterbericht.clientserverapi.communication.packet")
         GlobalScope.launch {
-            nettyServer.start()
+            delay(15000)
+            val nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1921)
+            GlobalScope.launch {
+                nettyServer.start().addListener { println(it.isSuccess) }
+            }
         }
-        while (!nettyServer.isListening()) {
-            Thread.sleep(10)
-        }
+
         val nettyClient = NettyClient("127.0.0.1", 1921)
-        nettyClient.addPacketsByPackage("me.wetterbericht.clientserverapi.communication.packet")
-        nettyClient.start()
-        while (!nettyClient.isOpen()) {
-            Thread.sleep(10)
+        while(!nettyClient.start().awaitUninterruptibly().isSuccess) {
+            println("Failed to connect to server. Retrying in 5 seconds.")
+            Thread.sleep(5000)
+            println("Retrying")
         }
+        println("Connected")
     }
 
     */

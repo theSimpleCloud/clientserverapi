@@ -48,7 +48,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private var channel: Channel? = null
     private var workerGroup: NioEventLoopGroup? = null
 
-    private var packetIdsSyncPromise: ICommunicationPromise<Unit> = CommunicationPromise(enableTimeout = false)
+    private var lastStartPromise: ICommunicationPromise<Unit> = CommunicationPromise(enableTimeout = false)
     private var packetPackages: MutableList<String> = CopyOnWriteArrayList()
     private var running = false
     private val transferFileManager = TransferFileManager()
@@ -61,9 +61,10 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
     }
 
-    override fun start() {
-        check(!this.running) { "Can't start server multiple times." }
+    override fun start(): ICommunicationPromise<Unit> {
+        check(!this.running) { "Can't start client multiple times." }
         this.running = true
+        this.lastStartPromise = CommunicationPromise(enableTimeout = false)
         directoryWatchManager.startThread()
         val instance = this
         this.workerGroup = NioEventLoopGroup()
@@ -87,14 +88,26 @@ class NettyClient(private val host: String, val port: Int, private val connectio
             if (future.isSuccess) {
                 GlobalScope.launch { registerPacketsByPackage(packetPackages.toTypedArray()) }
             } else {
+                this.lastStartPromise.tryFailure(future.cause())
                 this.shutdown()
             }
         }.channel()
+        return lastStartPromise
     }
 
-    override fun shutdown() {
+    override fun shutdown(): ICommunicationPromise<Unit> {
+        val shutdownPromise = CommunicationPromise<Unit>()
+        if (this.channel == null) shutdownPromise.trySuccess(Unit)
         this.workerGroup?.shutdownGracefully()
         this.running = false
+        this.channel?.closeFuture()?.addListener {
+            if (it.isSuccess) {
+                shutdownPromise.trySuccess(Unit)
+            } else {
+                shutdownPromise.tryFailure(it.cause())
+            }
+        }
+        return shutdownPromise
     }
 
     override fun getChannel(): Channel? = this.channel
@@ -150,10 +163,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                     throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
                 }
             }
-            this.packetIdsSyncPromise.trySuccess(Unit)
+            this.lastStartPromise.trySuccess(Unit)
         }
     }
-
-    override fun getPacketIdsSyncPromise(): ICommunicationPromise<Unit> = this.packetIdsSyncPromise
 
 }
