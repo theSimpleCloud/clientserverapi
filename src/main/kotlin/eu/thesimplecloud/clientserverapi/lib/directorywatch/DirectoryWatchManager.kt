@@ -12,7 +12,7 @@ class DirectoryWatchManager : IDirectoryWatchManager {
 
     private val list = CopyOnWriteArrayList<DirectoryWatch>()
 
-    private lateinit var runningThread: Thread
+    private var runningThread: Thread? = null
 
     fun startThread() {
         runningThread = thread(start = true, isDaemon = true) {
@@ -50,7 +50,7 @@ class DirectoryWatchManager : IDirectoryWatchManager {
     }
 
     fun stopThread() {
-        this.runningThread.interrupt()
+        this.runningThread?.interrupt()
     }
 
     override fun createDirectoryWatch(directory: File): IDirectoryWatch {
