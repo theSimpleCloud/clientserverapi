@@ -40,7 +40,10 @@ class DirectoryWatchManager : IDirectoryWatchManager {
                     }
                     directoryWatch.initWatchService()
                 }
-                Thread.sleep(1000)
+                try {
+                    Thread.sleep(1000)
+                } catch (ex: InterruptedException) {
+                }
 
             }
         }
