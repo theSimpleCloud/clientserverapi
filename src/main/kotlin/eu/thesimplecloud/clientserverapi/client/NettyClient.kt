@@ -101,6 +101,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         this.workerGroup?.shutdownGracefully()
         this.running = false
         this.channel?.closeFuture()?.addListener {
+            this.packetManager.clearPackets()
             if (it.isSuccess) {
                 shutdownPromise.trySuccess(Unit)
             } else {
