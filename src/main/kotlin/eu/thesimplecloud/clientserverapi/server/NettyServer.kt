@@ -63,10 +63,10 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
-        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
     }
 
     override fun start(): ICommunicationPromise<Unit> {
+        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
         check(!this.active) { "Can't start server multiple times." }
         this.active = true
         val startPromise = CommunicationPromise<Unit>(enableTimeout = false)
