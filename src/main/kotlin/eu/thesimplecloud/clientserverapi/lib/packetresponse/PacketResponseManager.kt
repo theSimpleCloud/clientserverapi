@@ -3,7 +3,6 @@ package eu.thesimplecloud.clientserverapi.lib.packetresponse
 import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import java.lang.IllegalStateException
 import java.util.*
 
 class PacketResponseManager : IPacketResponseManager {
