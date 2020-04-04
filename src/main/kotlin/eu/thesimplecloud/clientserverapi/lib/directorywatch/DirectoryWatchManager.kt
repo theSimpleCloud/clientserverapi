@@ -22,7 +22,11 @@ class DirectoryWatchManager : IDirectoryWatchManager {
                     if (!directoryWatch.getDirectory().exists()) continue
                     directoryWatch.tick()
                 }
-                Thread.sleep(200)
+                try {
+                    Thread.sleep(200)
+                } catch (e: InterruptedException) {
+
+                }
             }
         }
     }
