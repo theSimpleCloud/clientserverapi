@@ -7,7 +7,7 @@ import java.io.File
 
 class DirectoryWatchTest {
 
-    /*
+
 
     @Test
     fun test() {
@@ -29,10 +29,10 @@ class DirectoryWatchTest {
 
         })
         while (true) {
-
+            Thread.sleep(2000)
         }
     }
 
-    */
+
 
 }

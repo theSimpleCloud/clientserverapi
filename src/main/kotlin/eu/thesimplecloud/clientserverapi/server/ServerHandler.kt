@@ -34,7 +34,7 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
 
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        super.exceptionCaught(ctx, cause)
+        //super.exceptionCaught(ctx, cause)
         nettyServer.clientManager.getClient(ctx)?.let { connectionHandler.onFailure(it, cause) }
     }
 

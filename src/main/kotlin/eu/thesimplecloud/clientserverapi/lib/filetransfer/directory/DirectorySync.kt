@@ -8,14 +8,17 @@ import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIODeleteFile
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOUnzipZipFile
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.promise.flatten
 import eu.thesimplecloud.clientserverapi.lib.util.ZipUtils
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
 import java.io.IOException
+import java.nio.file.Files
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 
@@ -37,16 +40,31 @@ class DirectorySync(private val directory: File, private val toDirectory: String
 
         directoryWatch.addWatchListener(object : IDirectoryWatchListener {
             override fun fileCreated(file: File) {
-                try {
-                    changesDetected()
-                    receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
-                } catch (e: Exception) {
-                    throw IOException(e)
-                    //ignore "file is in use by another process"
+                println("file created: " + file.path)
+                //normal files will be sent in [fileModified]
+                GlobalScope.launch {
+                    var count = 0
+                    while (true) {
+                        count++
+                        try {
+                            changesDetected()
+                            receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
+                        } catch (e: Exception) {
+                            delay(100)
+                            if (count == 10 * 50 * 2) {
+                                throw IOException(e)
+                            }
+                            continue
+                            //ignore "file is in use by another process"
+                        }
+                        break
+                    }
                 }
             }
 
             override fun fileModified(file: File) {
+                println("file modified: " + file.path)
+                if (file.isDirectory) return
                 try {
                     changesDetected()
                     receivers.forEach { connection -> sendFileOrDirectory(file, connection) }
@@ -56,6 +74,7 @@ class DirectorySync(private val directory: File, private val toDirectory: String
             }
 
             override fun fileDeleted(file: File) {
+                println("file deleted: " + file.path)
                 changesDetected()
                 val otherSidePath = getFilePathOnOtherSide(file)
                 receivers.forEach { connection -> connection.sendUnitQuery(PacketIODeleteFile(otherSidePath)) }
@@ -86,9 +105,14 @@ class DirectorySync(private val directory: File, private val toDirectory: String
     }
 
     private fun sendFileOrDirectory(file: File, connection: IConnection): ICommunicationPromise<Unit> {
-        return if (file.isDirectory)
-            connection.sendUnitQuery(PacketIOCreateDirectory(getFilePathOnOtherSide(file)))
-        else {
+        return if (file.isDirectory) {
+            val createDirPromise = connection.sendUnitQuery(PacketIOCreateDirectory(getFilePathOnOtherSide(file)))
+            createDirPromise.then {
+                val files = file.listFiles() ?: emptyArray<File>()
+                val promises = files.map { sendFileOrDirectory(it, connection) }
+                promises.combineAllPromises()
+            }.flatten()
+        } else {
             val timeToWait = file.length() + 400
             connection.sendFile(file, getFilePathOnOtherSide(file), timeToWait.toLong())
         }
@@ -115,7 +139,7 @@ class DirectorySync(private val directory: File, private val toDirectory: String
 
     private fun zipDirectory() {
         synchronized(this) {
-            ZipUtils.zipFiles(zipFile, getAllFiles().filter { !it.isDirectory }, directory.name)
+            ZipUtils.zipFiles(zipFile, getAllFiles().filter { !it.isDirectory }, subtractRelativePath = directory.path)
         }
     }
 

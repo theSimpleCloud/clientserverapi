@@ -12,7 +12,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
+class ClientHandler(private val nettyClient: NettyClient, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
 
 
@@ -27,7 +27,7 @@ class ClientHandler(val nettyClient: NettyClient, val connectionHandler: IConnec
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        super.exceptionCaught(ctx, cause)
+        //super.exceptionCaught(ctx, cause)
         connectionHandler.onFailure(nettyClient, cause)
     }
 

@@ -14,37 +14,15 @@ class DirectoryWatchManager : IDirectoryWatchManager {
 
     private var runningThread: Thread? = null
 
+
     fun startThread() {
         runningThread = thread(start = true, isDaemon = true) {
             while (true) {
                 for (directoryWatch in list) {
                     if (!directoryWatch.getDirectory().exists()) continue
-                    val watchKey = directoryWatch.watchService.poll() ?: continue
-                    for (watchEvent in watchKey.pollEvents()) {
-                        val path = watchEvent.context() as Path
-                        val split = path.toAbsolutePath().toString().split("\\")
-                        val fileName = split.last()
-                        val file = File(directoryWatch.getDirectory(), fileName)
-                        when (watchEvent.kind()) {
-                            StandardWatchEventKinds.ENTRY_CREATE -> {
-                                directoryWatch.listeners.forEach { it.fileCreated(file) }
-                            }
-                            StandardWatchEventKinds.ENTRY_DELETE -> {
-                                directoryWatch.listeners.forEach { it.fileDeleted(file) }
-                            }
-                            StandardWatchEventKinds.ENTRY_MODIFY -> {
-                                if (file.exists() && !file.isDirectory)
-                                    directoryWatch.listeners.forEach { it.fileModified(file) }
-                            }
-                        }
-                    }
-                    directoryWatch.initWatchService()
+                    directoryWatch.tick()
                 }
-                try {
-                    Thread.sleep(1000)
-                } catch (ex: InterruptedException) {
-                }
-
+                Thread.sleep(200)
             }
         }
     }

@@ -1,20 +1,36 @@
 package eu.thesimplecloud.clientserverapi.lib.directorywatch
 
-import org.apache.commons.io.FileUtils
 import java.io.File
-import java.nio.file.FileSystems
-import java.nio.file.StandardWatchEventKinds
-import java.nio.file.WatchService
 
 class DirectoryWatch(private val directoryWatchManager: IDirectoryWatchManager, private val directory: File) : IDirectoryWatch {
 
-    lateinit var watchService: WatchService
     private val subDirectoryWatches = HashSet<IDirectoryWatch>()
-    val listeners = ArrayList<IDirectoryWatchListener>()
+    private val listeners = ArrayList<IDirectoryWatchListener>()
+
+    private var lastTickFiles = getAllCurrentFiles()
+
+
+    //one tick lasts 200ms
+    fun tick() {
+        val allCurrentFiles = getAllCurrentFiles()
+        val addedFiles = allCurrentFiles.toMutableList()
+        addedFiles.removeAll(lastTickFiles)
+        addedFiles.forEach { file -> this.listeners.forEach { it.fileCreated(file) } }
+        val modifiedFiles = this.lastTickFiles.filter { (System.currentTimeMillis() - it.lastModified()) in 200..399 }
+        modifiedFiles.forEach { file -> this.listeners.forEach { it.fileModified(file) } }
+        val removedFiles = lastTickFiles.toMutableList()
+        removedFiles.removeAll(allCurrentFiles)
+        removedFiles.forEach { file -> this.listeners.forEach { it.fileDeleted(file) } }
+        this.lastTickFiles = getAllCurrentFiles()
+    }
+
+
+    private fun getAllCurrentFiles(): List<File> {
+        return this.directory.listFiles()?.toList() ?: emptyList()
+    }
 
     init {
         require(directory.isDirectory) { "Specified file must be a directory" }
-        initWatchService()
         directory.listFiles().filter { it.isDirectory }.forEach {
             createSubDirectoryWatch(it)
         }
@@ -46,12 +62,6 @@ class DirectoryWatch(private val directoryWatchManager: IDirectoryWatchManager, 
         val subDirectoryWatch = this.subDirectoryWatches.firstOrNull { it.getDirectory() == file } ?: return
         this.subDirectoryWatches.remove(subDirectoryWatch)
         this.directoryWatchManager.deleteDirectoryWatch(subDirectoryWatch)
-    }
-
-    fun initWatchService() {
-        val path = directory.toPath()
-        this.watchService = FileSystems.getDefault().newWatchService()
-        path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY)
     }
 
     override fun addWatchListener(watchListener: IDirectoryWatchListener) {

@@ -78,6 +78,16 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
     fun isTimeoutEnabled(): Boolean
 
     /**
+     * Waits for the result and returns it. If an error occurs it will be thrown.
+     */
+    fun getBlocking(): T = syncUninterruptibly().getNow()
+
+    /**
+     * Waits for the result and returns it. If an error occurs this method will return null.
+     */
+    fun getBlockingOrNull(): T? = awaitUninterruptibly().getNow()
+
+    /**
      * Copies the information of the specified promise to this promise when the specified promise completes.
      */
     fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>)
