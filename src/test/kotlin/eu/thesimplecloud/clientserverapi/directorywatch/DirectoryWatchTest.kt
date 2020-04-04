@@ -7,7 +7,7 @@ import java.io.File
 
 class DirectoryWatchTest {
 
-
+    /*
 
     @Test
     fun test() {
@@ -33,6 +33,6 @@ class DirectoryWatchTest {
         }
     }
 
-
+    */
 
 }

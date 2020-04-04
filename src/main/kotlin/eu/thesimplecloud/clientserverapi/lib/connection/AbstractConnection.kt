@@ -90,7 +90,7 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         val fileBytes = Files.readAllBytes(queuedFile.file.toPath())
         var bytes = fileBytes.size
         GlobalScope.launch {
-            sendUnitQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath)).syncUninterruptibly()
+            sendUnitQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath, queuedFile.file.lastModified())).syncUninterruptibly()
             while (bytes != 0) {
                 when {
                     bytes > BYTES_PER_FILEPACKET -> {

@@ -8,14 +8,15 @@ import java.util.*
 
 class PacketIOCreateFileTransfer() : JsonPacket() {
 
-    constructor(uuid: UUID, path: String): this() {
-        this.jsonData.append("uuid", uuid).append("path", path)
+    constructor(uuid: UUID, path: String, lastModified: Long): this() {
+        this.jsonData.append("uuid", uuid).append("path", path).append("lastModified", lastModified)
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
         val uuid = this.jsonData.getObject("uuid", UUID::class.java) ?: return contentException("uuid")
         val path = this.jsonData.getString("path") ?: return contentException("path")
-        connection.getCommunicationBootstrap().getTransferFileManager().creteFileTransfer(uuid, path)
+        val lastModified = this.jsonData.getLong("lastModified") ?: return contentException("lastModified")
+        connection.getCommunicationBootstrap().getTransferFileManager().creteFileTransfer(uuid, path, lastModified)
         return unit()
     }
 }

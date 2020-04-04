@@ -8,8 +8,8 @@ class TransferFileManager : ITransferFileManager {
 
     private val transferFiles = HashMap<UUID, TransferFile>()
 
-    override fun creteFileTransfer(uuid: UUID, savePath: String) {
-        val transferFile = TransferFile(uuid, savePath)
+    override fun creteFileTransfer(uuid: UUID, savePath: String, lastModified: Long) {
+        val transferFile = TransferFile(uuid, lastModified, savePath)
         this.transferFiles[uuid] = transferFile
     }
 
@@ -19,7 +19,7 @@ class TransferFileManager : ITransferFileManager {
     }
 
     override fun fileTransferComplete(uuid: UUID) {
-        transferFiles.remove(uuid)
+        transferFiles.remove(uuid)?.setLasModified()
     }
 
 

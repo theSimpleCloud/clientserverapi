@@ -10,6 +10,8 @@ import java.io.File
 
 class DirectorySyncLoopTest {
 
+
+
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
     var nettyClient = NettyClient("127.0.0.1", 1919)
 
@@ -36,10 +38,14 @@ class DirectorySyncLoopTest {
         val clientOnServerSide = this.nettyServer.clientManager.getClients().firstOrNull()!!
         val promise = directorySync.syncDirectory(clientOnServerSide)
         promise.awaitUninterruptibly()
+        promise.cause()?.let { throw it }
+        println("finished")
 
         while (true) {
             Thread.sleep(100)
         }
     }
+
+
 
 }

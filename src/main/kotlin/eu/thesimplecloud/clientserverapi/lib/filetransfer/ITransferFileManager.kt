@@ -4,7 +4,7 @@ import java.util.*
 
 interface ITransferFileManager {
 
-    fun creteFileTransfer(uuid: UUID, savePath: String)
+    fun creteFileTransfer(uuid: UUID, savePath: String, lastModified: Long)
 
     /**
      * Adds the specified bytes to the [TransferFile] found by the specified uuid

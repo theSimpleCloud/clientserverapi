@@ -8,7 +8,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-class TransferFile(val uuid: UUID, savePath: String) {
+class TransferFile(val uuid: UUID, val lastModified: Long, savePath: String) {
 
     val file = File(savePath)
 
@@ -26,6 +26,10 @@ class TransferFile(val uuid: UUID, savePath: String) {
                 Thread.sleep(3)
             }
         }
+    }
+
+    fun setLasModified() {
+        this.file.setLastModified(lastModified)
     }
 
 }
