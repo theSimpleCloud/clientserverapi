@@ -10,7 +10,7 @@ import java.io.File
 
 class DirectorySyncLoopTest {
 
-
+    /*
 
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
     var nettyClient = NettyClient("127.0.0.1", 1919)
@@ -31,10 +31,10 @@ class DirectorySyncLoopTest {
             Thread.sleep(10)
         }
         Thread.sleep(1000)
-        val dir = File("testSync/testSyncAServer/")
+        val dir = File("templates/")
         dir.mkdirs()
         nettyServer.getDirectorySyncManager().setTmpZipDirectory(File("storage/zippedTemplates/"))
-        val directorySync = nettyServer.getDirectorySyncManager().createDirectorySync(dir, "testSync/testSyncOtherSide/")
+        val directorySync = nettyServer.getDirectorySyncManager().createDirectorySync(dir, "templatesOtherSide/")
         val clientOnServerSide = this.nettyServer.clientManager.getClients().firstOrNull()!!
         val promise = directorySync.syncDirectory(clientOnServerSide)
         promise.awaitUninterruptibly()
@@ -46,6 +46,6 @@ class DirectorySyncLoopTest {
         }
     }
 
-
+    */
 
 }
