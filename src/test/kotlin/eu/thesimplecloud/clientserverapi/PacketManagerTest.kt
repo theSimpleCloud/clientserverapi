@@ -2,6 +2,9 @@ package eu.thesimplecloud.clientserverapi
 
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 
@@ -12,11 +15,16 @@ class PacketManagerTest {
     fun before() {
         println("packet manager test")
         val packetManager = PacketManager()
-        val packetIdCompletableFuture = packetManager.getPacketIdCompletableFuture(IPacket::class.java)
+        val job = GlobalScope.launch {
+            val packetId = packetManager.getPacketIdBlocking(IPacket::class.java)
+            Assert.assertEquals(0, packetId)
+        }
         packetManager.registerPacket(0, IPacket::class.java)
-        Assert.assertEquals(0, packetIdCompletableFuture.get())
         Assert.assertEquals(1, packetManager.getUnusedId())
         Assert.assertEquals(0, packetManager.getIdFromPacket(IPacket::class.java))
+        runBlocking {
+            job.join()
+        }
     }
 
 }

@@ -3,7 +3,10 @@ package eu.thesimplecloud.clientserverapi.lib.promise
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.Promise
+import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 
 interface ICommunicationPromise<T : Any> : Promise<T> {
@@ -86,6 +89,42 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
      * Waits for the result and returns it. If an error occurs this method will return null.
      */
     fun getBlockingOrNull(): T? = awaitUninterruptibly().getNow()
+
+    /**
+     * Waits until this promise completes
+     * @return this promise
+     */
+    suspend fun awaitCoroutine(): ICommunicationPromise<T> = suspendCancellableCoroutine { coroutine ->
+        addCompleteListener {
+            coroutine.resume(this)
+        }
+    }
+
+    /**
+     * Returns the result of this promise in coroutines
+     */
+    suspend fun getCoroutineBlocking(): T = suspendCancellableCoroutine { coroutine ->
+        addCompleteListener {
+            if (it.isSuccess) {
+                coroutine.resume(it.getNow())
+            } else {
+                coroutine.resumeWithException(it.cause())
+            }
+        }
+    }
+
+    /**
+     * Returns the result of this promise or null if the promise fails.
+     */
+    suspend fun getCoroutineBlockingOrNull(): T? = suspendCancellableCoroutine { coroutine ->
+        addCompleteListener {
+            if (it.isSuccess) {
+                coroutine.resume(it.getNow())
+            } else {
+                coroutine.resume(null)
+            }
+        }
+    }
 
     /**
      * Copies the information of the specified promise to this promise when the specified promise completes.

@@ -4,6 +4,7 @@ import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.extension.getKey
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
+import kotlinx.coroutines.delay
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -52,14 +53,14 @@ class PacketManager() : IPacketManager {
         it.simpleName == name
     }
 
-    fun <T : IPacket> getPacketIdCompletableFuture(packetClass: Class<T>): CompletableFuture<Int> {
-        val completableFuture = CompletableFuture<Int>()
-        val id = getIdFromPacket(packetClass)
-        if (id == null)
-            packetRegisterCallbacks.add(packetClass to completableFuture)
-        else
-            completableFuture.complete(id)
-        return completableFuture
+    suspend fun <T : IPacket> getPacketIdBlocking(packetClass: Class<T>): Int? {
+        var tries = 0
+        while (getIdFromPacket(packetClass) == null) {
+            if (tries == 10 * 5) return null
+            delay(100)
+            tries++
+        }
+        return getIdFromPacket(packetClass)
     }
 
 

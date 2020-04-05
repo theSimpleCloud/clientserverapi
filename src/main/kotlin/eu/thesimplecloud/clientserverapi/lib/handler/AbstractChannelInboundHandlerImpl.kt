@@ -10,7 +10,9 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<WrappedPacket>() {
@@ -22,7 +24,7 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
         if (wrappedPacket.packetData.isResponse()) {
             connection.packetResponseManager.incomingPacket(wrappedPacket)
         } else {
-            GlobalScope.launch {
+            GlobalScope.launch(Dispatchers.Default) {
                 val result = try {
                     wrappedPacket.packet.handle(connection)
                 } catch (e: Exception) {
