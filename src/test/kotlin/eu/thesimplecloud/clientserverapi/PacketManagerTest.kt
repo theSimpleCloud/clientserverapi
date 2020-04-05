@@ -19,6 +19,7 @@ class PacketManagerTest {
                     .getBlockingOrNull()
             Assert.assertEquals(0, packetId)
         }
+        Thread.sleep(1000)
         packetManager.registerPacket(0, IPacket::class.java)
         Assert.assertEquals(1, packetManager.getUnusedId())
         Assert.assertEquals(0, packetManager.getIdFromPacket(IPacket::class.java))

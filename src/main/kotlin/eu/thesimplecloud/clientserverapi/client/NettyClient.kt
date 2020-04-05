@@ -1,10 +1,31 @@
 package eu.thesimplecloud.clientserverapi.client
 
 import eu.thesimplecloud.clientserverapi.client.packets.PacketOutGetPacketId
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
+import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
+import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.TransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
@@ -12,35 +33,12 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder
 import io.netty.handler.codec.LengthFieldPrepender
-import io.netty.handler.timeout.IdleStateHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
-import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
-import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
-import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
-import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
-import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
-import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
-import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
-import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
-import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
+import io.netty.handler.timeout.IdleStateHandler
+import io.netty.util.concurrent.GlobalEventExecutor
 import org.reflections.Reflections
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.collections.ArrayList
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
@@ -86,7 +84,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
-                GlobalScope.launch { registerPacketsByPackage(packetPackages.toTypedArray()) }
+                GlobalEventExecutor.INSTANCE.execute { registerPacketsByPackage(packetPackages.toTypedArray()) }
             } else {
                 this.lastStartPromise.tryFailure(future.cause())
                 this.shutdown()
