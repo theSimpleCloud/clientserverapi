@@ -13,10 +13,10 @@ class PacketManagerTest {
 
     @Test
     fun before() {
-        println("packet manager test")
         val packetManager = PacketManager()
         val job = GlobalScope.launch {
-            val packetId = packetManager.getPacketIdBlocking(IPacket::class.java)
+            val packetId = packetManager.getPacketIdRegisteredPromise(IPacket::class.java)
+                    .getBlockingOrNull()
             Assert.assertEquals(0, packetId)
         }
         packetManager.registerPacket(0, IPacket::class.java)

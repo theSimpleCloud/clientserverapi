@@ -4,24 +4,22 @@ import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.extension.getKey
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import kotlinx.coroutines.delay
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CopyOnWriteArrayList
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 class PacketManager() : IPacketManager {
 
     private val packets = Maps.newConcurrentMap<Int, Class<out IPacket>>()
 
-    private val packetRegisterCallbacks = CopyOnWriteArrayList<Pair<Class<out IPacket>, CompletableFuture<Int>>>()
+    private val packetRegisterCallbacks = Maps.newConcurrentMap<Class<out IPacket>, ICommunicationPromise<Int>>()
 
     override fun getPacketClassById(id: Int) = packets[id]
 
     override fun registerPacket(id: Int, packetClass: Class<out IPacket>) {
         if (packets.containsKey(id)) throw PacketException("There is already a packet registered with the id: $id")
         packets[id] = packetClass
-        val callbacks = packetRegisterCallbacks.filter { it.first.simpleName == packetClass.simpleName }
-        callbacks.forEach { it.second.complete(id) }
-        packetRegisterCallbacks.removeAll(callbacks)
+        val promise = packetRegisterCallbacks[packetClass]
+        promise?.trySuccess(id)
     }
 
     override fun registerPacket(packetClass: Class<out IPacket>) {
@@ -53,14 +51,11 @@ class PacketManager() : IPacketManager {
         it.simpleName == name
     }
 
-    suspend fun <T : IPacket> getPacketIdBlocking(packetClass: Class<T>): Int? {
-        var tries = 0
-        while (getIdFromPacket(packetClass) == null) {
-            if (tries == 10 * 5) return null
-            delay(100)
-            tries++
-        }
-        return getIdFromPacket(packetClass)
+    @Synchronized
+    fun <T : IPacket> getPacketIdRegisteredPromise(packetClass: Class<T>): ICommunicationPromise<Int> {
+        val id = getIdFromPacket(packetClass)
+        if (id != null) return CommunicationPromise.of(id)
+        return this.packetRegisterCallbacks.getOrPut(packetClass) { CommunicationPromise(5000) }
     }
 
 

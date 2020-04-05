@@ -1,28 +1,26 @@
 package eu.thesimplecloud.clientserverapi.lib.connection
 
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOCreateFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransferComplete
-import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOCreateFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.util.QueuedFile
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
-import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
 
@@ -40,10 +38,9 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
         val idFromPacket = packetManager.getIdFromPacket(packet)
         if (idFromPacket == null) {
-            GlobalScope.launch {
-                val packetId = packetManager.getPacketIdBlocking(packet::class.java)
-                        ?: throw PacketException("No id for packet ${packet::class.java.simpleName} was available after 5 second. It looks like this packet was not registered.")
-                sendPacket(WrappedPacket(PacketData(uniqueId, packetId, packet::class.java.simpleName), packet), packetPromise)
+            packetManager.getPacketIdRegisteredPromise(packet::class.java).addCompleteListener {
+                if (!it.isSuccess) throw PacketException("No id for packet ${packet::class.java.simpleName} was available after 5 second. It looks like this packet was not registered.")
+                sendPacket(WrappedPacket(PacketData(uniqueId, it.getNow(), packet::class.java.simpleName), packet), packetPromise)
             }
         } else {
             this.sendPacket(WrappedPacket(PacketData(uniqueId, idFromPacket, packet::class.java.simpleName), packet), packetPromise)
