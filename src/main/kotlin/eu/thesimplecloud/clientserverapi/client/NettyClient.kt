@@ -84,7 +84,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
-                thread(start = true, isDaemon = true) { registerPacketsByPackage(packetPackages.toTypedArray()) }
+                thread { registerPacketsByPackage(packetPackages.toTypedArray()) }
             } else {
                 this.lastStartPromise.tryFailure(future.cause())
                 this.shutdown()
