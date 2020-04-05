@@ -36,9 +36,9 @@ import io.netty.handler.codec.LengthFieldPrepender
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
-import io.netty.util.concurrent.GlobalEventExecutor
 import org.reflections.Reflections
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.thread
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
@@ -84,7 +84,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
-                GlobalEventExecutor.INSTANCE.execute { registerPacketsByPackage(packetPackages.toTypedArray()) }
+                thread(start = true, isDaemon = true) { registerPacketsByPackage(packetPackages.toTypedArray()) }
             } else {
                 this.lastStartPromise.tryFailure(future.cause())
                 this.shutdown()
