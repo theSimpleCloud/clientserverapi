@@ -83,7 +83,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
-            println("future completed ${future.isSuccess}")
             if (future.isSuccess) {
                 thread { registerPacketsByPackage(packetPackages.toTypedArray()) }
             } else {
@@ -146,11 +145,9 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     }
 
     private fun registerPacketsByPackage(array: Array<String>) {
-        println("registering packets")
         if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
         val allPacketClasses = ArrayList<Class<out IPacket>>()
         array.forEach { packageName ->
-            println("registering packets of package $packageName")
             val reflections = Reflections(packageName, this.classLoaders.toTypedArray())
             val packageClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
@@ -159,10 +156,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                     .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
 
             allPacketClasses.addAll(packageClasses)
-            println("registered packets of package $packageName")
         }
-        println("sending request.")
-        val packetPromise = sendQueryAsync<Array<Int>>(PacketOutGetPacketId(ArrayList(allPacketClasses.map { it.simpleName })))
+        val packetPromise = sendQueryAsync<Array<Int>>(PacketOutGetPacketId(ArrayList(allPacketClasses.map { it.simpleName })), timeout = 1000)
         packetPromise.addResultListener { list ->
             list.forEachIndexed { index, id ->
                 val packetClass = allPacketClasses[index]
