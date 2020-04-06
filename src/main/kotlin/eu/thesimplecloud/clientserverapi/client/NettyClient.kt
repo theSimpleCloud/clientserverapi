@@ -38,7 +38,6 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
 import org.reflections.Reflections
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.concurrent.thread
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
@@ -84,12 +83,13 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
-                thread { registerPacketsByPackage(packetPackages.toTypedArray()) }
+                registerPacketsByPackage(packetPackages.toTypedArray())
             } else {
                 this.lastStartPromise.tryFailure(future.cause())
                 this.shutdown()
             }
         }.channel()
+        println("exit start client")
         return lastStartPromise
     }
 
