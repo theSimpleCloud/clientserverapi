@@ -1,14 +1,13 @@
 package eu.thesimplecloud.clientserverapi.server.packets
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
-class PacketInGetPacketId : ObjectPacket<ArrayList<String>>() {
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<ArrayList<Int>> {
+class PacketInGetPacketId : ObjectPacket<Array<String>>() {
+
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Array<Int>> {
         connection as IConnectedClient<*>
         val packetNames = this.value ?: return contentException("value")
         val response = ArrayList<Int>()
@@ -35,7 +34,7 @@ class PacketInGetPacketId : ObjectPacket<ArrayList<String>>() {
             }
         }
 
-        return success(response)
+        return success(response.toTypedArray())
 
     }
 }

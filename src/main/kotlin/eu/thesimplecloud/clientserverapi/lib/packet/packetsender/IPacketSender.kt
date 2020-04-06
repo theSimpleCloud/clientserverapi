@@ -40,3 +40,9 @@ interface IPacketSender {
  * @return a [ICommunicationPromise] to wait for the result.
  */
 inline fun <reified T : Any> IPacketSender.sendQuery(packet: IPacket, timeout: Long = 200): ICommunicationPromise<T> = sendQuery(packet, T::class.java, timeout)
+
+/**
+ * Sends a query asynchronously to the connection and returns a [ICommunicationPromise].
+ * @return a [ICommunicationPromise] to wait for the result.
+ */
+inline fun <reified T : Any> IPacketSender.sendQueryAsync(packet: IPacket, timeout: Long = 200): ICommunicationPromise<T> = sendQueryAsync(packet, T::class.java, timeout)

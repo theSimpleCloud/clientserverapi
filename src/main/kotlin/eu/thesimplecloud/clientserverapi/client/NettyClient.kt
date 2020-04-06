@@ -17,7 +17,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQueryAsync
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -162,7 +162,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
             println("registered packets of package $packageName")
         }
         println("sending request.")
-        val packetPromise = sendQuery<ArrayList<Int>>(PacketOutGetPacketId(ArrayList(allPacketClasses.map { it.simpleName })))
+        val packetPromise = sendQueryAsync<Array<Int>>(PacketOutGetPacketId(ArrayList(allPacketClasses.map { it.simpleName })))
         packetPromise.addResultListener { list ->
             list.forEachIndexed { index, id ->
                 val packetClass = allPacketClasses[index]
@@ -174,6 +174,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 }
             }
             this.lastStartPromise.trySuccess(Unit)
+        }.addFailureListener {
+            throw it
         }
     }
 
