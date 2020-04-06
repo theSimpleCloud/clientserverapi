@@ -82,6 +82,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
+            println("future completed ${future.isSuccess}")
             if (future.isSuccess) {
                 registerPacketsByPackage(packetPackages.toTypedArray())
             } else {
