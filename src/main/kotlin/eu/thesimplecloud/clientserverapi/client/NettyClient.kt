@@ -38,6 +38,7 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
 import org.reflections.Reflections
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.thread
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
@@ -84,13 +85,12 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         this.channel = bootstrap.connect(host, port).addListener { future ->
             println("future completed ${future.isSuccess}")
             if (future.isSuccess) {
-                registerPacketsByPackage(packetPackages.toTypedArray())
+                thread { registerPacketsByPackage(packetPackages.toTypedArray()) }
             } else {
                 this.lastStartPromise.tryFailure(future.cause())
                 this.shutdown()
             }
         }.channel()
-        println("exit start client")
         return lastStartPromise
     }
 
@@ -146,9 +146,11 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     }
 
     private fun registerPacketsByPackage(array: Array<String>) {
+        println("registering packets")
         if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
         val allPacketClasses = ArrayList<Class<out IPacket>>()
         array.forEach { packageName ->
+            println("registering packets of package $packageName")
             val reflections = Reflections(packageName, this.classLoaders.toTypedArray())
             val packageClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
@@ -157,7 +159,9 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                     .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
 
             allPacketClasses.addAll(packageClasses)
+            println("registered packets of package $packageName")
         }
+        println("sending request.")
         val packetPromise = sendQuery<ArrayList<Int>>(PacketOutGetPacketId(ArrayList(allPacketClasses.map { it.simpleName })))
         packetPromise.addResultListener { list ->
             list.forEachIndexed { index, id ->
