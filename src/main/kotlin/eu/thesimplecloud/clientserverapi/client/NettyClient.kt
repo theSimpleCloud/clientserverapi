@@ -37,6 +37,7 @@ import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
 import org.reflections.Reflections
+import org.reflections.scanners.SubTypesScanner
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
 
@@ -148,7 +149,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
         val allPacketClasses = ArrayList<Class<out IPacket>>()
         array.forEach { packageName ->
-            val reflections = Reflections(packageName, this.classLoaders.toTypedArray())
+            val reflections = Reflections(packageName, SubTypesScanner(), this.classLoaders.toTypedArray())
             val packageClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))

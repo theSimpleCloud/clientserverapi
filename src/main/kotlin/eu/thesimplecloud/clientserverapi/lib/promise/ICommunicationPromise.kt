@@ -3,7 +3,7 @@ package eu.thesimplecloud.clientserverapi.lib.promise
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.Promise
-import kotlinx.coroutines.*
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -89,6 +89,15 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
      * Waits for the result and returns it. If an error occurs this method will return null.
      */
     fun getBlockingOrNull(): T? = awaitUninterruptibly().getNow()
+
+    /**
+     * Returns this promise as unit promise
+     */
+    fun toUnitPromise(): ICommunicationPromise<Unit> {
+        val promise = CommunicationPromise<Unit>()
+        promise.copyStateFromOtherPromiseToUnitPromise(this)
+        return promise
+    }
 
     /**
      * Waits until this promise completes

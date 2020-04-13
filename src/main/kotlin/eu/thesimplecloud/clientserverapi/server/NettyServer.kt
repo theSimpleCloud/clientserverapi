@@ -9,6 +9,26 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.TransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.DefaultServerHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
+import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
+import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
+import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
+import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
@@ -17,31 +37,12 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder
 import io.netty.handler.codec.LengthFieldPrepender
-import io.netty.util.concurrent.DefaultEventExecutorGroup
-import io.netty.util.concurrent.EventExecutorGroup
-import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
-import eu.thesimplecloud.clientserverapi.lib.handler.DefaultServerHandler
-import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
-import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
-import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
-import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
-import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
-import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
-import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
-import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
+import io.netty.util.concurrent.DefaultEventExecutorGroup
+import io.netty.util.concurrent.EventExecutorGroup
 import org.reflections.Reflections
+import org.reflections.scanners.SubTypesScanner
 import java.util.concurrent.CopyOnWriteArrayList
 
 
@@ -110,7 +111,7 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
 
     override fun addPacketsByPackage(vararg packages: String) {
         packages.forEach { packageName ->
-            val reflections = Reflections(packageName, if (this.classLoaders.isNotEmpty()) this.classLoaders.toTypedArray() else ResourceFinder.getSystemClassLoader())
+            val reflections = Reflections(packageName, SubTypesScanner(), if (this.classLoaders.isNotEmpty()) this.classLoaders.toTypedArray() else ResourceFinder.getSystemClassLoader())
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))

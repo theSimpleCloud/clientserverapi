@@ -45,3 +45,16 @@ fun <T : Any> List<ICommunicationPromise<T>>.toListPromise(): ICommunicationProm
 fun <T : Any> ICommunicationPromise<List<ICommunicationPromise<T>>>.toListPromise(additionalTimeout: Long = 400): ICommunicationPromise<List<T>> {
     return this.then { list -> list.toListPromise()  }.flatten(additionalTimeout)
 }
+
+/*
+* Copies the information of the specified promise to this promise when the specified promise completes.
+*/
+fun <T: Any> ICommunicationPromise<Unit>.copyStateFromOtherPromiseToUnitPromise(otherPromise: ICommunicationPromise<T>) {
+    otherPromise.addCompleteListener {
+        if (it.isSuccess) {
+            this.trySuccess(Unit)
+        } else {
+            this.tryFailure(it.cause())
+        }
+    }
+}

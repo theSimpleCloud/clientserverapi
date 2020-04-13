@@ -5,7 +5,6 @@ import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromise
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.NullPointerException
 import java.util.concurrent.TimeUnit
 
 class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableTimeout: Boolean = true) : DefaultPromise<T>(), ICommunicationPromise<T> {
@@ -78,22 +77,6 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
                     newPromise.tryFailure(this.cause())
                 }
             }, delay, timeUnit)
-        }
-        return newPromise
-    }
-
-    fun notNull(): ICommunicationPromise<T> {
-        val newPromise = CommunicationPromise<T>()
-        addCompleteListener {
-            if (it.isSuccess) {
-                if (it.get() == null) {
-                    newPromise.tryFailure(NullPointerException())
-                } else {
-                    newPromise.trySuccess(it.get())
-                }
-            } else {
-                newPromise.tryFailure(it.cause())
-            }
         }
         return newPromise
     }
