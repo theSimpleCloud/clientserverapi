@@ -12,7 +12,7 @@ import org.junit.Test
 class PacketManagerTest {
 
     @Test
-    fun before() {
+    fun register_test() {
         val packetManager = PacketManager()
         val job = GlobalScope.launch {
             val packetId = packetManager.getPacketIdRegisteredPromise(IPacket::class.java)

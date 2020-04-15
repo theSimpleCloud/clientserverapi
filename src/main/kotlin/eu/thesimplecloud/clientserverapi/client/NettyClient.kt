@@ -54,6 +54,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private val classLoaders = CopyOnWriteArrayList<ClassLoader>()
+    private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
 
     init {
         reloadPackets()
@@ -128,6 +129,10 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
     override fun getDebugMessageManager(): IDebugMessageManager = this.debugMessageManager
 
+    override fun setPacketClassConverter(function: (Class<out IPacket>) -> Class<out IPacket>) {
+        this.packetClassConverter = function
+    }
+
     override fun getCommunicationBootstrap() = this
 
     override fun getHost(): String = host
@@ -164,7 +169,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 val packetClass = allPacketClasses[index]
                 if (id != -1) {
                     if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $id")
-                    this.packetManager.registerPacket(id, packetClass)
+                    this.packetManager.registerPacket(id, this.packetClassConverter(packetClass))
                 } else {
                     throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
                 }

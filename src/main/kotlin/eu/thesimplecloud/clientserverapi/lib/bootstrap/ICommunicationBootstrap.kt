@@ -5,8 +5,6 @@ import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManag
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 
 interface ICommunicationBootstrap : IBootstrap {
@@ -45,5 +43,12 @@ interface ICommunicationBootstrap : IBootstrap {
      * Returns whether this is a server.
      */
     fun isServer() = this is INettyServer<*>
+
+    /**
+     * Sets the packet class converter.
+     * The packet class converter is used to find packets with reflections and one class loader and
+     * convert these classes later to an other class to avoid class loader bugs.
+     */
+    fun setPacketClassConverter(function: (Class<out IPacket>) -> Class<out IPacket>)
 
 }

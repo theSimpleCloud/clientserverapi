@@ -61,6 +61,7 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private var listening = false
     private val classLoaders = CopyOnWriteArrayList<ClassLoader>()
+    private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
@@ -120,7 +121,7 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
             allClasses.forEach { packetClass ->
                 val packetId = this.packetManager.getUnusedId()
                 if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $packetId")
-                this.packetManager.registerPacket(packetId, packetClass)
+                this.packetManager.registerPacket(packetId, this.packetClassConverter(packetClass))
             }
         }
     }
@@ -162,6 +163,10 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
         this.serverHandler.onServerShutdown(this)
         this.active = false
         return shutdownPromise
+    }
+
+    override fun setPacketClassConverter(function: (Class<out IPacket>) -> Class<out IPacket>) {
+        this.packetClassConverter = function
     }
 
 }
