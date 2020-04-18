@@ -5,6 +5,7 @@ import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManag
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 
 interface ICommunicationBootstrap : IBootstrap {
@@ -15,9 +16,19 @@ interface ICommunicationBootstrap : IBootstrap {
     fun addPacketsByPackage(vararg packages: String)
 
     /**
-     * Adds the [ClassLoader]s to find the packets. If no class loader was given, the system classloader will be used.
+     * Sets the [ClassLoader]s to find the packets. If no class loader was given, the system classloader will be used.
      */
-    fun addClassLoader(vararg classLoaders: ClassLoader)
+    fun setPacketSearchClassLoader(classLoader: ClassLoader)
+
+    /**
+     * Sets the [ClassLoader]s used to find the classes in [ObjectPacket]s
+     */
+    fun setClassLoaderToSearchObjectPacketClasses(classLoader: ClassLoader)
+
+    /**
+     * Returns the [ClassLoader]s used to find the classes in [ObjectPacket]s
+     */
+    fun getClassLoaderToSearchObjectPacketsClasses(): ClassLoader
 
     /**
      * Returns the [ITransferFileManager] to transfer files

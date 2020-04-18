@@ -4,15 +4,14 @@ import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<WrappedPacket>() {
@@ -40,7 +39,7 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
     }
 
     private fun getPacketFromResult(result: ICommunicationPromise<out Any>): ICommunicationPromise<ObjectPacket<out Any>> {
-        val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(result.getTimeout())
+        val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(enableTimeout = false)
         result.addCompleteListener {
             if (it.isSuccess) {
                 returnPromise.setSuccess(ObjectPacket.getNewObjectPacketWithContent(it.get()))

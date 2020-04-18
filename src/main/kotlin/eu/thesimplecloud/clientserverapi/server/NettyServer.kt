@@ -24,7 +24,6 @@ import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
@@ -42,8 +41,6 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.util.concurrent.DefaultEventExecutorGroup
 import io.netty.util.concurrent.EventExecutorGroup
 import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
-import java.util.concurrent.CopyOnWriteArrayList
 
 
 class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
@@ -60,8 +57,11 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private var listening = false
-    private val classLoaders = CopyOnWriteArrayList<ClassLoader>()
     private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
+    @Volatile
+    private var classLoaderToSearchPackets: ClassLoader = ClassLoader.getSystemClassLoader()
+    @Volatile
+    private var classLoaderToSearchObjectPacketClasses: ClassLoader = ClassLoader.getSystemClassLoader()
 
     init {
         packetManager.registerPacket(0, PacketInGetPacketId::class.java)
@@ -112,7 +112,7 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
 
     override fun addPacketsByPackage(vararg packages: String) {
         packages.forEach { packageName ->
-            val reflections = Reflections(packageName, SubTypesScanner(), if (this.classLoaders.isNotEmpty()) this.classLoaders.toTypedArray() else ResourceFinder.getSystemClassLoader())
+            val reflections = Reflections(packageName, this.classLoaderToSearchPackets)
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))
@@ -126,10 +126,17 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
         }
     }
 
-    override fun addClassLoader(vararg classLoaders: ClassLoader) {
-        this.classLoaders.addAll(classLoaders)
+    override fun setPacketSearchClassLoader(classLoader: ClassLoader) {
+        this.classLoaderToSearchPackets = classLoader
     }
 
+    override fun setClassLoaderToSearchObjectPacketClasses(classLoader: ClassLoader) {
+        this.classLoaderToSearchObjectPacketClasses = classLoader
+    }
+
+    override fun getClassLoaderToSearchObjectPacketsClasses(): ClassLoader {
+        return this.classLoaderToSearchObjectPacketClasses
+    }
 
     override fun getClientManager(): IClientManager<T> = this.clientManager
 

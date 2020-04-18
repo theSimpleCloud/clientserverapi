@@ -25,7 +25,6 @@ import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.resource.ResourceFinder
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
@@ -37,7 +36,6 @@ import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
 import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
 
@@ -53,8 +51,11 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private val transferFileManager = TransferFileManager()
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
-    private val classLoaders = CopyOnWriteArrayList<ClassLoader>()
     private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
+    @Volatile
+    private var classLoaderToSearchPackets: ClassLoader = ClassLoader.getSystemClassLoader()
+    @Volatile
+    private var classLoaderToSearchObjectPacketClasses: ClassLoader = ClassLoader.getSystemClassLoader()
 
     init {
         reloadPackets()
@@ -146,15 +147,22 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         }
     }
 
-    override fun addClassLoader(vararg classLoaders: ClassLoader) {
-        this.classLoaders.addAll(classLoaders)
+    override fun setPacketSearchClassLoader(classLoader: ClassLoader) {
+        this.classLoaderToSearchPackets = classLoader
+    }
+
+    override fun setClassLoaderToSearchObjectPacketClasses(classLoader: ClassLoader) {
+        this.classLoaderToSearchObjectPacketClasses = classLoader
+    }
+
+    override fun getClassLoaderToSearchObjectPacketsClasses(): ClassLoader {
+        return this.classLoaderToSearchObjectPacketClasses
     }
 
     private fun registerPacketsByPackage(array: Array<String>) {
-        if (this.classLoaders.isEmpty()) this.classLoaders.add(ResourceFinder.getSystemClassLoader())
         val allPacketClasses = ArrayList<Class<out IPacket>>()
         array.forEach { packageName ->
-            val reflections = Reflections(packageName, SubTypesScanner(), this.classLoaders.toTypedArray())
+            val reflections = Reflections(packageName, this.classLoaderToSearchPackets)
             val packageClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))

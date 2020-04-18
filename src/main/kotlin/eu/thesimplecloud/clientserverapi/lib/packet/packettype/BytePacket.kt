@@ -1,10 +1,11 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.packettype
 
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 
 abstract class BytePacket : IPacket {
 
@@ -29,13 +30,13 @@ abstract class BytePacket : IPacket {
 
     var buffer = Unpooled.buffer()
 
-    override fun read(byteBuf: ByteBuf) {
+    override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
         val byteArray = ByteArray(byteBuf.readInt())
         byteBuf.readBytes(byteArray)
         this.buffer = Unpooled.copiedBuffer(byteArray)
     }
 
-    override fun write(byteBuf: ByteBuf) {
+    override fun write(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
         val byteArray = this.buffer.array()
         byteBuf.writeInt(byteArray.size)
         byteBuf.writeBytes(byteArray)

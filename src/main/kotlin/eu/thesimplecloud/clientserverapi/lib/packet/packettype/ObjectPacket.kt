@@ -1,11 +1,9 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.packettype
 
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import io.netty.buffer.ByteBuf
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import io.netty.util.internal.StringUtil
+import io.netty.buffer.ByteBuf
 
 
 abstract class ObjectPacket<T : Any>() : JsonPacket() {
@@ -16,21 +14,25 @@ abstract class ObjectPacket<T : Any>() : JsonPacket() {
         this.value = value
     }
 
-    override fun read(byteBuf: ByteBuf) {
-        super.read(byteBuf)
+    override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
+        super.read(byteBuf, communicationBootstrap)
         val className = this.jsonData.getString("className")
         //return because the value to sent was null in this case.
         if (className.isNullOrBlank()) return
-        val clazz = Class.forName(className) as Class<T>
-        value = this.jsonData.getObject("data", clazz)
+        val clazz = Class.forName(
+                className,
+                true,
+                communicationBootstrap.getClassLoaderToSearchObjectPacketsClasses()
+        ) as Class<T>
+        this.value = this.jsonData.getObject("data", clazz)
     }
 
-    override fun write(byteBuf: ByteBuf) {
+    override fun write(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
         if (this.value != null) {
             this.jsonData.append("className", value!!::class.java.name)
             this.jsonData.append("data", value)
         }
-        super.write(byteBuf)
+        super.write(byteBuf, communicationBootstrap)
     }
 
     companion object {
