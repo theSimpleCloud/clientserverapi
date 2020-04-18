@@ -53,9 +53,9 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
     @Volatile
-    private var classLoaderToSearchPackets: ClassLoader = ClassLoader.getSystemClassLoader()
+    private var classLoaderToSearchPackets: ClassLoader = this::class.java.classLoader
     @Volatile
-    private var classLoaderToSearchObjectPacketClasses: ClassLoader = ClassLoader.getSystemClassLoader()
+    private var classLoaderToSearchObjectPacketClasses: ClassLoader = this::class.java.classLoader
 
     init {
         reloadPackets()
