@@ -1,12 +1,11 @@
 package eu.thesimplecloud.clientserverapi.testobject
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.IllegalArgumentException
 
 class PacketIOMessage() : ObjectPacket<String>() {
 
@@ -14,10 +13,8 @@ class PacketIOMessage() : ObjectPacket<String>() {
         this.value = message
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Int> {
-        val promise = CommunicationPromise<Int>(300)
-        handle0(promise)
-        return promise
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+        return CommunicationPromise.of(TestObj(6))
     }
 
     private fun handle0(promise: CommunicationPromise<Int>) {

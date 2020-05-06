@@ -1,15 +1,5 @@
 package eu.thesimplecloud.clientserverapi.testobject
 
-import eu.thesimplecloud.clientserverapi.client.NettyClient
-import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
-import eu.thesimplecloud.clientserverapi.lib.json.JsonData
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
-import eu.thesimplecloud.clientserverapi.server.NettyServer
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.junit.Test
-
 class ObjectPacketTest {
 
     /*
@@ -28,18 +18,24 @@ class ObjectPacketTest {
         GlobalScope.launch {
             nettyClient.start()
         }
-        nettyClient.sendQuery<Int>(PacketIOMessage("hi"), 250).then { println("2w-----${it}") }
-                .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
+
         //nettyClient.sendQuery<JsonData>(PacketIOMessage("hi"))
         //        .thenNonNull { println(it.getString("test")) }
         //        .addFailureListener { println(it.message) }
         GlobalScope.launch {
-            nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
+            nettyClient.sendQuery<String>(PacketIOMessage("hi"), 250).addResultListener { println("result: " + it) }
+                    .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
+            /*
+            val completedPromise = nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly()
+            println("success: " + completedPromise.isSuccess)
+            val completedPromise2 = nettyClient.sendQuery<ITestObj>(PacketIOMessage("hi")).awaitUninterruptibly()
+            println("success2: " + completedPromise2.isSuccess)
+            */
         }
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //7nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
-        Thread.sleep(650)
+        Thread.sleep(2000)
     }
     */
 
