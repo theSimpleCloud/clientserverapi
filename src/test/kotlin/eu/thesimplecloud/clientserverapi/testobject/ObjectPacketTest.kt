@@ -22,7 +22,7 @@ class ObjectPacketTest {
         //nettyClient.sendQuery<JsonData>(PacketIOMessage("hi"))
         //        .thenNonNull { println(it.getString("test")) }
         //        .addFailureListener { println(it.message) }
-        nettyClient.sendQuery<String>(PacketIOMessage("hi"), 10000).addResultListener { println("result: " + it) }
+        nettyClient.sendQuery<TestObj>(PacketIOMessage("hi"), 10000).addResultListener { println("result: " + it) }
                 .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
         GlobalScope.launch {
 

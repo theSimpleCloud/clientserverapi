@@ -37,8 +37,9 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
             }
         }
         out.add(WrappedPacket(packetData, packet))
-        if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_RECEIVED))
+        if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_RECEIVED)) {
             println("Received Packet ${packet::class.java.simpleName}")
+        }
     }
 
 
