@@ -18,6 +18,6 @@ class PacketEncoder(private val communicationBootstrap: ICommunicationBootstrap)
         ByteBufStringHelper.writeString(byteBuf, jsonData.getAsJsonString())
         wrappedPacket.packet.write(byteBuf, communicationBootstrap)
         if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_SENT))
-            println("Sent packet ${wrappedPacket.packet::class.java.simpleName}")
+            println("Sent packet ${wrappedPacket.packet::class.java.simpleName} (${packetData.uniqueId})")
     }
 }

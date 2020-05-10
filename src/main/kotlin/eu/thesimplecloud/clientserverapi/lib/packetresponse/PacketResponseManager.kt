@@ -7,7 +7,7 @@ import java.util.*
 
 class PacketResponseManager : IPacketResponseManager {
 
-    val packetResponseHandlers = Maps.newConcurrentMap<UUID, WrappedResponseHandler<out Any>>()
+    private val packetResponseHandlers = Maps.newConcurrentMap<UUID, WrappedResponseHandler<out Any>>()
 
 
     @Synchronized
@@ -23,14 +23,15 @@ class PacketResponseManager : IPacketResponseManager {
 
     @Synchronized
     fun incomingPacket(wrappedPacket: WrappedPacket) {
-        println("incoming packet " + wrappedPacket.packetData.sentPacketName)
+        println("incoming packet " + wrappedPacket.packetData.sentPacketName + " (${wrappedPacket.packetData.uniqueId})")
         val wrappedResponseHandler: WrappedResponseHandler<out Any>? = packetResponseHandlers.remove(wrappedPacket.packetData.uniqueId)
-        println("response handler for ${wrappedPacket.packetData.sentPacketName}: $wrappedResponseHandler")
+        println("response handler for ${wrappedPacket.packetData.sentPacketName}: $wrappedResponseHandler (${wrappedPacket.packetData.uniqueId})")
         wrappedResponseHandler
                 ?: throw IllegalStateException("Incoming: No response handler was available for packet by id ${wrappedPacket.packetData.uniqueId}")
         val response = wrappedResponseHandler.packetResponseHandler.handleResponse(wrappedPacket.packet)
         val packetPromise = wrappedResponseHandler.communicationPromise
-        println("found promise $packetPromise | response: $response ; ${response?.let { it::class }}")
+        println("found promise $packetPromise | response: $response | ${response?.let { it::class }} (${wrappedPacket.packetData.uniqueId})")
+        println("throwable (${wrappedPacket.packetData.uniqueId}) ${response is Throwable}")
         packetPromise as ICommunicationPromise<Any>
         if (response is Throwable) {
             packetPromise.tryFailure(response)
