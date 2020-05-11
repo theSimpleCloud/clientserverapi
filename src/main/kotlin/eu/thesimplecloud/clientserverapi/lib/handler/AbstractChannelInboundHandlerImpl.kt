@@ -27,12 +27,18 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
                 val result = try {
                     wrappedPacket.packet.handle(connection)
                 } catch (e: Exception) {
+                    println("exception ${e::class.java.simpleName}")
                     throw PacketException("An error occurred while attempting to handle packet: ${wrappedPacket.packet::class.java.simpleName}", e)
                 }
+                println("result: $result (${wrappedPacket.packetData.uniqueId})")
                 val packetPromise = getPacketFromResult(result)
                 packetPromise.then { packetToSend ->
+                    println("sending packet ${packetToSend::class.java.simpleName} (${wrappedPacket.packetData.uniqueId})")
                     val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
                     connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
+                }.addFailureListener {
+                    println("exception handling packet to send back ${it::class.java.simpleName} ${wrappedPacket.packetData.uniqueId}")
+                    throw it
                 }
             }
         }
