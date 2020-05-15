@@ -12,7 +12,7 @@ class JsonDataTest {
     fun test(){
         Assert.assertNull(JsonData.empty().getObjectOrNull(TestEnum::class.java))
         val testDataClass = TestDataClass("test", "test2")
-        Assert.assertEquals("test2", JsonData.fromObject(testDataClass).getString("excludedString"))
+        Assert.assertEquals("test2", JsonData.fromObject(testDataClass, GsonCreator().create()).getString("excludedString"))
         Assert.assertNull(JsonData.fromObject(testDataClass, GsonCreator().excludeAnnotations(GsonExclude::class.java).create()).getString("excludedString"))
     }
 

@@ -1,7 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.packet
 
 import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
-import eu.thesimplecloud.clientserverapi.lib.LogFile
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
@@ -19,7 +18,6 @@ class PacketEncoder(private val communicationBootstrap: ICommunicationBootstrap)
         ByteBufStringHelper.writeString(byteBuf, jsonData.getAsJsonString())
         wrappedPacket.packet.write(byteBuf, communicationBootstrap)
         if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_SENT)) {
-            LogFile.INSTANCE.addMessage("Sent packet ${wrappedPacket.packet::class.java.simpleName} (${packetData.uniqueId})")
             println("Sent packet ${wrappedPacket.packet::class.java.simpleName} (${packetData.uniqueId})")
         }
     }

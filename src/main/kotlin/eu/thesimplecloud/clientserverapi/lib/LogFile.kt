@@ -11,7 +11,7 @@ class LogFile {
     private val messages: MutableList<String> = ArrayList()
 
     companion object {
-        val INSTANCE = LogFile()
+
     }
 
     fun addMessage(msg: String) {
@@ -19,6 +19,7 @@ class LogFile {
     }
 
     init {
+
         GlobalScope.launch {
             while (true) {
                 delay(5000)

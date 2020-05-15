@@ -1,7 +1,6 @@
 package eu.thesimplecloud.clientserverapi.lib.packet
 
 import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
-import eu.thesimplecloud.clientserverapi.lib.LogFile
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
@@ -40,7 +39,6 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
         out.add(WrappedPacket(packetData, packet))
         if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_RECEIVED)) {
             println("Received Packet ${packet::class.java.simpleName} (${packetData.uniqueId})")
-            LogFile.INSTANCE.addMessage("Received Packet ${packet::class.java.simpleName} (${packetData.uniqueId})")
         }
     }
 
