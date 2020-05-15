@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'eu.thesimplecloud.clientserverapi'
-version '2.3.31-SNAPSHOT'
+version '2.3.32-SNAPSHOT'
 
 sourceCompatibility = 1.8
 

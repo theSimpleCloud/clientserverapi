@@ -1,5 +1,6 @@
 package eu.thesimplecloud.clientserverapi
 
+import eu.thesimplecloud.clientserverapi.lib.json.GsonCreator
 import eu.thesimplecloud.clientserverapi.lib.json.GsonExclude
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import org.junit.Assert
@@ -9,16 +10,16 @@ class JsonDataTest {
 
     @Test
     fun test(){
-        Assert.assertNull(JsonData().getObjectOrNull(TestEnum::class.java))
+        Assert.assertNull(JsonData.empty().getObjectOrNull(TestEnum::class.java))
         val testDataClass = TestDataClass("test", "test2")
         Assert.assertEquals("test2", JsonData.fromObject(testDataClass).getString("excludedString"))
-        Assert.assertNull(JsonData.fromObjectWithGsonExclude(testDataClass).getString("excludedString"))
+        Assert.assertNull(JsonData.fromObject(testDataClass, GsonCreator().excludeAnnotations(GsonExclude::class.java).create()).getString("excludedString"))
     }
 
     @Test
     fun test2() {
-        val innerJsonData = JsonData().append("test", 3)
-        val jsonData = JsonData().append("data", innerJsonData)
+        val innerJsonData = JsonData.empty().append("test", 3)
+        val jsonData = JsonData.empty().append("data", innerJsonData)
         val innerJsonData2 = jsonData.getObject("data", JsonData::class.java)
         Assert.assertEquals(innerJsonData.toString(), innerJsonData2.toString())
         Assert.assertEquals(3, innerJsonData2!!.getInt("test"))

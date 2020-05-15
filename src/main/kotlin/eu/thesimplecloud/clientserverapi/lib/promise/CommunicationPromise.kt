@@ -214,14 +214,23 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
          * Runs the specified [block] async and return it result.
          */
         fun <R : Any> runAsync(block: () -> R): ICommunicationPromise<R> {
-            val promise = CommunicationPromise<R>(enableTimeout = false)
-            GlobalScope.launch {
+            return runAsync(-1, block)
+        }
+
+        /**
+         * Runs the specified [block] async and return it result.
+         */
+        fun <R : Any> runAsync(timeout: Long, block: () -> R): ICommunicationPromise<R> {
+            val timeoutEnabled = timeout > 0
+            val promise = CommunicationPromise<R>(timeout, timeoutEnabled)
+            val job = GlobalScope.launch {
                 try {
                     promise.trySuccess(block())
                 } catch (ex: Exception) {
                     promise.tryFailure(ex)
                 }
             }
+            promise.addCompleteListener { if (!job.isCompleted) job.cancel() }
             return promise
         }
     }

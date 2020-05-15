@@ -3,7 +3,9 @@ package eu.thesimplecloud.clientserverapi.lib.packet.packettype
 import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.json.GsonCreator
 import eu.thesimplecloud.clientserverapi.lib.json.JsonData
+import eu.thesimplecloud.clientserverapi.lib.json.PacketExclude
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import io.netty.buffer.ByteBuf
@@ -11,6 +13,9 @@ import io.netty.buffer.ByteBuf
 abstract class JsonPacket : IPacket {
 
     companion object {
+
+        val PACKET_GSON = GsonCreator().excludeAnnotations(PacketExclude::class.java).create()
+
         fun getNewEmptyJsonPacket() = object: JsonPacket() {
             override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
                 return success(Unit)
@@ -23,10 +28,10 @@ abstract class JsonPacket : IPacket {
         }
     }
 
-    var jsonData: JsonData = JsonData()
+    var jsonData: JsonData = JsonData.empty(PACKET_GSON)
 
     override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
-        jsonData = JsonData.fromJsonString(ByteBufStringHelper.nextString(byteBuf))
+        jsonData = JsonData.fromJsonString(ByteBufStringHelper.nextString(byteBuf), PACKET_GSON)
 
     }
 

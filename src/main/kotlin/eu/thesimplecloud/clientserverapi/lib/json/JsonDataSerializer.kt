@@ -8,7 +8,7 @@ class JsonDataSerializer : JsonSerializer<JsonData>, JsonDeserializer<JsonData> 
 
 
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): JsonData {
-        return JsonData(json)
+        return JsonData.fromJsonElement(json)
     }
 
     override fun serialize(src: JsonData, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {

@@ -13,13 +13,14 @@ class PacketEncoder(private val communicationBootstrap: ICommunicationBootstrap)
 
     @Synchronized
     override fun encode(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket, byteBuf: ByteBuf) {
-        val jsonData = JsonData()
+        val jsonData = JsonData.empty()
         val packetData = PacketData(wrappedPacket.packetData.uniqueId, wrappedPacket.packetData.id, wrappedPacket.packet::class.java.simpleName)
         jsonData.append("data", packetData)
         ByteBufStringHelper.writeString(byteBuf, jsonData.getAsJsonString())
         wrappedPacket.packet.write(byteBuf, communicationBootstrap)
-        if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_SENT))
+        if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_SENT)) {
             LogFile.INSTANCE.addMessage("Sent packet ${wrappedPacket.packet::class.java.simpleName} (${packetData.uniqueId})")
             println("Sent packet ${wrappedPacket.packet::class.java.simpleName} (${packetData.uniqueId})")
+        }
     }
 }

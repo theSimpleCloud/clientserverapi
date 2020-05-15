@@ -2,16 +2,14 @@ package eu.thesimplecloud.clientserverapi.lib.json
 
 import com.google.gson.*
 import java.io.*
-import java.lang.IllegalArgumentException
-import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 
-class JsonData(val jsonElement: JsonElement) {
+class JsonData private constructor(val jsonElement: JsonElement, private val currentGson: Gson) {
 
-    private var exclude: Boolean = false
 
-    constructor() : this(JsonObject())
+    @Deprecated("Create via static method instead", ReplaceWith("JsonData.empty()"))
+    constructor() : this(JsonObject(), GSON)
 
     fun append(property: String, value: String?): JsonData {
         if (jsonElement !is JsonObject)
@@ -23,7 +21,7 @@ class JsonData(val jsonElement: JsonElement) {
     fun append(property: String, value: Any?): JsonData {
         if (jsonElement !is JsonObject)
             throw UnsupportedOperationException("Can't append element to JsonPrimitive.")
-        jsonElement.add(property, getGsonToUse().toJsonTree(value))
+        jsonElement.add(property, this.currentGson.toJsonTree(value))
         return this
     }
 
@@ -47,7 +45,7 @@ class JsonData(val jsonElement: JsonElement) {
     fun getProperty(name: String): JsonData? {
         if (jsonElement !is JsonObject)
             return null
-        return jsonElement.get(name)?.let { JsonData(it) }
+        return jsonElement.get(name)?.let { JsonData(it, currentGson) }
     }
 
     /**
@@ -102,17 +100,17 @@ class JsonData(val jsonElement: JsonElement) {
         if (clazz == JsonData::class.java) {
             return getProperty(property) as T
         }
-        return if (!jsonElement.has(property)) null else getGsonToUse().fromJson(jsonElement.get(property), clazz)
+        return if (!jsonElement.has(property)) null else this.currentGson.fromJson(jsonElement.get(property), clazz)
     }
 
     fun <T> getObject(clazz: Class<T>): T {
-        return getGsonToUse().fromJson(getAsJsonString(), clazz)
+        return this.currentGson.fromJson(getAsJsonString(), clazz)
     }
 
     fun <T> getObjectOrNull(clazz: Class<T>): T? {
         if (getAsJsonString().isBlank()) return null
         return try {
-            getGsonToUse().fromJson(getAsJsonString(), clazz)
+            this.currentGson.fromJson(getAsJsonString(), clazz)
         } catch (ex: Exception) {
             null
         }
@@ -156,34 +154,32 @@ class JsonData(val jsonElement: JsonElement) {
 
 
     fun getAsJsonString(): String {
-        return getGsonToUse().toJson(jsonElement)
+        return this.currentGson.toJson(jsonElement)
     }
 
     fun getJsonStringAsBytes(): ByteArray {
         return getAsJsonString().toByteArray(StandardCharsets.UTF_8)
     }
 
-    fun useGsonExclude(): JsonData {
-        this.exclude = true
-        return this
-    }
-
-    private fun getGsonToUse(): Gson {
-        return if (exclude) GSON_EXCLUDE else GSON
-    }
-
 
     companion object {
 
-        val GSON = GsonBuilder().registerTypeAdapter(JsonData::class.java, JsonDataSerializer()).setPrettyPrinting().serializeNulls().create()
-        val GSON_EXCLUDE = GsonBuilder().registerTypeAdapter(JsonData::class.java, JsonDataSerializer()).setPrettyPrinting().setExclusionStrategies(GsonExcludeExclusionStrategy()).serializeNulls().create()
+        val GSON = GsonCreator().excludeAnnotations(GsonExclude::class.java).create()
+
+        fun empty() = empty(GSON)
+
+        fun empty(gson: Gson) = JsonData(JsonObject(), gson)
+
+        fun fromJsonElement(jsonElement: JsonElement): JsonData {
+            return JsonData(jsonElement, GSON)
+        }
 
         fun fromObject(any: Any): JsonData {
             return fromJsonString(GSON.toJson(any))
         }
 
-        fun fromObjectWithGsonExclude(any: Any): JsonData {
-            return fromJsonStringWithGsonExclude(GSON_EXCLUDE.toJson(any))
+        fun fromObject(any: Any, gson: Gson): JsonData {
+            return fromJsonString(gson.toJson(any), gson)
         }
 
         fun fromJsonFile(path: String): JsonData? {
@@ -199,30 +195,26 @@ class JsonData(val jsonElement: JsonElement) {
             return fromJsonString(loadFromInputStream(inputStream))
         }
 
-        fun fromInputStreamWithGsonExclude(inputStream: InputStream): JsonData {
-            return fromJsonStringWithGsonExclude(loadFromInputStream(inputStream))
+        fun fromInputStream(inputStream: InputStream, gson: Gson): JsonData {
+            return fromJsonString(loadFromInputStream(inputStream), gson)
         }
 
         fun fromJsonString(string: String): JsonData {
-            return this.fromJsonString0(string, GSON)
+            return this.fromJsonString(string, GSON)
         }
 
-        fun fromJsonStringWithGsonExclude(string: String): JsonData {
-            return this.fromJsonString0(string, GSON_EXCLUDE)
-        }
-
-        fun fromJsonString0(string: String, gson: Gson): JsonData {
+        fun fromJsonString(string: String, gson: Gson): JsonData {
             return try {
                 val jsonObject = gson.fromJson(string, JsonObject::class.java)
-                JsonData(jsonObject)
+                JsonData(jsonObject, gson)
             } catch (ex: Exception) {
                 try {
                     val jsonPrimitive = gson.fromJson(string, JsonArray::class.java)
-                    JsonData(jsonPrimitive)
+                    JsonData(jsonPrimitive, gson)
                 } catch (ex: java.lang.Exception) {
                     try {
                         val jsonPrimitive = gson.fromJson(string, JsonPrimitive::class.java)
-                        JsonData(jsonPrimitive)
+                        JsonData(jsonPrimitive, gson)
                     } catch (ex: Exception) {
                         throw IllegalArgumentException("Can't parse string $string", ex)
                     }
