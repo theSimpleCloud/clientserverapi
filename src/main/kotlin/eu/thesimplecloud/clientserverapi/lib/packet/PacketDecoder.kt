@@ -22,19 +22,17 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
         val packetData = jsonData.getObject("data", PacketData::class.java)
                 ?: throw PacketException("PacketData is not present.")
         //objectPacket =-1
-        val packet = when (packetData.id) {
-            -1 -> {
-                val objectPacket = ObjectPacket.getNewEmptyObjectPacket<Any>()
-                objectPacket.read(byteBuf, communicationBootstrap)
-                objectPacket
-            }
-            else -> {
-                val packetClass: Class<out IPacket>? = packetManager.getPacketClassById(packetData.id)
-                packetClass ?: throw PacketException("Can't find packet by id ${packetData.id}, sentPacketName: ${packetData.sentPacketName}")
-                val packet = packetClass.newInstance()
-                packet.read(byteBuf, communicationBootstrap)
-                packet
-            }
+        val packet = if (packetData.isResponse) {
+            val objectPacket = ObjectPacket.getNewEmptyObjectPacket<Any>()
+            objectPacket.read(byteBuf, communicationBootstrap)
+            objectPacket
+        } else {
+            val packetClass: Class<out IPacket>? = packetManager.getPacketClassByOppositePacketName(packetData.sentPacketName)
+            packetClass
+                    ?: throw PacketException("Can't find opposite packet of: ${packetData.sentPacketName}")
+            val packet = packetClass.newInstance()
+            packet.read(byteBuf, communicationBootstrap)
+            packet
         }
         out.add(WrappedPacket(packetData, packet))
         if (this.communicationBootstrap.getDebugMessageManager().isActive(DebugMessage.PACKET_RECEIVED)) {

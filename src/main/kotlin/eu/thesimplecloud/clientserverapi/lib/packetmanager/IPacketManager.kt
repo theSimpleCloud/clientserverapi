@@ -7,30 +7,16 @@ interface IPacketManager {
     /**
      * Returns the first class of the packet found by the specified id
      */
-    fun getPacketClassById(id: Int): Class<out IPacket>?
+    fun getPacketClassBySimpleName(name: String): Class<out IPacket>?
 
     /**
-     * Returns the id of the specified packet
+     * Returns the packet class by the name of the opposite packet
+     * Example: for "PacketInMessage" it will return the class of "PacketOutMessage"
      */
-    fun getIdFromPacket(packet: IPacket): Int?
+    fun getPacketClassByOppositePacketName(name: String): Class<out IPacket>?
 
     /**
-     * Returns the id of the specified packet class
-     */
-    fun getIdFromPacket(packetClass: Class<out IPacket>): Int?
-
-    /**
-     * Returns the packet class found by the specified name
-     */
-    fun getPacketClassByName(name: String): Class<out IPacket>?
-
-    /**
-     * Registers the specified [packetClass] with the specified [id]
-     */
-    fun registerPacket(id: Int, packetClass: Class<out IPacket>)
-
-    /**
-     * Registers the specified [packetClass] with a unused id
+     * Registers the specified [packetClass]
      */
     fun registerPacket(packetClass: Class<out IPacket>)
 
@@ -39,4 +25,9 @@ interface IPacketManager {
      * @return whether the packet was registered
      */
     fun unregisterPacket(packetClass: Class<out IPacket>): Boolean
+
+    /**
+     * Clears all packets
+     */
+    fun clearPackets()
 }

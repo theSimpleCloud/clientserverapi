@@ -7,7 +7,6 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.util.QueuedFile
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandler
@@ -36,15 +35,7 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
         val uniqueId = UUID.randomUUID()
         val packetPromise = CommunicationPromise<T>(timeout)
         packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
-        val idFromPacket = packetManager.getIdFromPacket(packet)
-        if (idFromPacket == null) {
-            packetManager.getPacketIdRegisteredPromise(packet::class.java).addCompleteListener {
-                if (!it.isSuccess) throw PacketException("No id for packet ${packet::class.java.simpleName} was available after 5 second. It looks like this packet was not registered.")
-                sendPacket(WrappedPacket(PacketData(uniqueId, it.getNow(), packet::class.java.simpleName), packet), packetPromise)
-            }
-        } else {
-            this.sendPacket(WrappedPacket(PacketData(uniqueId, idFromPacket, packet::class.java.simpleName), packet), packetPromise)
-        }
+        this.sendPacket(WrappedPacket(PacketData(uniqueId, packet::class.java.simpleName, false), packet), packetPromise)
         return packetPromise
     }
 

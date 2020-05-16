@@ -22,10 +22,9 @@ class ObjectPacketTest {
         //nettyClient.sendQuery<JsonData>(PacketIOMessage("hi"))
         //        .thenNonNull { println(it.getString("test")) }
         //        .addFailureListener { println(it.message) }
-        thread {
-            nettyClient.sendQuery<ITestObj>(PacketOutMessage("hi"), 1500).addResultListener { println("result: " + it) }
+        val time = System.currentTimeMillis()
+            nettyClient.sendQuery<ITestObj>(PacketOutMessage("hi"), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
                     .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
-        }
         thread {
 
             /*
@@ -38,12 +37,7 @@ class ObjectPacketTest {
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //7nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
         //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
-        Thread.sleep(10000)
-    }
-
-    @Test
-    fun test2() {
-        JsonData.empty(JsonPacket.PACKET_GSON).append("data", TestObj(2))
+        Thread.sleep(1000)
     }
     */
 

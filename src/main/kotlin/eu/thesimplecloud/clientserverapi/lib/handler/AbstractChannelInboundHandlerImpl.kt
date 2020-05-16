@@ -20,7 +20,7 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
 
     override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
         val connection = getConnection(ctx)
-        if (wrappedPacket.packetData.isResponse()) {
+        if (wrappedPacket.packetData.isResponse) {
             connection.packetResponseManager.incomingPacket(wrappedPacket)
         } else {
             GlobalScope.launch(Dispatchers.Default) {
@@ -31,7 +31,7 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
                 }
                 val packetPromise = getPacketFromResult(result)
                 packetPromise.then { packetToSend ->
-                    val responseData = PacketData(wrappedPacket.packetData.uniqueId, -1, packetToSend::class.java.simpleName)
+                    val responseData = PacketData(wrappedPacket.packetData.uniqueId, packetToSend::class.java.simpleName, true)
                     connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
                 }.addFailureListener {
                     throw it

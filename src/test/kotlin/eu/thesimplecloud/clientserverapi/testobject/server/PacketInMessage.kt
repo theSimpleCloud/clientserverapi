@@ -7,7 +7,6 @@ import eu.thesimplecloud.clientserverapi.testobject.TestObj
 
 class PacketInMessage : ObjectPacket<String>() {
     override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
-        Thread.sleep(1000)
         return success(TestObj(this.value!!.length))
     }
 }

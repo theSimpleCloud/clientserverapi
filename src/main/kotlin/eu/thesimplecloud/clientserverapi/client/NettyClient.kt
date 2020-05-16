@@ -1,8 +1,6 @@
 package eu.thesimplecloud.clientserverapi.client
 
-import eu.thesimplecloud.clientserverapi.client.packets.PacketOutGetPacketId
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
-import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
@@ -16,8 +14,6 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
-import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQueryAsync
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -98,7 +94,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
     fun reloadPackets() {
         this.packetManager.clearPackets()
-        this.packetManager.registerPacket(0, PacketOutGetPacketId::class.java)
     }
 
     override fun shutdown(): ICommunicationPromise<Unit> {
@@ -171,21 +166,8 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
             allPacketClasses.addAll(packageClasses)
         }
-        val packetPromise = sendQueryAsync<Array<Int>>(PacketOutGetPacketId(ArrayList(allPacketClasses.map { it.simpleName })), timeout = 1000)
-        packetPromise.addResultListener { list ->
-            list.forEachIndexed { index, id ->
-                val packetClass = allPacketClasses[index]
-                if (id != -1) {
-                    if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $id")
-                    this.packetManager.registerPacket(id, this.packetClassConverter(packetClass))
-                } else {
-                    throw PacketException("Can't register packet ${packetClass.simpleName}: No Server-Packet found")
-                }
-            }
-            this.lastStartPromise.trySuccess(Unit)
-        }.addFailureListener {
-            throw it
-        }
+        allPacketClasses.forEach { this.packetManager.registerPacket(this.packetClassConverter(it)) }
+        this.lastStartPromise.trySuccess(Unit)
     }
 
 }

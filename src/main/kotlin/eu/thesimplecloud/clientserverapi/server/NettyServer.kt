@@ -27,7 +27,6 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
-import eu.thesimplecloud.clientserverapi.server.packets.PacketInGetPacketId
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
@@ -62,10 +61,6 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
     private var classLoaderToSearchPackets: ClassLoader = this::class.java.classLoader
     @Volatile
     private var classLoaderToSearchObjectPacketClasses: ClassLoader = this::class.java.classLoader
-
-    init {
-        packetManager.registerPacket(0, PacketInGetPacketId::class.java)
-    }
 
     override fun start(): ICommunicationPromise<Unit> {
         addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
@@ -119,9 +114,8 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
                     .union(reflections.getSubTypesOf(BytePacket::class.java))
                     .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
             allClasses.forEach { packetClass ->
-                val packetId = this.packetManager.getUnusedId()
-                if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName} id: $packetId")
-                this.packetManager.registerPacket(packetId, this.packetClassConverter(packetClass))
+                if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName}")
+                this.packetManager.registerPacket(this.packetClassConverter(packetClass))
             }
         }
     }
