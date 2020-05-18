@@ -140,6 +140,14 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
      */
     fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>)
 
+    /**
+     * Throws the exception if one occurs
+     */
+    fun throwFailure(): ICommunicationPromise<T> {
+        this.addFailureListener { throwable -> throw throwable }
+        return this
+    }
+
     override fun addListener(listener: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T>
 
     override fun addListeners(vararg listeners: GenericFutureListener<out Future<in T>>?): ICommunicationPromise<T>

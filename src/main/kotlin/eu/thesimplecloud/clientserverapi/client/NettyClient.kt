@@ -14,6 +14,7 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -48,10 +49,13 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private val directoryWatchManager = DirectoryWatchManager()
     private val directorySyncManager = DirectorySyncManager(directoryWatchManager)
     private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
+
     @Volatile
     private var classLoaderToSearchPackets: ClassLoader = this::class.java.classLoader
+
     @Volatile
     private var classLoaderToSearchObjectPacketClasses: ClassLoader = this::class.java.classLoader
+    private val queuedPackets = CopyOnWriteArrayList<Pair<WrappedPacket, ICommunicationPromise<*>>>()
 
     init {
         reloadPackets()
@@ -154,6 +158,14 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         return this.classLoaderToSearchObjectPacketClasses
     }
 
+    @Synchronized
+    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
+        if (!isOpen())
+            this.queuedPackets.add(wrappedPacket to promise)
+        else
+            super.sendPacket(wrappedPacket, promise)
+    }
+
     private fun registerPacketsByPackage(array: Array<String>) {
         val allPacketClasses = ArrayList<Class<out IPacket>>()
         array.forEach { packageName ->
@@ -168,6 +180,10 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         }
         allPacketClasses.forEach { this.packetManager.registerPacket(this.packetClassConverter(it)) }
         this.lastStartPromise.trySuccess(Unit)
+    }
+
+    fun sendAllQueuedPackets() {
+        this.queuedPackets.forEach { sendPacket(it.first, it.second) }
     }
 
 }

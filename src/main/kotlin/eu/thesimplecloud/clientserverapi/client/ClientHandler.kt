@@ -12,6 +12,7 @@ class ClientHandler(private val nettyClient: NettyClient, private val connection
     override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyClient
 
     override fun channelActive(ctx: ChannelHandlerContext) {
+        nettyClient.sendAllQueuedPackets()
         connectionHandler.onConnectionActive(nettyClient)
     }
 
