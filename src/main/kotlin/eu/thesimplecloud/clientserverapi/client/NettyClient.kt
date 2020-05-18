@@ -34,7 +34,6 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
 import org.reflections.Reflections
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.concurrent.thread
 
 class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
@@ -42,8 +41,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private var channel: Channel? = null
     private var workerGroup: NioEventLoopGroup? = null
 
-    private var lastStartPromise: ICommunicationPromise<Unit> = CommunicationPromise(enableTimeout = false)
-    private var packetPackages: MutableList<String> = CopyOnWriteArrayList()
     private var running = false
     private val transferFileManager = TransferFileManager()
     private val directoryWatchManager = DirectoryWatchManager()
@@ -65,7 +62,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
         check(!this.running) { "Can't start client multiple times." }
         this.running = true
-        this.lastStartPromise = CommunicationPromise(enableTimeout = false)
+        val startedPromise = CommunicationPromise<Unit>(enableTimeout = false)
         this.directoryWatchManager.startThread()
         val instance = this
         this.workerGroup = NioEventLoopGroup()
@@ -87,13 +84,13 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         })
         this.channel = bootstrap.connect(host, port).addListener { future ->
             if (future.isSuccess) {
-                thread { registerPacketsByPackage(packetPackages.toTypedArray()) }
+                startedPromise.trySuccess(Unit)
             } else {
-                this.lastStartPromise.tryFailure(future.cause())
+                startedPromise.tryFailure(future.cause())
                 this.shutdown()
             }
         }.channel()
-        return lastStartPromise
+        return startedPromise
     }
 
     fun reloadPackets() {
@@ -139,11 +136,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
 
 
     override fun addPacketsByPackage(vararg packages: String) {
-        if (this.running) {
-            this.registerPacketsByPackage(packages as Array<String>)
-        } else {
-            this.packetPackages.addAll(packages)
-        }
+        this.registerPacketsByPackage(packages as Array<String>)
     }
 
     override fun setPacketSearchClassLoader(classLoader: ClassLoader) {
@@ -179,7 +172,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
             allPacketClasses.addAll(packageClasses)
         }
         allPacketClasses.forEach { this.packetManager.registerPacket(this.packetClassConverter(it)) }
-        this.lastStartPromise.trySuccess(Unit)
     }
 
     fun sendAllQueuedPackets() {
