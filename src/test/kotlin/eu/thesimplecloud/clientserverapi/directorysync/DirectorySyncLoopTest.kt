@@ -1,13 +1,5 @@
 package eu.thesimplecloud.clientserverapi.directorysync
 
-import eu.thesimplecloud.clientserverapi.client.NettyClient
-import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
-import eu.thesimplecloud.clientserverapi.server.NettyServer
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.junit.Test
-import java.io.File
-
 class DirectorySyncLoopTest {
 
     /*
@@ -41,9 +33,7 @@ class DirectorySyncLoopTest {
         promise.cause()?.let { throw it }
         println("finished")
 
-        while (true) {
-            Thread.sleep(100)
-        }
+        Thread.sleep(3000)
     }
 
     */

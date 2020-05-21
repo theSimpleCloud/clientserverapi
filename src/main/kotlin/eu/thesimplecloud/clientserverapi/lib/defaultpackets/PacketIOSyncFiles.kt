@@ -3,7 +3,6 @@ package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.FileInfo
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
@@ -22,7 +21,11 @@ class PacketIOSyncFiles() : JsonPacket() {
                 ?: return contentException("currentFiles")
         val allFiles = fileInfoList.map { File(it.relativePath) }
         val neededFiles = allFiles.filterIndexed { index, file -> !file.exists() || file.lastModified() != fileInfoList[index].lastModified }
+        println("non existing needed: " + neededFiles.filter { !it.exists() })
+        println("existing needed: " + neededFiles.filter { it.exists() })
         removeDeletedFiles(File(dirPathOnOtherSide), allFiles)
+        println("needed files: " + neededFiles.size)
+        println("all files: " + allFiles.size)
         return success(neededFiles.map { FileInfo.fromFile(it) }.toTypedArray())
     }
 
@@ -43,6 +46,6 @@ class PacketIOSyncFiles() : JsonPacket() {
                 return true
             }
         }
-        return FileUtils.listFilesAndDirs(directory, acceptAllFilter, acceptAllFilter)
+        return FileUtils.listFiles(directory, acceptAllFilter, acceptAllFilter)
     }
 }

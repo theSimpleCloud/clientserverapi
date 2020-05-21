@@ -175,7 +175,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
     }
 
     companion object {
-        fun combineAllToUnitPromise(promises: Collection<ICommunicationPromise<*>>, sumUpTimeouts: Boolean = false): ICommunicationPromise<Unit> {
+        fun combineAllToUnitPromise(promises: Collection<ICommunicationPromise<*>>, sumUpTimeouts: Boolean = true): ICommunicationPromise<Unit> {
             val timeout = if (sumUpTimeouts) promises.sumBy { it.getTimeout().toInt() }.toLong() else 400
             val unitPromise = CommunicationPromise<Unit>(timeout)
             if (promises.isEmpty()) unitPromise.trySuccess(Unit)
