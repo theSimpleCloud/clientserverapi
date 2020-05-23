@@ -45,7 +45,11 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
      */
     @Synchronized
     open fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
-        if (!isOpen()) throw IOException("Connection is not open.")
+        if (!isOpen()) {
+            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}.")
+            promise.tryFailure(exception)
+            throw exception
+        }
         val channel = getChannel()!!
         channel.eventLoop().execute {
             channel.writeAndFlush(wrappedPacket).addListener {
