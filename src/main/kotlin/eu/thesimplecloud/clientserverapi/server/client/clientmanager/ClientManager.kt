@@ -1,15 +1,15 @@
 package eu.thesimplecloud.clientserverapi.server.client.clientmanager
 
-import io.netty.channel.ChannelHandlerContext
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.server.NettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.ConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
-import java.util.*
+import io.netty.channel.ChannelHandlerContext
+import java.util.concurrent.CopyOnWriteArrayList
 
 class ClientManager<T : IConnectedClientValue>(private val nettyServer: NettyServer<T>) : IClientManager<T> {
-    private val clients: MutableCollection<IConnectedClient<T>> = Collections.synchronizedCollection(ArrayList<IConnectedClient<T>>())
+    private val clients = CopyOnWriteArrayList<IConnectedClient<T>>()
 
     fun addClient(ctx: ChannelHandlerContext): IConnection {
         val connection = ConnectedClient<T>(ctx.channel(), nettyServer)
