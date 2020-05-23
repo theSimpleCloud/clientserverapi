@@ -54,10 +54,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     private var classLoaderToSearchObjectPacketClasses: ClassLoader = this::class.java.classLoader
     private val queuedPackets = CopyOnWriteArrayList<Pair<WrappedPacket, ICommunicationPromise<*>>>()
 
-    init {
-        reloadPackets()
-    }
-
     override fun start(): ICommunicationPromise<Unit> {
         addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
         check(!this.running) { "Can't start client multiple times." }
@@ -93,10 +89,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         return startedPromise
     }
 
-    fun reloadPackets() {
-        this.packetManager.clearPackets()
-    }
-
     override fun shutdown(): ICommunicationPromise<Unit> {
         val shutdownPromise = CommunicationPromise<Unit>()
         if (this.channel == null) shutdownPromise.trySuccess(Unit)
@@ -104,7 +96,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         this.workerGroup?.shutdownGracefully()
         this.running = false
         this.channel?.closeFuture()?.addListener {
-            this.reloadPackets()
             if (it.isSuccess) {
                 shutdownPromise.trySuccess(Unit)
             } else {
