@@ -21,8 +21,8 @@ class ClientHandler(private val nettyClient: NettyClient, private val connection
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        super.exceptionCaught(ctx, cause)
-        //connectionHandler.onFailure(nettyClient, cause)
+        //super.exceptionCaught(ctx, cause)
+        connectionHandler.onFailure(nettyClient, cause)
     }
 
 
