@@ -18,8 +18,9 @@ fun Collection<ICommunicationPromise<*>>.combineAllPromises(): ICommunicationPro
  * Returns a new promise that will complete when the inner promise completes.
  * The new promise will complete with the same specifications.
  */
-fun <T : Any> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(additionalTimeout: Long = 0): ICommunicationPromise<T> {
-    val newPromise = CommunicationPromise<T>(this.getTimeout() + additionalTimeout, this.isTimeoutEnabled())
+fun <T : Any> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(additionalTimeout: Long = 0, timeoutEnabled: Boolean = true): ICommunicationPromise<T> {
+    val enableTimeout = this.isTimeoutEnabled() && timeoutEnabled
+    val newPromise = CommunicationPromise<T>(this.getTimeout() + additionalTimeout, enableTimeout)
     this.addCompleteListener {
         if (it.isSuccess) {
             val innerPromise = it.get()
