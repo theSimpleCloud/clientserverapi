@@ -1,14 +1,13 @@
 package eu.thesimplecloud.clientserverapi.lib.connection
 
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
-import io.netty.channel.Channel
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
-import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.server.INettyServer
+import io.netty.channel.Channel
 import java.io.File
-import java.lang.IllegalStateException
 import java.net.InetSocketAddress
 
 interface IConnection : IPacketSender {
@@ -26,6 +25,11 @@ interface IConnection : IPacketSender {
     fun isOpen(): Boolean {
         return getChannel() != null && getChannel()?.isActive ?: false
     }
+
+    /**
+     * Return whether the connection close was intended
+     */
+    fun wasConnectionCloseIntended(): Boolean
 
     /**
      * Returns the [ICommunicationBootstrap] of this connection

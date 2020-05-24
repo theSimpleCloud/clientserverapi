@@ -22,21 +22,12 @@ class ObjectPacketTest {
         //nettyClient.sendQuery<JsonData>(PacketIOMessage("hi"))
         //        .thenNonNull { println(it.getString("test")) }
         //        .addFailureListener { println(it.message) }
+        Thread.sleep(1000)
         val time = System.currentTimeMillis()
-            nettyClient.sendQuery<ITestObj>(PacketOutMessage("hi"), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
-                    .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
-        thread {
-
-            /*
-            val completedPromise = nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly()
-            println("success: " + completedPromise.isSuccess)
-            val completedPromise2 = nettyClient.sendQuery<ITestObj>(PacketIOMessage("hi")).awaitUninterruptibly()
-            println("success2: " + completedPromise2.isSuccess)
-            */
-        }
-        //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
-        //7nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
-        //nettyClient.sendUnitQuery(PacketIOMessage("hi")).awaitUninterruptibly().addResultListener { println("test: " + it.toString()) }
+        nettyClient.sendQuery<ITestObj>(PacketOutMessage("hi"), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
+                .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
+        nettyServer.getDebugMessageManager().enable(DebugMessage.PACKET_RECEIVED)
+        nettyClient.shutdown()
         Thread.sleep(1000)
     }
     */

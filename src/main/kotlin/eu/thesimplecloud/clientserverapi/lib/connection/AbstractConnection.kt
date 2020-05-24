@@ -26,6 +26,8 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
     private val BYTES_PER_FILEPACKET = 50000
 
     @Volatile
+    private var wasCloseIntended: Boolean = false
+    @Volatile
     private var sendingFile = false
     private val fileQueue = LinkedBlockingQueue<QueuedFile>()
 
@@ -102,6 +104,14 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
                 sendQueuedFile(fileQueue.poll())
             }
         }
+    }
+
+    fun setConnectionCloseIntended() {
+        this.wasCloseIntended = true
+    }
+
+    override fun wasConnectionCloseIntended(): Boolean {
+        return !isOpen() && wasCloseIntended
     }
 
 }

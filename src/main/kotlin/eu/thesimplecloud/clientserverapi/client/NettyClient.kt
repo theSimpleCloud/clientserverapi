@@ -3,6 +3,7 @@ package eu.thesimplecloud.clientserverapi.client
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOConnectionWillClose
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.DirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
@@ -92,6 +93,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
     override fun shutdown(): ICommunicationPromise<Unit> {
         val shutdownPromise = CommunicationPromise<Unit>()
         if (this.channel == null) shutdownPromise.trySuccess(Unit)
+        this.sendUnitQuery(PacketIOConnectionWillClose())
         this.directoryWatchManager.stopThread()
         this.workerGroup?.shutdownGracefully()
         this.running = false

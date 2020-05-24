@@ -34,7 +34,9 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
                     val responseData = PacketData(wrappedPacket.packetData.uniqueId, packetToSend::class.java.simpleName, true)
                     connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
                 }.addFailureListener {
-                    throw it
+                    if (!connection.wasConnectionCloseIntended())
+                        throw PacketException("An error occurred while attempting to send response for packet: " +
+                                wrappedPacket.packet::class.java.simpleName, it as java.lang.Exception)
                 }
             }
         }
