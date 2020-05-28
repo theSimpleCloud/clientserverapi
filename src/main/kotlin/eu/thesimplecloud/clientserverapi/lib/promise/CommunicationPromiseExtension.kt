@@ -35,7 +35,7 @@ fun <T : Any> ICommunicationPromise<out ICommunicationPromise<T>>.flatten(additi
 /**
  * Returns a [ICommunicationPromise] with a list. The returned promise will complete when all promises in this list are completed.
  */
-fun <T : Any> List<ICommunicationPromise<T>>.toListPromise(): ICommunicationPromise<List<T>> {
+fun <T : Any> List<ICommunicationPromise<T>>.toListPromise(): ICommunicationPromise<List<T?>> {
     return this.combineAllPromises().then { this.map { it.getNow() } }
 }
 
@@ -43,7 +43,7 @@ fun <T : Any> List<ICommunicationPromise<T>>.toListPromise(): ICommunicationProm
  * Returns a [ICommunicationPromise] with a list. The returned promise will complete when all promises in this list are completed.
  * Note: if the expected list is large it is recommended to increase the [additionalTimeout]. Otherwise the returned promise will just time out.
  */
-fun <T : Any> ICommunicationPromise<List<ICommunicationPromise<T>>>.toListPromise(additionalTimeout: Long = 400): ICommunicationPromise<List<T>> {
+fun <T : Any> ICommunicationPromise<List<ICommunicationPromise<T>>>.toListPromise(additionalTimeout: Long = 400): ICommunicationPromise<List<T?>> {
     return this.then { list -> list.toListPromise()  }.flatten(additionalTimeout)
 }
 

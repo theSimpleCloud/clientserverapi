@@ -83,7 +83,7 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
     /**
      * Waits for the result and returns it. If an error occurs it will be thrown.
      */
-    fun getBlocking(): T = syncUninterruptibly().getNow()
+    fun getBlocking(): T = syncUninterruptibly().getNow()!!
 
     /**
      * Waits for the result and returns it. If an error occurs this method will return null.
@@ -115,7 +115,7 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
     suspend fun getCoroutineBlocking(): T = suspendCancellableCoroutine { coroutine ->
         addCompleteListener {
             if (it.isSuccess) {
-                coroutine.resume(it.getNow())
+                coroutine.resume(it.getNow()!!)
             } else {
                 coroutine.resumeWithException(it.cause())
             }
@@ -168,5 +168,6 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
 
     override fun setFailure(cause: Throwable): ICommunicationPromise<T>
 
+    override fun getNow(): T?
 
 }
