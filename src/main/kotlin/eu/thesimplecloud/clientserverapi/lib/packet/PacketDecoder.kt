@@ -28,8 +28,11 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
             objectPacket
         } else {
             val packetClass: Class<out IPacket>? = packetManager.getPacketClassByOppositePacketName(packetData.sentPacketName)
-            packetClass
-                    ?: throw PacketException("Can't find opposite packet of: ${packetData.sentPacketName}")
+            if (packetClass == null) {
+                //clean up bytebuf
+                byteBuf.clear()
+                throw PacketException("Can't find opposite packet of: ${packetData.sentPacketName}")
+            }
             val packet = packetClass.newInstance()
             packet.read(byteBuf, communicationBootstrap)
             packet

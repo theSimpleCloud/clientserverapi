@@ -12,8 +12,9 @@ interface IConnectionHandler {
     fun onConnectionActive(connection: IConnection)
 
     /**
-     * Called when an exception was thrown
+     * Called when an exception was caught
      */
+    @Throws(Throwable::class)
     fun onFailure(connection: IConnection, ex: Throwable)
 
     /**
