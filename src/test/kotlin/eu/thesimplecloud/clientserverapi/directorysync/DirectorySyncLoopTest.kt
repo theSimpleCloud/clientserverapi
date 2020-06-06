@@ -22,17 +22,9 @@
 
 package eu.thesimplecloud.clientserverapi.directorysync
 
-import eu.thesimplecloud.clientserverapi.client.NettyClient
-import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
-import eu.thesimplecloud.clientserverapi.server.NettyServer
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.junit.Test
-import java.io.File
-
 class DirectorySyncLoopTest {
 
-
+    /*
 
     var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
     var nettyClient = NettyClient("127.0.0.1", 1919)
@@ -65,6 +57,8 @@ class DirectorySyncLoopTest {
 
         Thread.sleep(3000)
     }
+
+     */
 
 
 

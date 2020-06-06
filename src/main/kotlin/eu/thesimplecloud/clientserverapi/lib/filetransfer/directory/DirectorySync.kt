@@ -113,9 +113,10 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
                 //only sync non dir files
                 syncDirectories(connection)
                 val allFiles = getAllFilesAndDirectories().filter { !it.isDirectory }
-                val filesOnOtherSide = allFiles.map { file ->  FileInfo(getPathOnOtherSide(file), file.lastModified()) }
+                val filesOnOtherSide = allFiles.map { file -> FileInfo(getPathOnOtherSide(file), file.lastModified()) }
                 val neededFilesPromise = connection.sendQuery<Array<FileInfo>>(PacketIOSyncFiles(toDirectory, filesOnOtherSide), 5000)
-                val neededFileInfoList = neededFilesPromise.getBlockingOrNull() ?: return@runAsync CommunicationPromise.failed<Unit>(neededFilesPromise.cause())
+                val neededFileInfoList = neededFilesPromise.getBlockingOrNull()
+                        ?: return@runAsync CommunicationPromise.failed<Unit>(neededFilesPromise.cause())
                 val neededFiles = neededFileInfoList.map { getFileFromOtherSidePath(it.relativePath) }
                 if (shouldSendViaZip(allFiles, neededFiles)) {
                     return@runAsync sendFileAsZip(connection)
@@ -152,7 +153,12 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
         }.flatten()
     }
 
-    private fun getToDirectoryPathWithoutEndingSlash() = File(this.toDirectory).path.replace("\\", "/")
+    private fun getToDirectoryPathWithoutEndingSlash(): String {
+        if (toDirectory.endsWith("\\") || toDirectory.endsWith("/")) {
+            return toDirectory.dropLast(1)
+        }
+        return toDirectory
+    }
 
     private fun sendFileOrDirectory(file: File, connection: IConnection, sendSubFilesOfDir: Boolean): ICommunicationPromise<Unit> {
         if (file.isDirectory) {
@@ -187,7 +193,14 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
         return FileUtils.listFilesAndDirs(directory, acceptAllFilter, acceptAllFilter).filter { it != this.directory }
     }
 
-    private fun getPathOnOtherSide(file: File) = if (file.isDirectory) file.path.replace(this.directory.path, toDirectory) else file.path.replace(this.directory.path, toDirectory.dropLast(1))
+    private fun getPathOnOtherSide(file: File): String {
+        val toDirectoryWithoutEndingSlash = getToDirectoryPathWithoutEndingSlash()
+        return if (file.isDirectory) {
+            file.path.replace(this.directory.path, toDirectoryWithoutEndingSlash)
+        } else {
+            file.path.replace(this.directory.path, toDirectoryWithoutEndingSlash)
+        }
+    }
 
     private fun getFileFromOtherSidePath(path: String) = File(path.replace(toDirectory, this.directory.path + "\\"))
 
