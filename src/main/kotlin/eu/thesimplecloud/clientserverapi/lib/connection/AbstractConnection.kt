@@ -108,16 +108,16 @@ abstract class AbstractConnection(val packetManager: PacketManager, val packetRe
                     bytes > BYTES_PER_FILEPACKET -> {
                         val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, (fileBytes.size - bytes) + BYTES_PER_FILEPACKET)
                         bytes -= BYTES_PER_FILEPACKET
-                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
+                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes), 3000).syncUninterruptibly()
                     }
                     else -> {
                         val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, fileBytes.size)
                         bytes = 0
-                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes)).syncUninterruptibly()
+                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes), 3000).syncUninterruptibly()
                     }
                 }
             }
-            sendUnitQuery(PacketIOFileTransferComplete(transferUuid)).syncUninterruptibly()
+            sendUnitQuery(PacketIOFileTransferComplete(transferUuid), 3000).syncUninterruptibly()
             queuedFile.promise.trySuccess(Unit)
 
             //check for next file

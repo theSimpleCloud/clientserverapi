@@ -153,7 +153,7 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
         connection.sendUnitQuery(PacketIODeleteFile(getToDirectoryPathWithoutEndingSlash())).awaitUninterruptibly()
         if (!zipFile.exists())
             zipDirectory()
-        val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(1))
+        val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(2))
         val sizeInMB = (zipFile.length() / 1000) / 1000
         val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, getToDirectoryPathWithoutEndingSlash()), (sizeInMB * 100) * 2) }.flatten()
         return unzippedPromise.then {
