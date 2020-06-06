@@ -47,7 +47,7 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
 
     private val receivers = CopyOnWriteArrayList<IConnection>()
     private val zipFile = File(tmpZipDir, directory.name + ".zip")
-    private val toDirectory = File(toDirectory).path.replace("\\", "/")
+    private val toDirectory = toDirectory.replace("/", "\\")
 
     init {
         tmpZipDir.mkdirs()
@@ -141,11 +141,12 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
     private fun sendFileAsZip(connection: IConnection): ICommunicationPromise<Unit> {
         //cleanup old dir
         connection.sendUnitQuery(PacketIODeleteFile(this.toDirectory)).awaitUninterruptibly()
+        val directoryToSendTo = File(this.toDirectory).path.replace("\\", "/")
         if (!zipFile.exists())
             zipDirectory()
         val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(1))
         val sizeInMB = (zipFile.length() / 1000) / 1000
-        val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, toDirectory), (sizeInMB * 100) * 2) }.flatten()
+        val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, directoryToSendTo), (sizeInMB * 100) * 2) }.flatten()
         return unzippedPromise.then {
             val modifyPromises = getAllFilesAndDirectories().map { file -> connection.sendUnitQuery(PacketIOSetLastModified(FileInfo(getPathOnOtherSide(file), file.lastModified()))) }
             modifyPromises.combineAllPromises()
