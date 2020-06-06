@@ -59,6 +59,9 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
         directoryWatch.addWatchListener(object : IDirectoryWatchListener {
             override fun fileCreated(file: File) {
                 //normal files will be sent in [fileModified]
+                //only dirs
+                if (isFilepartFile(file))
+                    return
                 GlobalScope.launch {
                     var count = 0
                     while (true) {
@@ -80,6 +83,8 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
             }
 
             override fun fileModified(file: File) {
+                if (isFilepartFile(file))
+                    return
                 if (file.isDirectory) return
                 try {
                     changesDetected()
@@ -90,10 +95,14 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
             }
 
             override fun fileDeleted(file: File) {
+                if (isFilepartFile(file))
+                    return
                 changesDetected()
                 val otherSidePath = getPathOnOtherSide(file)
                 receivers.forEach { connection -> connection.sendUnitQuery(PacketIODeleteFile(otherSidePath)) }
             }
+
+            private fun isFilepartFile(file: File) = file.name.endsWith(".filepart")
 
         })
     }
