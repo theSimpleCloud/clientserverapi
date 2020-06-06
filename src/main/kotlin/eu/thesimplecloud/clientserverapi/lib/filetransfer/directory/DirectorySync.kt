@@ -47,17 +47,13 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
 
     private val receivers = CopyOnWriteArrayList<IConnection>()
     private val zipFile = File(tmpZipDir, directory.name + ".zip")
-    val toDirectory = toDirectory.replace("/", "\\")
-
+    private val toDirectory = File(toDirectory).path.replace("\\", "/")
 
     init {
         tmpZipDir.mkdirs()
         if (zipFile.exists())
             zipFile.delete()
-    }
 
-
-    init {
         require(this.directory.isDirectory) { "Specified file must be a directory." }
 
         directoryWatch.addWatchListener(object : IDirectoryWatchListener {
