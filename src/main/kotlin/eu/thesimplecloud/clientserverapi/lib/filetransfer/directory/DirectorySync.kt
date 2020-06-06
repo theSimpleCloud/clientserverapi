@@ -135,23 +135,24 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
     private fun syncDirectories(connection: IConnection) {
         val allDirectories = getAllFilesAndDirectories().filter { it.isDirectory }
         val relativePathsOnOtherSide = allDirectories.map { getPathOnOtherSide(it) }
-        connection.sendUnitQuery(PacketIOSyncDirectories(this.toDirectory, relativePathsOnOtherSide), 5000).awaitUninterruptibly()
+        connection.sendUnitQuery(PacketIOSyncDirectories(getToDirectoryPathWithoutEndingSlash(), relativePathsOnOtherSide), 5000).awaitUninterruptibly()
     }
 
     private fun sendFileAsZip(connection: IConnection): ICommunicationPromise<Unit> {
         //cleanup old dir
-        connection.sendUnitQuery(PacketIODeleteFile(this.toDirectory)).awaitUninterruptibly()
-        val directoryToSendTo = File(this.toDirectory).path.replace("\\", "/")
+        connection.sendUnitQuery(PacketIODeleteFile(getToDirectoryPathWithoutEndingSlash())).awaitUninterruptibly()
         if (!zipFile.exists())
             zipDirectory()
         val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(1))
         val sizeInMB = (zipFile.length() / 1000) / 1000
-        val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, directoryToSendTo), (sizeInMB * 100) * 2) }.flatten()
+        val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, getToDirectoryPathWithoutEndingSlash()), (sizeInMB * 100) * 2) }.flatten()
         return unzippedPromise.then {
             val modifyPromises = getAllFilesAndDirectories().map { file -> connection.sendUnitQuery(PacketIOSetLastModified(FileInfo(getPathOnOtherSide(file), file.lastModified()))) }
             modifyPromises.combineAllPromises()
         }.flatten()
     }
+
+    private fun getToDirectoryPathWithoutEndingSlash() = File(this.toDirectory).path.replace("\\", "/")
 
     private fun sendFileOrDirectory(file: File, connection: IConnection, sendSubFilesOfDir: Boolean): ICommunicationPromise<Unit> {
         if (file.isDirectory) {
