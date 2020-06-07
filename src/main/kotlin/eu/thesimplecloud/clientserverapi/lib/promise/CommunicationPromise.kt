@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.promise
 
+import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.CompletedWithNullException
 import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.PromiseCreationException
 import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromiseTimeoutHandler
 import io.netty.util.concurrent.*
@@ -88,7 +89,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
                     try {
                         val functionValue = function(this.get())
                         if (functionValue == null) {
-                            newPromise.tryFailure(NullPointerException())
+                            newPromise.tryFailure(CompletedWithNullException())
                         } else {
                             newPromise.trySuccess(functionValue)
                         }

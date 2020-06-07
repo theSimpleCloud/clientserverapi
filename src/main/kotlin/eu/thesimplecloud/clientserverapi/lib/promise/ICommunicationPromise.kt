@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.promise
 
+import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.CompletedWithNullException
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.Promise
@@ -78,7 +79,7 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
 
     /**
      * Executes the specified [function] when this promise is completed successfully.
-     * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [NullPointerException]
+     * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [CompletedWithNullException]
      * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
      */
     fun <R : Any> then(function: (T) -> R?): ICommunicationPromise<R> = thenDelayed(0, TimeUnit.MILLISECONDS, function)
@@ -87,7 +88,7 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
      * Executes the specified [function] when this promise is completed and the [delay] is over.
      * @param delay the time to wait after this promise is completed before calling the [function]
      * @param timeUnit the unit for the [delay]
-     * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [NullPointerException]
+     * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [CompletedWithNullException]
      * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
      */
     fun <R : Any> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R?): ICommunicationPromise<R>
