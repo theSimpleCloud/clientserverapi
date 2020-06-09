@@ -33,13 +33,13 @@ import java.io.File
 class PacketIOSyncFiles() : JsonPacket() {
 
     constructor(dirPathOnOtherSide: String, currentFiles: List<FileInfo>): this() {
-        this.jsonData.append("dirPathOnOtherSide", dirPathOnOtherSide).append("currentFiles", currentFiles)
+        this.jsonLib.append("dirPathOnOtherSide", dirPathOnOtherSide).append("currentFiles", currentFiles)
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
-        val dirPathOnOtherSide = this.jsonData.getString("dirPathOnOtherSide")
+        val dirPathOnOtherSide = this.jsonLib.getString("dirPathOnOtherSide")
                 ?: return contentException("dirPathOnOtherSide")
-        val fileInfoList = this.jsonData.getObject("currentFiles", Array<FileInfo>::class.java)
+        val fileInfoList = this.jsonLib.getObject("currentFiles", Array<FileInfo>::class.java)
                 ?: return contentException("currentFiles")
         val allFiles = fileInfoList.map { File(it.relativePath) }
         val neededFiles = allFiles.filterIndexed { index, file -> !file.exists() || file.lastModified() != fileInfoList[index].lastModified }

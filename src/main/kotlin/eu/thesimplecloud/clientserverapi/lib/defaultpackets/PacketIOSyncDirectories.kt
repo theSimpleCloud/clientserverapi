@@ -32,14 +32,14 @@ import java.io.File
 class PacketIOSyncDirectories() : JsonPacket() {
 
     constructor(dirPathOnOtherSide: String, directoriesOnOtherSide: List<String>) : this() {
-        this.jsonData.append("dirPathOnOtherSide", dirPathOnOtherSide)
+        this.jsonLib.append("dirPathOnOtherSide", dirPathOnOtherSide)
                 .append("directoriesOnOtherSide", directoriesOnOtherSide)
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
-        val dirPathOnOtherSide = this.jsonData.getString("dirPathOnOtherSide")
+        val dirPathOnOtherSide = this.jsonLib.getString("dirPathOnOtherSide")
                 ?: return contentException("dirPathOnOtherSide")
-        val fileInfoList = this.jsonData.getObject("directoriesOnOtherSide", Array<String>::class.java)
+        val fileInfoList = this.jsonLib.getObject("directoriesOnOtherSide", Array<String>::class.java)
                 ?: return contentException("directoriesOnOtherSide")
         val otherSideAllDirs = fileInfoList.map { File(it) }
         val thisSideAllDirectories = getAllDirectories(File(dirPathOnOtherSide))

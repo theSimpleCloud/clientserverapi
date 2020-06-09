@@ -25,11 +25,11 @@ package eu.thesimplecloud.clientserverapi.lib.packet.packettype
 import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.json.GsonCreator
-import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.lib.json.PacketExclude
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.jsonlib.GsonCreator
+import eu.thesimplecloud.jsonlib.JsonLib
 import io.netty.buffer.ByteBuf
 
 abstract class JsonPacket : IPacket {
@@ -43,21 +43,21 @@ abstract class JsonPacket : IPacket {
                 return success(Unit)
             }
         }
-        fun getNewJsonPacketWithContent(jsonData: JsonData): JsonPacket {
+        fun getNewJsonPacketWithContent(jsonLib: JsonLib): JsonPacket {
             val jsonPacket = getNewEmptyJsonPacket()
-            jsonPacket.jsonData = jsonData
+            jsonPacket.jsonLib = jsonLib
             return jsonPacket
         }
     }
 
-    var jsonData: JsonData = JsonData.empty(PACKET_GSON)
+    var jsonLib: JsonLib = JsonLib.empty(PACKET_GSON)
 
     override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
-        jsonData = JsonData.fromJsonString(ByteBufStringHelper.nextString(byteBuf), PACKET_GSON)
+        jsonLib = JsonLib.fromJsonString(ByteBufStringHelper.nextString(byteBuf), PACKET_GSON)
 
     }
 
     override fun write(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
-        jsonData.getAsJsonString().let { ByteBufStringHelper.writeString(byteBuf, it) }
+        jsonLib.getAsJsonString().let { ByteBufStringHelper.writeString(byteBuf, it) }
     }
 }

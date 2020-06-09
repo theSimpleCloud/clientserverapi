@@ -30,11 +30,11 @@ import java.util.*
 class PacketIOFileTransferComplete() : JsonPacket(){
 
     constructor(uuid: UUID) : this() {
-        this.jsonData.append("uuid", uuid)
+        this.jsonLib.append("uuid", uuid)
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
-        val uuid = this.jsonData.getObject("uuid", UUID::class.java) ?: return contentException("uuid")
+        val uuid = this.jsonLib.getObject("uuid", UUID::class.java) ?: return contentException("uuid")
         connection.getCommunicationBootstrap().getTransferFileManager().fileTransferComplete(uuid)
         return unit()
     }

@@ -38,7 +38,7 @@ abstract class ObjectPacket<T : Any>() : JsonPacket() {
 
     override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
         super.read(byteBuf, communicationBootstrap)
-        val className = this.jsonData.getString("className")
+        val className = this.jsonLib.getString("className")
         //return because the value to sent was null in this case.
         if (className.isNullOrBlank()) return
         val clazz = Class.forName(
@@ -46,13 +46,13 @@ abstract class ObjectPacket<T : Any>() : JsonPacket() {
                 true,
                 communicationBootstrap.getClassLoaderToSearchObjectPacketsClasses()
         ) as Class<T>
-        this.value = this.jsonData.getObject("data", clazz)
+        this.value = this.jsonLib.getObject("data", clazz)
     }
 
     override fun write(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
         if (this.value != null) {
-            this.jsonData.append("className", value!!::class.java.name)
-            this.jsonData.append("data", value)
+            this.jsonLib.append("className", value!!::class.java.name)
+            this.jsonLib.append("data", value)
         }
         super.write(byteBuf, communicationBootstrap)
     }

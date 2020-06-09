@@ -31,12 +31,12 @@ import java.io.File
 class PacketIOUnzipZipFile() : JsonPacket() {
 
     constructor(pathToZipFile: String, dirToUnzipPath: String) : this() {
-        this.jsonData.append("pathToZipFile", pathToZipFile).append("dirToUnzipPath", dirToUnzipPath)
+        this.jsonLib.append("pathToZipFile", pathToZipFile).append("dirToUnzipPath", dirToUnzipPath)
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
-        val pathToZipFile = this.jsonData.getString("pathToZipFile") ?: return contentException("pathToZipFile")
-        val dirToUnzipPath = this.jsonData.getString("dirToUnzipPath") ?: return contentException("dirToUnzipPath")
+        val pathToZipFile = this.jsonLib.getString("pathToZipFile") ?: return contentException("pathToZipFile")
+        val dirToUnzipPath = this.jsonLib.getString("dirToUnzipPath") ?: return contentException("dirToUnzipPath")
         val zipFile = File(pathToZipFile)
         if (!zipFile.exists()) return failure(NoSuchFileException(zipFile))
         ZipUtils.unzipDir(zipFile, dirToUnzipPath)

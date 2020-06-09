@@ -22,14 +22,14 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler
 
-import eu.thesimplecloud.clientserverapi.lib.json.JsonData
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
+import eu.thesimplecloud.jsonlib.JsonLib
 
-class JsonPacketResponseHandler : IPacketResponseHandler<JsonData> {
+class JsonPacketResponseHandler : IPacketResponseHandler<JsonLib> {
 
-    override fun handleResponse(packet: IPacket): JsonData {
+    override fun handleResponse(packet: IPacket): JsonLib {
         packet as? JsonPacket ?: throw IllegalArgumentException("Failed to cast response. Expected 'JsonPacket' found: '${packet::class.java.simpleName}'")
-        return packet.jsonData
+        return packet.jsonLib
     }
 }
