@@ -22,8 +22,27 @@
 
 package eu.thesimplecloud.clientserverapi
 
+import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+
 
 class PacketManagerTest {
+
+
+    @Test
+    fun test_packet_manager() {
+        val packetManager = PacketManager()
+        assertNull(packetManager.getPacketClassBySimpleName("IPacket"))
+
+        packetManager.registerPacket(IPacket::class.java)
+        assertEquals(packetManager.getPacketClassBySimpleName("IPacket"), IPacket::class.java)
+
+        packetManager.unregisterPacket(IPacket::class.java)
+        assertNull(packetManager.getPacketClassBySimpleName("IPacket"))
+    }
 
 
 
