@@ -93,7 +93,7 @@ class NettyClient(private val host: String, val port: Int, private val connectio
                 val pipeline = channel.pipeline()
                 pipeline.addLast("idleStateHandler", IdleStateHandler(0, 0, 5)) // add with name
                 pipeline.addLast("frameDecoder", LengthFieldBasedFrameDecoder(1048576000, 0, 4, 0, 4))
-                pipeline.addLast(PacketDecoder(instance, packetManager, packetResponseManager)) // add without name, name auto generated
+                pipeline.addLast(PacketDecoder(instance, packetManager)) // add without name, name auto generated
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder(instance)) // add without name, name auto generated
                 pipeline.addLast(ClientHandler(instance, connectionHandler))

@@ -44,6 +44,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
@@ -65,7 +66,12 @@ import io.netty.util.concurrent.EventExecutorGroup
 import org.reflections.Reflections
 
 
-class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(), private val serverHandler: IServerHandler<T> = DefaultServerHandler()) : INettyServer<T> {
+class NettyServer<T : IConnectedClientValue>(
+        val host: String,
+        val port: Int,
+        private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+        private val serverHandler: IServerHandler<T> = DefaultServerHandler()
+) : INettyServer<T> {
 
     private val debugMessageManager = DebugMessageManager()
     private var bossGroup: NioEventLoopGroup? = null
@@ -103,7 +109,7 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
             override fun initChannel(ch: SocketChannel) {
                 val pipeline = ch.pipeline()
                 pipeline.addLast("frameDecoder", LengthFieldBasedFrameDecoder(Int.MAX_VALUE, 0, 4, 0, 4))
-                pipeline.addLast(PacketDecoder(instance, packetManager, packetResponseManager))
+                pipeline.addLast(PacketDecoder(instance, packetManager))
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder(instance))
                 //pipeline.addLast("streamer", ChunkedWriteHandler())
@@ -192,6 +198,10 @@ class NettyServer<T : IConnectedClientValue>(val host: String, val port: Int, pr
 
     override fun setPacketClassConverter(function: (Class<out IPacket>) -> Class<out IPacket>) {
         this.packetClassConverter = function
+    }
+
+    override fun getResponseManager(): IPacketResponseManager {
+        return this.packetResponseManager
     }
 
 }

@@ -27,14 +27,13 @@ import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
-import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
 import eu.thesimplecloud.jsonlib.JsonLib
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
 
-class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap, private val packetManager: PacketManager, private val packetResponseManager: IPacketResponseManager) : ByteToMessageDecoder() {
+class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap, private val packetManager: IPacketManager) : ByteToMessageDecoder() {
 
 
     @Synchronized

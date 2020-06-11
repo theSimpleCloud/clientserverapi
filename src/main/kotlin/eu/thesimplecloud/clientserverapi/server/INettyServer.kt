@@ -24,6 +24,7 @@ package eu.thesimplecloud.clientserverapi.server
 
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
@@ -43,5 +44,10 @@ interface INettyServer<T : IConnectedClientValue> : ICommunicationBootstrap {
      * Returns weather the server is listening
      */
     fun isListening(): Boolean
+
+    /**
+     * Returns the [IPacketResponseManager] to handle responses.
+     */
+    fun getResponseManager(): IPacketResponseManager
 
 }

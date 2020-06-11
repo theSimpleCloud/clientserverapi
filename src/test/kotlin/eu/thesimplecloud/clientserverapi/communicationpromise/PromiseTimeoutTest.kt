@@ -23,6 +23,8 @@
 package eu.thesimplecloud.clientserverapi.communicationpromise
 
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.PromiseTimeoutException
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PromiseTimeoutTest {
@@ -31,7 +33,7 @@ class PromiseTimeoutTest {
     fun test() {
         val promise = CommunicationPromise<Int>()
         Thread.sleep(400)
-        promise.cause().printStackTrace()
+        assertTrue(promise.cause() is PromiseTimeoutException)
     }
 
 }

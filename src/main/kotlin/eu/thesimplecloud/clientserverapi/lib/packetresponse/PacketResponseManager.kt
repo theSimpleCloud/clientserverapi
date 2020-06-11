@@ -44,7 +44,7 @@ class PacketResponseManager : IPacketResponseManager {
 
 
     @Synchronized
-    fun incomingPacket(wrappedPacket: WrappedPacket) {
+    override fun incomingPacket(wrappedPacket: WrappedPacket) {
         val wrappedResponseHandler: WrappedResponseHandler<out Any>? = packetResponseHandlers.remove(wrappedPacket.packetData.uniqueId)
         wrappedResponseHandler
                 ?: throw IllegalStateException("Incoming: No response handler was available for packet by id ${wrappedPacket.packetData.uniqueId}")

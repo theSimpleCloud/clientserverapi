@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.server.client.clientmanager
 
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
@@ -47,5 +48,16 @@ interface IClientManager<T : IConnectedClientValue> {
      * Returns a list containing all connected clients.
      */
     fun getClients(): Collection<IConnectedClient<T>>
+
+    /**
+     * Adds the specified [ChannelHandlerContext] as a client
+     */
+    fun addClient(ctx: ChannelHandlerContext): IConnection
+
+    /**
+     * Removes the specified [ChannelHandlerContext] from the client list
+     * @return the client that was registered.
+     */
+    fun removeClient(ctx: ChannelHandlerContext): IConnection?
 
 }

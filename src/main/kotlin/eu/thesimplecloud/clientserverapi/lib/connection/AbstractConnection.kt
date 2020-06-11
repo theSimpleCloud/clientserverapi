@@ -29,8 +29,8 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.util.QueuedFile
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
+import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
@@ -43,7 +43,7 @@ import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
-abstract class AbstractConnection(val packetManager: PacketManager, val packetResponseManager: PacketResponseManager) : IConnection {
+abstract class AbstractConnection(val packetManager: IPacketManager, val packetResponseManager: IPacketResponseManager) : IConnection {
 
     private val BYTES_PER_FILEPACKET = 50000
 

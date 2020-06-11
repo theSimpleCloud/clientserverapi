@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packetresponse
 
+import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import java.util.*
 
 interface IPacketResponseManager {
@@ -35,5 +36,10 @@ interface IPacketResponseManager {
      * Returns a [WrappedResponseHandler] found by the specified id
      */
     fun getResponseHandler(packetUniqueId: UUID): WrappedResponseHandler<out Any>?
+
+    /**
+     * This function is called when a packet was received.
+     */
+    fun incomingPacket(wrappedPacket: WrappedPacket)
 
 }

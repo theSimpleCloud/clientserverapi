@@ -28,18 +28,18 @@ import eu.thesimplecloud.clientserverapi.lib.handler.AbstractChannelInboundHandl
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import io.netty.channel.ChannelHandlerContext
 
-class ServerHandler(private val nettyServer: NettyServer<*>, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
+class ServerHandler(private val nettyServer: INettyServer<*>, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
 
-    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyServer.clientManager.getClient(ctx)!! as AbstractConnection
+    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyServer.getClientManager().getClient(ctx)!! as AbstractConnection
 
 
     override fun channelActive(ctx: ChannelHandlerContext) {
-        nettyServer.clientManager.addClient(ctx).let { connectionHandler.onConnectionActive(it) }
+        nettyServer.getClientManager().addClient(ctx).let { connectionHandler.onConnectionActive(it) }
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        nettyServer.clientManager.removeClient(ctx)?.let {
+        nettyServer.getClientManager().removeClient(ctx)?.let {
             connectionHandler.onConnectionInactive(it)
             val directorySyncManager = nettyServer.getDirectorySyncManager()
             directorySyncManager as DirectorySyncManager
@@ -50,7 +50,7 @@ class ServerHandler(private val nettyServer: NettyServer<*>, private val connect
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         //super.exceptionCaught(ctx, cause)
-        nettyServer.clientManager.getClient(ctx)?.let { connectionHandler.onFailure(it, cause) }
+        nettyServer.getClientManager().getClient(ctx)?.let { connectionHandler.onFailure(it, cause) }
     }
 
 
