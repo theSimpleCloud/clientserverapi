@@ -33,6 +33,16 @@ import eu.thesimplecloud.clientserverapi.server.INettyServer
 interface ICommunicationBootstrap : IBootstrap {
 
     /**
+     * Returns the host
+     */
+    fun getHost(): String
+
+    /**
+     * Returns the port
+     */
+    fun getPort(): Int
+
+    /**
      * Registers all packets in the specified packages
      */
     fun addPacketsByPackage(vararg packages: String)

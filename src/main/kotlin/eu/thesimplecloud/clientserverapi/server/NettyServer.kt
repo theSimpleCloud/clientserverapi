@@ -67,8 +67,8 @@ import org.reflections.Reflections
 
 
 class NettyServer<T : IConnectedClientValue>(
-        val host: String,
-        val port: Int,
+        private val host: String,
+        private val port: Int,
         private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
         private val serverHandler: IServerHandler<T> = DefaultServerHandler()
 ) : INettyServer<T> {
@@ -202,6 +202,14 @@ class NettyServer<T : IConnectedClientValue>(
 
     override fun getResponseManager(): IPacketResponseManager {
         return this.packetResponseManager
+    }
+
+    override fun getHost(): String {
+        return this.host
+    }
+
+    override fun getPort(): Int {
+        return this.port
     }
 
 }

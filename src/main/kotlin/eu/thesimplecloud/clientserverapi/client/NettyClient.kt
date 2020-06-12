@@ -58,7 +58,11 @@ import io.netty.handler.timeout.IdleStateHandler
 import org.reflections.Reflections
 import java.util.concurrent.CopyOnWriteArrayList
 
-class NettyClient(private val host: String, val port: Int, private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
+class NettyClient(
+        private val host: String,
+        private val port: Int,
+        private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()
+) : AbstractConnection(PacketManager(), PacketResponseManager()), INettyClient {
 
     private val debugMessageManager = DebugMessageManager()
     private var channel: Channel? = null
@@ -145,7 +149,9 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         this.packetClassConverter = function
     }
 
-    override fun getHost(): String = host
+    override fun getHost(): String = this.host
+
+    override fun getPort(): Int = this.port
 
 
     override fun addPacketsByPackage(vararg packages: String) {
