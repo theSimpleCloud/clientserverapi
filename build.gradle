@@ -34,6 +34,9 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    maven {
+        url = "https://repo.thesimplecloud.eu/artifactory/list/gradle-release-local/"
+    }
 }
 
 dependencies {
