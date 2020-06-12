@@ -27,7 +27,7 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 
 interface INettyClient : IConnection, ICommunicationBootstrap {
 
-    override fun getCommunicationBootstrap(): INettyClient
+    override fun getCommunicationBootstrap(): INettyClient = this
 
 
 }

@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.server.client.clientmanager
 
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.ConnectedClient
@@ -33,17 +34,31 @@ import java.util.concurrent.CopyOnWriteArrayList
 class ClientManager<T : IConnectedClientValue>(private val nettyServer: INettyServer<T>) : IClientManager<T> {
     private val clients = CopyOnWriteArrayList<IConnectedClient<T>>()
 
-    override fun addClient(ctx: ChannelHandlerContext): IConnection {
+    /**
+     * Adds the specified [ChannelHandlerContext] as a client
+     */
+    fun addClient(ctx: ChannelHandlerContext): IConnection {
         val connection = ConnectedClient<T>(ctx.channel(), nettyServer)
         this.clients.add(connection)
         return connection
     }
 
-    override fun getClient(ctx: ChannelHandlerContext) = this.clients.firstOrNull { it.getChannel() == ctx.channel() }
+    /**
+     * Returns the client registered to the specified [ChannelHandlerContext] or null if there is no client registered to the specified [ChannelHandlerContext]
+     */
+    fun getClient(ctx: ChannelHandlerContext) = this.clients.firstOrNull {
+        it as AbstractConnection
+        it.getChannel() == ctx.channel()
+    }
 
     override fun getClientByClientValue(clientValue: IConnectedClientValue): IConnectedClient<T>? = this.clients.firstOrNull { it.getClientValue() == clientValue }
 
-    override fun removeClient(ctx: ChannelHandlerContext): IConnection? {
+
+    /**
+     * Removes the specified [ChannelHandlerContext] from the client list
+     * @return the client that was registered.
+     */
+    fun removeClient(ctx: ChannelHandlerContext): IConnection? {
         val client = getClient(ctx)
         client?.let { this.clients.remove(it) }
         return client

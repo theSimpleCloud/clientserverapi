@@ -145,8 +145,6 @@ class NettyClient(private val host: String, val port: Int, private val connectio
         this.packetClassConverter = function
     }
 
-    override fun getCommunicationBootstrap() = this
-
     override fun getHost(): String = host
 
 

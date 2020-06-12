@@ -26,20 +26,22 @@ import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.handler.AbstractChannelInboundHandlerImpl
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import io.netty.channel.ChannelHandlerContext
 
 class ServerHandler(private val nettyServer: INettyServer<*>, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
+    private val clientManager = nettyServer.getClientManager() as ClientManager<*>
 
-    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyServer.getClientManager().getClient(ctx)!! as AbstractConnection
+    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = this.clientManager.getClient(ctx)!! as AbstractConnection
 
 
     override fun channelActive(ctx: ChannelHandlerContext) {
-        nettyServer.getClientManager().addClient(ctx).let { connectionHandler.onConnectionActive(it) }
+        this.clientManager.addClient(ctx).let { connectionHandler.onConnectionActive(it) }
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        nettyServer.getClientManager().removeClient(ctx)?.let {
+        this.clientManager.removeClient(ctx)?.let {
             connectionHandler.onConnectionInactive(it)
             val directorySyncManager = nettyServer.getDirectorySyncManager()
             directorySyncManager as DirectorySyncManager
@@ -50,7 +52,7 @@ class ServerHandler(private val nettyServer: INettyServer<*>, private val connec
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         //super.exceptionCaught(ctx, cause)
-        nettyServer.getClientManager().getClient(ctx)?.let { connectionHandler.onFailure(it, cause) }
+        this.clientManager.getClient(ctx)?.let { connectionHandler.onFailure(it, cause) }
     }
 
 

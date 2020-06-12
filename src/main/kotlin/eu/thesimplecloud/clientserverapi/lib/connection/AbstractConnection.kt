@@ -35,10 +35,12 @@ import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandl
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import io.netty.channel.Channel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -134,6 +136,28 @@ abstract class AbstractConnection(val packetManager: IPacketManager, val packetR
 
     override fun wasConnectionCloseIntended(): Boolean {
         return !isOpen() && wasCloseIntended
+    }
+
+    /**
+     * Returns the channel of this connection or null if the connection is not connected.
+     * @return the channel or null if the connection is not connected.
+     */
+    abstract fun getChannel(): Channel?
+
+    override fun isOpen(): Boolean {
+        return getChannel() != null && getChannel()?.isActive ?: false
+    }
+
+    override fun closeConnection(): ICommunicationPromise<Unit> {
+        if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Connection already closed.")
+        val connectionPromise = CommunicationPromise<Unit>(2000)
+        getChannel()?.close()?.addListener { connectionPromise.trySuccess(Unit) }
+        return connectionPromise
+    }
+
+    override fun getHost(): String? {
+        if (!isOpen()) return null
+        return (getChannel()!!.remoteAddress() as InetSocketAddress).hostString
     }
 
 }
