@@ -55,14 +55,7 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
                 byteBuf.clear()
                 throw PacketException("Can't find opposite packet of: ${packetData.sentPacketName}")
             }
-            println("packet class ${packetClass.name}")
-            println("packets class loader: ${packetClass.classLoader::class.java.name}")
-            println("this class loader: ${this::class.java.classLoader::class.java.name}")
-            val packet = try {
-                packetClass.newInstance()
-            } catch (e: Exception) {
-                throw PacketException("An error occurred instantiating packet class ${packetClass.name}", e)
-            }
+            val packet =  packetClass.newInstance()
             packet.read(byteBuf, communicationBootstrap)
             packet
         }
