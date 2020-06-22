@@ -51,13 +51,14 @@ object NetworkTestManager {
         val list = serverToConnectedClients.getOrPut(server) { CopyOnWriteArrayList() }
         list.add(client)
         server.getClientManager()
-        client
+        //client
     }
 
     fun getServerClientIsConnectedTo(nettyClient: INettyClient): INettyServer<*>? {
         val inverse = this.serverToConnectedClients.inverse()
         val value = inverse.keys.filter { it.contains(nettyClient) }
-        return inverse[value]
+        //return inverse[value]
+        return null
     }
 
     fun sendPacket(senderBootstrap: ICommunicationBootstrap, receiverConnection: IConnection) {
