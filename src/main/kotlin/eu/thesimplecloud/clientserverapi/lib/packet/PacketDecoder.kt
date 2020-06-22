@@ -43,6 +43,7 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
         val packetData = jsonLib.getObject("data", PacketData::class.java)
                 ?: throw PacketException("PacketData is not present.")
         //objectPacket =-1
+
         val packet = if (packetData.isResponse) {
             val objectPacket = ObjectPacket.getNewEmptyObjectPacket<Any>()
             objectPacket.read(byteBuf, communicationBootstrap)
@@ -54,11 +55,12 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
                 byteBuf.clear()
                 throw PacketException("Can't find opposite packet of: ${packetData.sentPacketName}")
             }
+            println("packet class ${packetClass.name}")
+            println("packets class loader: ${packetClass.classLoader::class.java.name}")
+            println("this class loader: ${this::class.java.classLoader::class.java.name}")
             val packet = try {
                 packetClass.newInstance()
             } catch (e: Exception) {
-                println("packets class loader: ${packetClass.classLoader::class.java.name}")
-                println("this class loader: ${this::class.java.classLoader::class.java.name}")
                 throw PacketException("An error occurred instantiating packet class ${packetClass.name}", e)
             }
             packet.read(byteBuf, communicationBootstrap)
