@@ -30,7 +30,6 @@ import io.netty.channel.ChannelHandlerContext
 class ClientHandler(private val nettyClient: NettyClient, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
 
-
     override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyClient
 
     override fun channelActive(ctx: ChannelHandlerContext) {
@@ -44,7 +43,8 @@ class ClientHandler(private val nettyClient: NettyClient, private val connection
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         //super.exceptionCaught(ctx, cause)
-        connectionHandler.onFailure(nettyClient, cause)
+        if (!nettyClient.wasConnectionCloseIntended())
+            connectionHandler.onFailure(nettyClient, cause)
     }
 
 

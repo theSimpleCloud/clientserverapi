@@ -52,7 +52,10 @@ class ServerHandler(private val nettyServer: INettyServer<*>, private val connec
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         //super.exceptionCaught(ctx, cause)
-        this.clientManager.getClient(ctx)?.let { connectionHandler.onFailure(it, cause) }
+        this.clientManager.getClient(ctx)?.let {
+            if (!it.wasConnectionCloseIntended())
+                connectionHandler.onFailure(it, cause)
+        }
     }
 
 
