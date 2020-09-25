@@ -36,7 +36,7 @@ interface IPacketHelperMethods {
     /**
      * Returns a promise completed with [Unit]
      */
-    fun unit(): ICommunicationPromise<Unit> = CommunicationPromise(Unit)
+    fun unit(): ICommunicationPromise<Unit> = CommunicationPromise.UNIT_PROMISE
 
     /**
      * Returns a promise failed with the specified [throwable]

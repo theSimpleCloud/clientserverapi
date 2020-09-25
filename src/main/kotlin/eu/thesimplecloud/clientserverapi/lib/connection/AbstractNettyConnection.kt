@@ -20,52 +20,52 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.testing
-
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+package eu.thesimplecloud.clientserverapi.lib.connection
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import io.netty.channel.Channel
 import java.io.IOException
+import java.net.InetSocketAddress
 
-/**
- * Created by IntelliJ IDEA.
- * Date: 12.06.2020
- * Time: 09:20
- * @author Frederick Baier
- */
+abstract class AbstractNettyConnection() : AbstractConnection() {
 
-abstract class AbstractTestConnection() : AbstractConnection() {
-
-
-    @Volatile
-    var otherSideConnection: IConnection? = null
-
-
+    @Synchronized
     override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
         if (!isOpen()) {
-            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}. This: ${this::class.java.name}")
+            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}.")
             promise.tryFailure(exception)
             throw exception
         }
-        NetworkTestManager.sendPacket(this, wrappedPacket)
+        val channel = getChannel()!!
+        channel.eventLoop().execute {
+            channel.writeAndFlush(wrappedPacket).addListener {
+                if (!it.isSuccess)
+                    promise.tryFailure(it.cause())
+            }
+        }
     }
 
+    /**
+     * Returns the channel of this connection or null if the connection is not connected.
+     * @return the channel or null if the connection is not connected.
+     */
+    abstract fun getChannel(): Channel?
+
     override fun isOpen(): Boolean {
-        return this.otherSideConnection != null
+        return getChannel() != null && getChannel()?.isActive ?: false
     }
 
     override fun closeConnection(): ICommunicationPromise<Unit> {
-        NetworkTestManager.closeConnection(this)
-        return CommunicationPromise.of(Unit)
+        if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Connection already closed.")
+        val connectionPromise = CommunicationPromise<Unit>(2000)
+        getChannel()?.close()?.addListener { connectionPromise.trySuccess(Unit) }
+        return connectionPromise
     }
 
     override fun getHost(): String? {
         if (!isOpen()) return null
-        return "127.0.0.1"
+        return (getChannel()!!.remoteAddress() as InetSocketAddress).hostString
     }
 
-
 }
-

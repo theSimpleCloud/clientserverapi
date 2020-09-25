@@ -20,16 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.promise.excpetion
+package eu.thesimplecloud.clientserverapi.lib.promise.exception
 
-/**
- * Created by IntelliJ IDEA.
- * Date: 07.06.2020
- * Time: 12:06
- * @author Frederick Baier
- */
-/**
- * This exception is used to indicate that a promise was completed with null.
- */
-class CompletedWithNullException : Exception() {
+class PromiseTimeoutException(message: String, throwable: Throwable) : Exception(message, throwable) {
 }

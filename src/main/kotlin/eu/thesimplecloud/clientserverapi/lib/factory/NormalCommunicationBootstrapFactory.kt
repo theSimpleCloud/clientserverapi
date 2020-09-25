@@ -20,19 +20,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.handler
+package eu.thesimplecloud.clientserverapi.lib.factory
 
+import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.client.NettyClient
+import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
 import eu.thesimplecloud.clientserverapi.server.INettyServer
+import eu.thesimplecloud.clientserverapi.server.NettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
-open class DefaultServerHandler<T : IConnectedClientValue> : IServerHandler<T> {
-    override fun onServerStarted(nettyServer: INettyServer<T>) {
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 25.09.2020
+ * Time: 19:08
+ * @author Frederick Baier
+ */
+class NormalCommunicationBootstrapFactory  : ICommunicationBootstrapFactory {
+
+    override fun <T : IConnectedClientValue> createServer(
+            host: String,
+            port: Int,
+            connectionHandler: IConnectionHandler,
+            serverHandler: IServerHandler<T>
+    ): INettyServer<T> {
+        return NettyServer<T>(host, port, connectionHandler, serverHandler)
     }
 
-    override fun onServerStartException(nettyServer: INettyServer<T>, ex: Throwable) {
-    }
-
-    override fun onServerShutdown(nettyServer: INettyServer<T>) {
+    override fun createClient(
+            host: String,
+            port: Int,
+            connectionHandler: IConnectionHandler
+    ): INettyClient {
+        return NettyClient(host, port, connectionHandler)
     }
 
 }

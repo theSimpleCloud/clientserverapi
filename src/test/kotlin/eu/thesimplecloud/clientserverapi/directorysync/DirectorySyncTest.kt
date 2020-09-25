@@ -22,15 +22,27 @@
 
 package eu.thesimplecloud.clientserverapi.directorysync
 
+import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
+import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.jsonlib.JsonLib
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.apache.commons.io.FileUtils
+import org.junit.After
+import org.junit.Assert
+import org.junit.Test
+import java.io.File
+
 class DirectorySyncTest {
 
-    /*
+    val factory = BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST).getFactory()
 
-    var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
-    var nettyClient = NettyClient("127.0.0.1", 1919)
+    var nettyServer = factory.createServer<TestConnectedClientValue>("127.0.0.1", 1919)
+    var nettyClient = factory.createClient("127.0.0.1", 1919)
 
-    @Test()
+    @Test
     fun test(){
+        println(nettyClient::class.java.name)
         GlobalScope.launch {
             nettyServer.start()
         }
@@ -41,7 +53,7 @@ class DirectorySyncTest {
             nettyClient.start()
         }
 
-        while (!nettyClient.isOpen()) {
+        while (!nettyClient.getConnection().isOpen()) {
             Thread.sleep(10)
         }
 
@@ -50,24 +62,24 @@ class DirectorySyncTest {
         val file1 = File(file, "json1.json")
         val file2 = File(file, "json2.json")
         file.mkdirs()
-        JsonData().append("first", "test1").saveAsFile(file1)
-        JsonData().append("second", "test2").saveAsFile(file2)
+        JsonLib.empty().append("first", "test1").saveAsFile(file1)
+        JsonLib.empty().append("second", "test2").saveAsFile(file2)
 
-        val directorySync = nettyClient.getCommunicationBootstrap().getDirectorySyncManager().createDirectorySync(file, "syncFolderOtherSide/")
-        val promise = directorySync.syncDirectory(nettyClient)
+        val directorySync = nettyClient.getDirectorySyncManager().createDirectorySync(file, "syncFolderOtherSide/")
+        val promise = directorySync.syncDirectory(nettyClient.getConnection())
         val ms = System.currentTimeMillis()
         promise.syncUninterruptibly()
         println("took ${System.currentTimeMillis() - ms}ms")
         Thread.sleep(1000)
         //test1
-        Assert.assertEquals("test1", JsonData.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
-        Assert.assertEquals("test2", JsonData.fromJsonFile(File(otherSideDir, "json2.json"))?.getString("second"))
+        Assert.assertEquals("test1", JsonLib.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
+        Assert.assertEquals("test2", JsonLib.fromJsonFile(File(otherSideDir, "json2.json"))?.getString("second"))
 
-        JsonData().append("first", "test5").saveAsFile(file1)
+        JsonLib.empty().append("first", "test5").saveAsFile(file1)
         file2.delete()
         Thread.sleep(3600)
         //test2
-        Assert.assertEquals("test5", JsonData.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
+        Assert.assertEquals("test5", JsonLib.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
         Assert.assertFalse(File(otherSideDir, "json2.json").exists())
         Thread.sleep(300)
     }
@@ -78,7 +90,7 @@ class DirectorySyncTest {
         FileUtils.deleteDirectory(File("syncFolderOtherSide/"))
     }
 
-     */
+
 
 
 

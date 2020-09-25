@@ -20,7 +20,37 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.promise.excpetion
+package eu.thesimplecloud.clientserverapi.testing.server
 
-class PromiseTimeoutException(message: String, throwable: Throwable) : Exception(message, throwable) {
+import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
+import java.util.concurrent.CopyOnWriteArrayList
+
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 25.06.2020
+ * Time: 14:37
+ * @author Frederick Baier
+ */
+class TestClientManager<T : IConnectedClientValue> : IClientManager<T> {
+
+    private val clients = CopyOnWriteArrayList<IConnectedClient<T>>()
+
+    override fun getClientByClientValue(clientValue: IConnectedClientValue): IConnectedClient<T>? {
+        return clients.firstOrNull { it.getClientValue() == clientValue }
+    }
+
+    override fun getClients(): Collection<IConnectedClient<T>> {
+        return this.clients
+    }
+
+    fun addClient(client: IConnectedClient<T>) {
+        this.clients.add(client)
+    }
+
+    fun removeClient(client: IConnectedClient<T>) {
+        this.clients.remove(client)
+    }
+
 }

@@ -22,15 +22,14 @@
 
 package eu.thesimplecloud.clientserverapi.server.client.connectedclient
 
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import io.netty.channel.Channel
 
 class ConnectedClient<T : IConnectedClientValue>(
         private val channel: Channel,
         private val nettyServer: INettyServer<T>
-) : AbstractConnection(nettyServer.getPacketManager(), nettyServer.getResponseManager()), IConnectedClient<T> {
+) : AbstractNettyConnection(), IConnectedClient<T> {
 
 
     private var clientValue: T? = null
@@ -43,7 +42,7 @@ class ConnectedClient<T : IConnectedClientValue>(
 
     override fun getNettyServer(): INettyServer<T> = nettyServer
 
-    override fun getCommunicationBootstrap(): ICommunicationBootstrap = nettyServer
+    override fun getCommunicationBootstrap(): INettyServer<T> = nettyServer
 
     override fun getChannel(): Channel? = channel
 

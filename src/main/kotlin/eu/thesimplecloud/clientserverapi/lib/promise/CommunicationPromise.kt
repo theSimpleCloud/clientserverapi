@@ -22,8 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.promise
 
-import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.CompletedWithNullException
-import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.PromiseCreationException
+import eu.thesimplecloud.clientserverapi.lib.promise.exception.CompletedWithNullException
+import eu.thesimplecloud.clientserverapi.lib.promise.exception.PromiseCreationException
 import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromiseTimeoutHandler
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.GlobalScope
@@ -256,5 +256,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
             promise.addCompleteListener { if (!job.isCompleted) job.cancel() }
             return promise
         }
+
+        val UNIT_PROMISE = of(Unit)
     }
 }

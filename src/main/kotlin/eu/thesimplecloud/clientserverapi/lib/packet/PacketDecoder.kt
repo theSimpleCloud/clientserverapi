@@ -56,7 +56,11 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
                 throw PacketException("Can't find opposite packet of: ${packetData.sentPacketName}")
             }
             val packet =  packetClass.newInstance()
-            packet.read(byteBuf, communicationBootstrap)
+            try {
+                packet.read(byteBuf, communicationBootstrap)
+            } catch (e: Exception) {
+                throw PacketException("An error occurred while reading packet: ${packetClass.name}")
+            }
             packet
         }
         out.add(WrappedPacket(packetData, packet))

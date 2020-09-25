@@ -44,4 +44,6 @@ interface IConnectedClient<T : IConnectedClientValue> : IConnection {
      */
     fun setClientValue(connectedClientValue: T)
 
+    override fun getCommunicationBootstrap(): INettyServer<T>
+
 }

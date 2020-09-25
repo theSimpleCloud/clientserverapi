@@ -22,29 +22,31 @@
 
 package eu.thesimplecloud.clientserverapi.client
 
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
-import eu.thesimplecloud.clientserverapi.lib.handler.AbstractChannelInboundHandlerImpl
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.packet.AbstractChannelInboundHandlerImpl
 import io.netty.channel.ChannelHandlerContext
 
 class ClientHandler(private val nettyClient: NettyClient, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
 
-    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = nettyClient
+    override fun getConnection(ctx: ChannelHandlerContext): AbstractNettyConnection {
+        return nettyClient.getConnection() as AbstractNettyConnection
+    }
 
     override fun channelActive(ctx: ChannelHandlerContext) {
-        nettyClient.sendAllQueuedPackets()
-        connectionHandler.onConnectionActive(nettyClient)
+        (nettyClient.getConnection() as ClientConnection).sendAllQueuedPackets()
+        connectionHandler.onConnectionActive(nettyClient.getConnection())
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        connectionHandler.onConnectionInactive(nettyClient)
+        connectionHandler.onConnectionInactive(nettyClient.getConnection())
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         //super.exceptionCaught(ctx, cause)
-        if (!nettyClient.wasConnectionCloseIntended())
-            connectionHandler.onFailure(nettyClient, cause)
+        if (!nettyClient.getConnection().wasConnectionCloseIntended())
+            connectionHandler.onFailure(nettyClient.getConnection(), cause)
     }
 
 

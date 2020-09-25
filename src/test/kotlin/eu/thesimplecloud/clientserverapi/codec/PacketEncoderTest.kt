@@ -32,7 +32,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.server.INettyServer
-import eu.thesimplecloud.clientserverapi.server.ServerHandler
+import eu.thesimplecloud.clientserverapi.server.NettyServerHandler
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import eu.thesimplecloud.clientserverapi.testobject.client.PacketIOWork
 import io.netty.channel.embedded.EmbeddedChannel
@@ -76,7 +76,7 @@ class PacketEncoderTest {
                 PacketDecoder(bootstrap, packetManager),
                 LengthFieldPrepender(4),
                 PacketEncoder(bootstrap),
-                ServerHandler(bootstrap, object: IConnectionHandler {
+                NettyServerHandler(bootstrap, object: IConnectionHandler {
                     override fun onConnectionActive(connection: IConnection) {
                         println("active $connection")
                     }

@@ -20,52 +20,47 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.testing
+package eu.thesimplecloud.clientserverapi.testing.client
 
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.AbstractCommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
+import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import java.io.IOException
+import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 12.06.2020
- * Time: 09:20
+ * Date: 25.06.2020
+ * Time: 10:57
  * @author Frederick Baier
  */
 
-abstract class AbstractTestConnection() : AbstractConnection() {
+class TestNettyClient(
+        host: String,
+        port: Int,
+        val connectionHandler: IConnectionHandler = DefaultConnectionHandler()
+) : AbstractCommunicationBootstrap(host, port), INettyClient {
 
+    private val clientConnection = TestClientConnection(this)
 
-    @Volatile
-    var otherSideConnection: IConnection? = null
-
-
-    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
-        if (!isOpen()) {
-            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}. This: ${this::class.java.name}")
-            promise.tryFailure(exception)
-            throw exception
-        }
-        NetworkTestManager.sendPacket(this, wrappedPacket)
+    override fun getConnection(): IConnection {
+        return this.clientConnection
     }
 
-    override fun isOpen(): Boolean {
-        return this.otherSideConnection != null
+    override fun start(): ICommunicationPromise<Unit> {
+        return CommunicationPromise.runAsync { NetworkTestManager.connectToServer(this@TestNettyClient) }
     }
 
-    override fun closeConnection(): ICommunicationPromise<Unit> {
-        NetworkTestManager.closeConnection(this)
-        return CommunicationPromise.of(Unit)
+    override fun shutdown(): ICommunicationPromise<Unit> {
+        NetworkTestManager.closeConnection(this.clientConnection)
+        return CommunicationPromise.UNIT_PROMISE
     }
 
-    override fun getHost(): String? {
-        if (!isOpen()) return null
-        return "127.0.0.1"
+    override fun isActive(): Boolean {
+        return this.clientConnection.isOpen()
     }
-
 
 }
-

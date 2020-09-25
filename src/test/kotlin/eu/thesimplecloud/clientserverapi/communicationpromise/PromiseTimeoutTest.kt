@@ -23,7 +23,7 @@
 package eu.thesimplecloud.clientserverapi.communicationpromise
 
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.PromiseTimeoutException
+import eu.thesimplecloud.clientserverapi.lib.promise.exception.PromiseTimeoutException
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

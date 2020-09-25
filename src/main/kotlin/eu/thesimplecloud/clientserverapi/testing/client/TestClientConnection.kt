@@ -20,6 +20,23 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.promise.excpetion
+package eu.thesimplecloud.clientserverapi.testing.client
 
-class PromiseCreationException() : Exception()
+import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
+import eu.thesimplecloud.clientserverapi.testing.AbstractTestConnection
+
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 27.06.2020
+ * Time: 19:07
+ * @author Frederick Baier
+ */
+class TestClientConnection(
+        private val client: INettyClient
+) : AbstractTestConnection() {
+
+    override fun getCommunicationBootstrap(): ICommunicationBootstrap {
+        return client
+    }
+}

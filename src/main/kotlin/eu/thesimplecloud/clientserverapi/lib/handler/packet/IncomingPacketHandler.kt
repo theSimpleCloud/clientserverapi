@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.handler
+package eu.thesimplecloud.clientserverapi.lib.handler.packet
 
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
@@ -30,38 +30,56 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<WrappedPacket>() {
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 25.06.2020
+ * Time: 11:07
+ * @author Frederick Baier
+ */
+class IncomingPacketHandler(private val connection: AbstractConnection) {
 
-    abstract fun getConnection(ctx: ChannelHandlerContext): AbstractConnection
-
-    override fun channelRead0(ctx: ChannelHandlerContext, wrappedPacket: WrappedPacket) {
-        val connection = getConnection(ctx)
+    fun handleIncomingPacket(wrappedPacket: WrappedPacket) {
         if (wrappedPacket.packetData.isResponse) {
-            connection.packetResponseManager.incomingPacket(wrappedPacket)
+            handleResponsePacket(wrappedPacket)
         } else {
             GlobalScope.launch(Dispatchers.Default) {
-                val result = try {
-                    wrappedPacket.packet.handle(connection)
-                } catch (e: Exception) {
-                    throw PacketException("An error occurred while attempting to handle packet: ${wrappedPacket.packet::class.java.simpleName}", e)
-                }
-                val packetPromise = getPacketFromResult(result)
-                packetPromise.then { packetToSend ->
-                    val responseData = PacketData(wrappedPacket.packetData.uniqueId, packetToSend::class.java.simpleName, true)
-                    connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
-                }.addFailureListener {
-                    if (!connection.wasConnectionCloseIntended())
-                        throw PacketException("An error occurred while attempting to send response for packet: " +
-                                wrappedPacket.packet::class.java.simpleName, it as java.lang.Exception)
-                }
+                handleQuery(wrappedPacket)
             }
         }
+    }
+
+    private fun handleResponsePacket(wrappedPacket: WrappedPacket) {
+        val packetResponseManager = this.connection.getCommunicationBootstrap().getPacketResponseManager()
+        packetResponseManager.incomingPacket(wrappedPacket)
+    }
+
+    private suspend fun handleQuery(wrappedPacket: WrappedPacket) {
+        try {
+            val result = wrappedPacket.packet.handle(this.connection)
+            handleResult(result, wrappedPacket)
+        } catch (e: Exception) {
+            throw PacketException("An error occurred while attempting to handle packet: ${wrappedPacket.packet::class.java.simpleName}", e)
+        }
+    }
+
+    private fun handleResult(result: ICommunicationPromise<out Any>, wrappedPacket: WrappedPacket) {
+        val packetPromise = getPacketFromResult(result)
+        packetPromise.then { packetToSend ->
+            sendResponsePacket(wrappedPacket, packetToSend)
+        }.addFailureListener {
+            if (!this.connection.wasConnectionCloseIntended())
+                throw PacketException("An error occurred while attempting to send response for packet: " +
+                        wrappedPacket.packet::class.java.simpleName, it as java.lang.Exception)
+        }
+    }
+
+    private fun sendResponsePacket(wrappedPacket: WrappedPacket, packetToSend: ObjectPacket<out Any>) {
+        val responseData = PacketData(wrappedPacket.packetData.uniqueId, packetToSend::class.java.simpleName, true)
+        this.connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
     }
 
     private fun getPacketFromResult(result: ICommunicationPromise<out Any>): ICommunicationPromise<ObjectPacket<out Any>> {
@@ -75,4 +93,5 @@ abstract class AbstractChannelInboundHandlerImpl : SimpleChannelInboundHandler<W
         }
         return returnPromise
     }
+
 }

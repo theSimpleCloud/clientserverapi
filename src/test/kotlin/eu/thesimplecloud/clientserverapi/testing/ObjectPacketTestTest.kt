@@ -20,15 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.testobject
+package eu.thesimplecloud.clientserverapi.testing
 
-class ObjectPacketTest {
+import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
+import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
+import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
+import eu.thesimplecloud.clientserverapi.testobject.ITestObj
+import eu.thesimplecloud.clientserverapi.testobject.client.PacketIOWork
+import eu.thesimplecloud.clientserverapi.testobject.client.PacketOutMessage
+import org.junit.Test
+import kotlin.concurrent.thread
 
-    /*
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 25.09.2020
+ * Time: 18:36
+ * @author Frederick Baier
+ */
+class ObjectPacketTestTest {
+
+
     @Test
     fun test() {
-        val nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1921)
-        nettyServer.packetManager.registerPacket(PacketIOWork::class.java)
+        BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+        val factory = BootstrapFactoryGetter.getFactory()
+        val nettyServer = factory.createServer<TestConnectedClientValue>("127.0.0.1", 1921)
+
+
+        nettyServer.getPacketManager().registerPacket(PacketIOWork::class.java)
         nettyServer.addPacketsByPackage("eu.thesimplecloud.clientserverapi.testobject.server")
         thread {
             nettyServer.start()
@@ -36,7 +56,7 @@ class ObjectPacketTest {
         while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
-        val nettyClient = NettyClient("127.0.0.1", 1921)
+        val nettyClient = factory.createClient("127.0.0.1", 1921)
         nettyClient.addPacketsByPackage("eu.thesimplecloud.clientserverapi.testobject.client")
         thread {
             nettyClient.start()
@@ -47,14 +67,13 @@ class ObjectPacketTest {
         //        .addFailureListener { println(it.message) }
         Thread.sleep(1000)
         val time = System.currentTimeMillis()
-        nettyClient.sendQuery<ITestObj>(PacketOutMessage("hi"), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
+        nettyClient.getConnection().sendUnitQuery(PacketOutMessage("hi"), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
                 .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
-        nettyClient.sendQuery<ITestObj>(PacketIOWork(), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
+        nettyClient.getConnection().sendQuery<ITestObj>(PacketIOWork(), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
                 .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
         nettyServer.getDebugMessageManager().enable(DebugMessage.PACKET_RECEIVED)
-        nettyClient.shutdown()
         Thread.sleep(1000)
+        nettyClient.shutdown()
     }
-    */
 
 }

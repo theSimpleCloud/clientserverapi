@@ -25,9 +25,11 @@ package eu.thesimplecloud.clientserverapi.client
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 
-interface INettyClient : IConnection, ICommunicationBootstrap {
+interface INettyClient : ICommunicationBootstrap {
 
-    override fun getCommunicationBootstrap(): INettyClient = this
-
+    /**
+     * Returns the connection of the client
+     */
+    fun getConnection(): IConnection
 
 }

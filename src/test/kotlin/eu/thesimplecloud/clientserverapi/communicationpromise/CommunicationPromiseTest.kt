@@ -23,7 +23,7 @@
 package eu.thesimplecloud.clientserverapi.communicationpromise
 
 import eu.thesimplecloud.clientserverapi.lib.promise.*
-import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.CompletedWithNullException
+import eu.thesimplecloud.clientserverapi.lib.promise.exception.CompletedWithNullException
 import eu.thesimplecloud.clientserverapi.utils.TestException
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay

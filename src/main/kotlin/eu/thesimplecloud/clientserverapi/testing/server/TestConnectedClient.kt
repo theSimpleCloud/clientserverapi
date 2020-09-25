@@ -20,18 +20,43 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.defaultpackets
+package eu.thesimplecloud.clientserverapi.testing.server
 
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.server.INettyServer
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
+import eu.thesimplecloud.clientserverapi.testing.AbstractTestConnection
 
-class PacketIOConnectionWillClose() : ObjectPacket<Unit>() {
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 25.06.2020
+ * Time: 14:14
+ * @author Frederick Baier
+ */
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
-        connection as AbstractNettyConnection
-        connection.setConnectionCloseIntended()
-        return unit()
+class TestConnectedClient<T : IConnectedClientValue>(
+        private val nettyServer: INettyServer<T>,
+        otherSideConnection: IConnection
+) : AbstractTestConnection(), IConnectedClient<T> {
+
+    private var clientValue: T? = null
+
+    init {
+        this.otherSideConnection = otherSideConnection
+    }
+
+    override fun getCommunicationBootstrap(): INettyServer<T> {
+        return this.nettyServer
+    }
+
+    override fun getNettyServer(): INettyServer<T> {
+        return nettyServer
+    }
+
+    override fun getClientValue(): T? = clientValue
+
+    override fun setClientValue(connectedClientValue: T) {
+        this.clientValue = connectedClientValue
     }
 }

@@ -20,21 +20,42 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.testing
-
-import io.netty.channel.embedded.EmbeddedChannel
+package eu.thesimplecloud.clientserverapi.lib.factory
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 11.06.2020
- * Time: 18:14
+ * Date: 25.09.2020
+ * Time: 19:17
  * @author Frederick Baier
  */
-class MockChannel {
+object BootstrapFactoryGetter {
 
-    fun mockChannel() {
+    @Volatile
+    private var factory: ICommunicationBootstrapFactory? = null
 
-        val channel = EmbeddedChannel()
+    /**
+     * Sets the environment to work in
+     */
+    fun setEnvironment(environment: ApplicationEnvironment): BootstrapFactoryGetter {
+        this.factory = when (environment) {
+            ApplicationEnvironment.NORMAL -> NormalCommunicationBootstrapFactory()
+            ApplicationEnvironment.TEST -> TestCommunicationBootstrapFactory()
+        }
+        return this
+    }
+
+    /**
+     * Returns the factory if set.
+     * @throw [IllegalStateException] if the factory was not set
+     */
+    @Throws(IllegalStateException::class)
+    fun getFactory(): ICommunicationBootstrapFactory {
+        return this.factory ?: throw IllegalStateException("Factory is not set")
+    }
+
+    enum class ApplicationEnvironment {
+
+        TEST, NORMAL
 
     }
 

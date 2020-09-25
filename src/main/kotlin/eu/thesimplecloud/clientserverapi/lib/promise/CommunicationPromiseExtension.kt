@@ -22,6 +22,9 @@
 
 package eu.thesimplecloud.clientserverapi.lib.promise
 
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
+
 
 fun ICommunicationPromise<Unit>.completeWhenAllCompleted(promises: List<ICommunicationPromise<*>>): ICommunicationPromise<Unit> {
     if (promises.isEmpty()) {
@@ -80,4 +83,28 @@ fun <T: Any> ICommunicationPromise<Unit>.copyStateFromOtherPromiseToUnitPromise(
             this.tryFailure(it.cause())
         }
     }
+}
+
+fun <T : Any> ICommunicationPromise<T>.createBlockingDirectCallInterface(expectedInterface: Class<T>): T {
+    return mockInterface(expectedInterface) { method, args ->
+        return@mockInterface method.invoke(this.getBlocking(), *args)
+    }
+}
+
+fun <T : Any> ICommunicationPromise<T>.createNonBlockingDirectCallInterface(expectedInterface: Class<T>): T {
+    return mockInterface(expectedInterface) { method, args ->
+        return@mockInterface handleMethodCallNonBlocking(this, method, args)
+    }
+}
+
+fun <T : Any> handleMethodCallNonBlocking(promise: ICommunicationPromise<T>, method: Method, args: Array<Any>): ICommunicationPromise<out Any> {
+    if (method.returnType != ICommunicationPromise::class.java)
+        throw UnsupportedOperationException("Cannot call a method non blocking not returning a ICommunicationPromise")
+    return promise.then { method.invoke(it, *args) as ICommunicationPromise<Any> }.flatten()
+}
+
+private fun <T> mockInterface(interfaceClass: Class<T>, callFunction: (method: Method, args: Array<Any>) -> Any?): T {
+    return Proxy.newProxyInstance(interfaceClass.classLoader, arrayOf(interfaceClass)) { _, method, args ->
+        return@newProxyInstance callFunction(method, args ?: emptyArray())
+    } as T
 }

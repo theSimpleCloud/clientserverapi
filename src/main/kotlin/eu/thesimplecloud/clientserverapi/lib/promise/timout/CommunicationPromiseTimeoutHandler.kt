@@ -24,7 +24,7 @@ package eu.thesimplecloud.clientserverapi.lib.promise.timout
 
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.PromiseTimeoutException
+import eu.thesimplecloud.clientserverapi.lib.promise.exception.PromiseTimeoutException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 

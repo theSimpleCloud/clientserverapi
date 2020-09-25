@@ -20,36 +20,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.testing
+package eu.thesimplecloud.clientserverapi.lib.factory
 
-import io.netty.channel.Channel
-import io.netty.channel.DefaultChannelPromise
-import io.netty.channel.embedded.EmbeddedChannel
-import io.netty.util.concurrent.GlobalEventExecutor
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.spy
-
+import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
+import eu.thesimplecloud.clientserverapi.server.INettyServer
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
+import eu.thesimplecloud.clientserverapi.testing.client.TestNettyClient
+import eu.thesimplecloud.clientserverapi.testing.server.TestNettyServer
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 11.06.2020
- * Time: 18:16
+ * Date: 25.09.2020
+ * Time: 19:08
  * @author Frederick Baier
  */
-class MockChannel {
+class TestCommunicationBootstrapFactory  : ICommunicationBootstrapFactory {
 
-    fun newPromise(channel: Channel): DefaultChannelPromise {
-        return DefaultChannelPromise(channel, GlobalEventExecutor.INSTANCE)
+    override fun <T : IConnectedClientValue> createServer(
+            host: String,
+            port: Int,
+            connectionHandler: IConnectionHandler,
+            serverHandler: IServerHandler<T>
+    ): INettyServer<T> {
+        return TestNettyServer<T>(host, port, connectionHandler, serverHandler)
     }
 
-    fun mockChannel() {
-        val channel = spy(EmbeddedChannel())
-        `when`(channel.writeAndFlush(ArgumentMatchers.any())).then {
-            println("writing" + it.arguments.first())
-            return@then newPromise(channel)
-        }
-        `when`(channel.writeInbound())
+    override fun createClient(
+            host: String,
+            port: Int,
+            connectionHandler: IConnectionHandler
+    ): INettyClient {
+        return TestNettyClient(host, port, connectionHandler)
     }
 
 }

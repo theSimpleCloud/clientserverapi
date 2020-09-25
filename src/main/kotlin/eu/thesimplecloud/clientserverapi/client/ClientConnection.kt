@@ -20,18 +20,51 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.defaultpackets
+package eu.thesimplecloud.clientserverapi.client
 
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import io.netty.channel.Channel
+import java.util.concurrent.CopyOnWriteArrayList
 
-class PacketIOConnectionWillClose() : ObjectPacket<Unit>() {
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 27.06.2020
+ * Time: 13:49
+ * @author Frederick Baier
+ */
+class ClientConnection(
+        private val bootstrap: INettyClient
+) : AbstractNettyConnection() {
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
-        connection as AbstractNettyConnection
-        connection.setConnectionCloseIntended()
-        return unit()
+    private var channel: Channel? = null
+
+    private val queuedPackets = CopyOnWriteArrayList<Pair<WrappedPacket, ICommunicationPromise<*>>>()
+
+    fun setChannel(channel: Channel) {
+        this.channel = channel
     }
+
+    override fun getChannel(): Channel? {
+        return this.channel
+    }
+
+    override fun getCommunicationBootstrap(): INettyClient {
+        return bootstrap
+    }
+
+    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
+        if (!isOpen())
+            this.queuedPackets.add(wrappedPacket to promise)
+        else
+            super.sendPacket(wrappedPacket, promise)
+    }
+
+    fun sendAllQueuedPackets() {
+        this.queuedPackets.forEach { sendPacket(it.first, it.second) }
+        this.queuedPackets.clear()
+    }
+
+
 }

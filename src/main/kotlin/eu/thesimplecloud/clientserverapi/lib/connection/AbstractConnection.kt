@@ -26,26 +26,22 @@ import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOCreateFileTr
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransferComplete
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.util.QueuedFile
+import eu.thesimplecloud.clientserverapi.lib.handler.packet.IncomingPacketHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import io.netty.channel.Channel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.IOException
-import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
-abstract class AbstractConnection(val packetManager: IPacketManager, val packetResponseManager: IPacketResponseManager) : IConnection {
+abstract class AbstractConnection() : IConnection {
 
     private val BYTES_PER_FILEPACKET = 50000
 
@@ -54,6 +50,9 @@ abstract class AbstractConnection(val packetManager: IPacketManager, val packetR
     @Volatile
     private var sendingFile = false
     private val fileQueue = LinkedBlockingQueue<QueuedFile>()
+    private val packetResponseManager by lazy { getCommunicationBootstrap().getPacketResponseManager() }
+
+    private val incomingPacketHandler = IncomingPacketHandler(this)
 
     @Synchronized
     override fun <T : Any> sendQuery(packet: IPacket, expectedResponseClass: Class<T>, timeout: Long): ICommunicationPromise<T> {
@@ -65,25 +64,11 @@ abstract class AbstractConnection(val packetManager: IPacketManager, val packetR
         return packetPromise
     }
 
-    /**
-     * Sends a packet
-     * Can be overridden to prevent packet sending when the connection is not open yet.
-     */
-    @Synchronized
-    open fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
-        if (!isOpen()) {
-            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}.")
-            promise.tryFailure(exception)
-            throw exception
-        }
-        val channel = getChannel()!!
-        channel.eventLoop().execute {
-            channel.writeAndFlush(wrappedPacket).addListener {
-                if (!it.isSuccess)
-                    promise.tryFailure(it.cause())
-            }
-        }
+    fun incomingPacket(wrappedPacket: WrappedPacket) {
+        incomingPacketHandler.handleIncomingPacket(wrappedPacket)
     }
+
+    abstract fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>)
 
     @Synchronized
     override fun sendFile(file: File, savePath: String, timeout: Long): ICommunicationPromise<Unit> {
@@ -136,28 +121,6 @@ abstract class AbstractConnection(val packetManager: IPacketManager, val packetR
 
     override fun wasConnectionCloseIntended(): Boolean {
         return !isOpen() && wasCloseIntended
-    }
-
-    /**
-     * Returns the channel of this connection or null if the connection is not connected.
-     * @return the channel or null if the connection is not connected.
-     */
-    abstract fun getChannel(): Channel?
-
-    override fun isOpen(): Boolean {
-        return getChannel() != null && getChannel()?.isActive ?: false
-    }
-
-    override fun closeConnection(): ICommunicationPromise<Unit> {
-        if (getChannel() == null || !getChannel()!!.isOpen) throw IllegalStateException("Connection already closed.")
-        val connectionPromise = CommunicationPromise<Unit>(2000)
-        getChannel()?.close()?.addListener { connectionPromise.trySuccess(Unit) }
-        return connectionPromise
-    }
-
-    override fun getHost(): String? {
-        if (!isOpen()) return null
-        return (getChannel()!!.remoteAddress() as InetSocketAddress).hostString
     }
 
 }

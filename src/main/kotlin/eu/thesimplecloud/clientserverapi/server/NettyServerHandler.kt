@@ -22,18 +22,17 @@
 
 package eu.thesimplecloud.clientserverapi.server
 
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
-import eu.thesimplecloud.clientserverapi.lib.handler.AbstractChannelInboundHandlerImpl
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.handler.packet.AbstractChannelInboundHandlerImpl
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import io.netty.channel.ChannelHandlerContext
 
-class ServerHandler(private val nettyServer: INettyServer<*>, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
+class NettyServerHandler(nettyServer: INettyServer<*>, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
     private val clientManager = nettyServer.getClientManager() as ClientManager<*>
 
-    override fun getConnection(ctx: ChannelHandlerContext): AbstractConnection = this.clientManager.getClient(ctx)!! as AbstractConnection
+    override fun getConnection(ctx: ChannelHandlerContext): AbstractNettyConnection = this.clientManager.getClient(ctx)!! as AbstractNettyConnection
 
 
     override fun channelActive(ctx: ChannelHandlerContext) {
@@ -43,9 +42,6 @@ class ServerHandler(private val nettyServer: INettyServer<*>, private val connec
     override fun channelInactive(ctx: ChannelHandlerContext) {
         this.clientManager.removeClient(ctx)?.let {
             connectionHandler.onConnectionInactive(it)
-            val directorySyncManager = nettyServer.getDirectorySyncManager()
-            directorySyncManager as DirectorySyncManager
-            directorySyncManager.removeFromDirectorySyncs(it)
         }
     }
 

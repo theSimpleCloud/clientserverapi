@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.server.client.clientmanager
 
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.ConnectedClient
@@ -47,7 +47,7 @@ class ClientManager<T : IConnectedClientValue>(private val nettyServer: INettySe
      * Returns the client registered to the specified [ChannelHandlerContext] or null if there is no client registered to the specified [ChannelHandlerContext]
      */
     fun getClient(ctx: ChannelHandlerContext) = this.clients.firstOrNull {
-        it as AbstractConnection
+        it as AbstractNettyConnection
         it.getChannel() == ctx.channel()
     }
 

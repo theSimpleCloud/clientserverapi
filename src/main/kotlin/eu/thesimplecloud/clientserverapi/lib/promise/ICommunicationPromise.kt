@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.promise
 
-import eu.thesimplecloud.clientserverapi.lib.promise.excpetion.CompletedWithNullException
+import eu.thesimplecloud.clientserverapi.lib.promise.exception.CompletedWithNullException
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.Promise

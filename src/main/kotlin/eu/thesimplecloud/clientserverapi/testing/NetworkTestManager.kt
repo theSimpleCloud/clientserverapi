@@ -22,11 +22,17 @@
 
 package eu.thesimplecloud.clientserverapi.testing
 
-import com.google.common.collect.HashBiMap
+import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.client.INettyClient
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.server.INettyServer
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
+import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
+import eu.thesimplecloud.clientserverapi.testing.client.TestNettyClient
+import eu.thesimplecloud.clientserverapi.testing.server.TestClientManager
+import eu.thesimplecloud.clientserverapi.testing.server.TestConnectedClient
+import eu.thesimplecloud.clientserverapi.testing.server.TestNettyServer
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -37,32 +43,85 @@ import java.util.concurrent.CopyOnWriteArrayList
  */
 object NetworkTestManager {
 
-    private val portServerMap = HashMap<Int, INettyServer<*>>()
+    private val portServerMap = Maps.newConcurrentMap<Int, TestNettyServer<out IConnectedClientValue>>()
 
-    private val serverToConnectedClients = HashBiMap.create<INettyServer<*>, MutableList<INettyClient>>()
+    private val serverToConnectedClients = Maps.newConcurrentMap<INettyServer<*>, MutableList<INettyClient>>()
 
-    fun getServerListeningOnPort(port: Int): INettyServer<*>? {
+    private fun getServerListeningOnPort(port: Int): INettyServer<*>? {
         return portServerMap[port]
     }
 
-    fun connectToServer(client: INettyClient, port: Int) {
-        val server = getServerListeningOnPort(port)
-                ?: throw IllegalArgumentException("There is no server listening on port $port")
-        val list = serverToConnectedClients.getOrPut(server) { CopyOnWriteArrayList() }
+    fun registerServer(server: TestNettyServer<out IConnectedClientValue>) {
+        this.portServerMap[server.getPort()] = server
+    }
+
+    fun unregisterServer(server: INettyServer<*>) {
+        this.portServerMap.remove(server.getPort())
+    }
+
+    fun isServerRegistered(server: INettyServer<*>): Boolean {
+        return this.portServerMap.containsKey(server.getPort())
+    }
+
+    fun connectToServer(client: INettyClient) {
+        val server = getServerListeningOnPort(client.getPort())
+                ?: throw IllegalArgumentException("There is no server listening on port ${client.getPort()}")
+        val list = this.serverToConnectedClients.getOrPut(server) { CopyOnWriteArrayList() }
+
         list.add(client)
-        server.getClientManager()
-        //client
+        server as TestNettyServer<*>
+
+        val clientManager = server.getClientManager() as TestClientManager<IConnectedClientValue>
+        val connectedClient = TestConnectedClient(server, client.getConnection()) as TestConnectedClient<IConnectedClientValue>
+
+        //set other side connections
+        val clientConnection = client.getConnection() as AbstractTestConnection
+        clientConnection.otherSideConnection = connectedClient
+
+        clientManager.addClient(connectedClient)
+        server.connectionHandler.onConnectionActive(connectedClient)
+
+        client as TestNettyClient
+        client.connectionHandler.onConnectionActive(client.getConnection())
+
+
     }
 
-    fun getServerClientIsConnectedTo(nettyClient: INettyClient): INettyServer<*>? {
-        val inverse = this.serverToConnectedClients.inverse()
-        val value = inverse.keys.filter { it.contains(nettyClient) }
-        //return inverse[value]
-        return null
+    fun sendPacket(fromConnection: IConnection, packet: WrappedPacket) {
+        fromConnection as AbstractTestConnection
+        val otherSideConnection = fromConnection.otherSideConnection!!
+        otherSideConnection as AbstractTestConnection
+        otherSideConnection.incomingPacket(packet)
     }
 
-    fun sendPacket(senderBootstrap: ICommunicationBootstrap, receiverConnection: IConnection) {
+    fun closeConnection(connection: IConnection) {
+        connection as AbstractTestConnection
+        val otherSideConnection = connection.otherSideConnection as AbstractTestConnection?
+        shutdownConnection(connection)
+        otherSideConnection?.let { shutdownConnection(it) }
 
+        otherSideConnection?.let { otherSideConnection.otherSideConnection = null }
+        connection.otherSideConnection = null
+    }
+
+    private fun shutdownConnection(connection: AbstractTestConnection) {
+        if (connection is IConnectedClient<*>) {
+            disconnectFromServer(connection as IConnectedClient<IConnectedClientValue>)
+        } else {
+            performDisconnectOnClient(connection)
+        }
+    }
+
+    private fun performDisconnectOnClient(connection: IConnection) {
+        val client = connection.getCommunicationBootstrap() as TestNettyClient
+        client.connectionHandler.onConnectionInactive(connection)
+    }
+
+    private fun disconnectFromServer(connection: IConnectedClient<IConnectedClientValue>) {
+        val server = connection.getCommunicationBootstrap() as TestNettyServer<IConnectedClientValue>
+        val clientManager = server.getClientManager() as TestClientManager<IConnectedClientValue>
+        clientManager.removeClient(connection)
+        server.connectionHandler.onConnectionInactive(connection)
     }
 
 }

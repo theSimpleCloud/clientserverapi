@@ -22,12 +22,20 @@
 
 package eu.thesimplecloud.clientserverapi.directorysync
 
+import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
+import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.junit.Test
+import java.io.File
+
 class DirectorySyncTest2 {
 
-    /*
 
-    var nettyServer = NettyServer<TestConnectedClientValue>("127.0.0.1", 1919)
-    var nettyClient = NettyClient("127.0.0.1", 1919)
+    val factory = BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST).getFactory()
+
+    var nettyServer = factory.createServer<TestConnectedClientValue>("127.0.0.1", 1919)
+    var nettyClient = factory.createClient("127.0.0.1", 1919)
 
     @Test()
     fun test() {
@@ -41,19 +49,19 @@ class DirectorySyncTest2 {
             nettyClient.start().syncUninterruptibly()
         }
 
-        while (!nettyClient.isOpen()) {
+        while (!nettyClient.getConnection().isOpen()) {
             Thread.sleep(10)
         }
         val dir = File("templates/")
         dir.mkdirs()
         nettyServer.getDirectorySyncManager().setTmpZipDirectory(File("storage/zippedTemplates/"))
         val directorySync = nettyServer.getDirectorySyncManager().createDirectorySync(dir, "templatesOtherSide/")
-        val clientOnServerSide = this.nettyServer.clientManager.getClients().firstOrNull()!!
+        val clientOnServerSide = this.nettyServer.getClientManager().getClients().firstOrNull()!!
         val promise = directorySync.syncDirectory(clientOnServerSide)
         promise.awaitUninterruptibly()
     }
 
-    */
+    
 
 
 }
