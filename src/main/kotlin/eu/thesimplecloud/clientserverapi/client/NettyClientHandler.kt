@@ -27,7 +27,7 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.packet.AbstractChannelInboundHandlerImpl
 import io.netty.channel.ChannelHandlerContext
 
-class ClientHandler(private val nettyClient: NettyClient, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
+class NettyClientHandler(private val nettyClient: NettyClient, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
 
     override fun getConnection(ctx: ChannelHandlerContext): AbstractNettyConnection {

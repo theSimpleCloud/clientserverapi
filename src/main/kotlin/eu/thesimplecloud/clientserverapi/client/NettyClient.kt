@@ -71,7 +71,7 @@ class NettyClient(
                 pipeline.addLast(PacketDecoder(instance, getPacketManager())) // add without name, name auto generated
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder(instance)) // add without name, name auto generated
-                pipeline.addLast(ClientHandler(instance, connectionHandler))
+                pipeline.addLast(NettyClientHandler(instance, connectionHandler))
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
             }
 
