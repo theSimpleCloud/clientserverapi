@@ -45,8 +45,8 @@ import io.netty.handler.timeout.IdleStateHandler
 class NettyClient(
         host: String,
         port: Int,
-        private val connectionHandler: IConnectionHandler = DefaultConnectionHandler()
-) : AbstractCommunicationBootstrap(host, port), INettyClient {
+        connectionHandler: IConnectionHandler = DefaultConnectionHandler()
+) : AbstractCommunicationBootstrap(host, port, connectionHandler), INettyClient {
 
     private var workerGroup: NioEventLoopGroup? = null
     private val clientConnection = ClientConnection(this)
@@ -71,7 +71,7 @@ class NettyClient(
                 pipeline.addLast(PacketDecoder(instance, getPacketManager())) // add without name, name auto generated
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder(instance)) // add without name, name auto generated
-                pipeline.addLast(NettyClientHandler(instance, connectionHandler))
+                pipeline.addLast(NettyClientHandler(instance, getConnectionHandler()))
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
             }
 

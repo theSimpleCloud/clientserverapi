@@ -24,6 +24,7 @@ package eu.thesimplecloud.clientserverapi.testing
 
 import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.server.INettyServer
@@ -67,24 +68,28 @@ object NetworkTestManager {
         val server = getServerListeningOnPort(client.getPort())
                 ?: throw IllegalArgumentException("There is no server listening on port ${client.getPort()}")
         val list = this.serverToConnectedClients.getOrPut(server) { CopyOnWriteArrayList() }
-
         list.add(client)
+
         server as TestNettyServer<*>
 
         val clientManager = server.getClientManager() as TestClientManager<IConnectedClientValue>
         val connectedClient = TestConnectedClient(server, client.getConnection()) as TestConnectedClient<IConnectedClientValue>
+        clientManager.addClient(connectedClient)
 
         //set other side connections
-        val clientConnection = client.getConnection() as AbstractTestConnection
-        clientConnection.otherSideConnection = connectedClient
+        setConnectionActive(client, client.getConnection(), connectedClient)
 
-        clientManager.addClient(connectedClient)
-        server.connectionHandler.onConnectionActive(connectedClient)
+        setConnectionActive(server, connectedClient, client.getConnection())
+    }
 
-        client as TestNettyClient
-        client.connectionHandler.onConnectionActive(client.getConnection())
-
-
+    private fun setConnectionActive(
+            forBootstrap: ICommunicationBootstrap,
+            connectionOnBoostrapSide: IConnection,
+            connectionOnOtherSide: IConnection
+    ) {
+        forBootstrap.getConnectionHandler().onConnectionActive(connectionOnBoostrapSide)
+        connectionOnBoostrapSide as AbstractTestConnection
+        connectionOnBoostrapSide.otherSideConnection = connectionOnOtherSide
     }
 
     fun sendPacket(fromConnection: IConnection, packet: WrappedPacket) {
@@ -99,9 +104,6 @@ object NetworkTestManager {
         val otherSideConnection = connection.otherSideConnection as AbstractTestConnection?
         shutdownConnection(connection)
         otherSideConnection?.let { shutdownConnection(it) }
-
-        otherSideConnection?.let { otherSideConnection.otherSideConnection = null }
-        connection.otherSideConnection = null
     }
 
     private fun shutdownConnection(connection: AbstractTestConnection) {
@@ -110,18 +112,19 @@ object NetworkTestManager {
         } else {
             performDisconnectOnClient(connection)
         }
+        connection.otherSideConnection = null
     }
 
     private fun performDisconnectOnClient(connection: IConnection) {
         val client = connection.getCommunicationBootstrap() as TestNettyClient
-        client.connectionHandler.onConnectionInactive(connection)
+        client.getConnectionHandler().onConnectionInactive(connection)
     }
 
     private fun disconnectFromServer(connection: IConnectedClient<IConnectedClientValue>) {
         val server = connection.getCommunicationBootstrap() as TestNettyServer<IConnectedClientValue>
         val clientManager = server.getClientManager() as TestClientManager<IConnectedClientValue>
         clientManager.removeClient(connection)
-        server.connectionHandler.onConnectionInactive(connection)
+        server.getConnectionHandler().onConnectionInactive(connection)
     }
 
 }

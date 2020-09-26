@@ -31,6 +31,7 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.TransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
+import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
@@ -49,7 +50,8 @@ import org.reflections.Reflections
  */
 abstract class AbstractCommunicationBootstrap(
         private val host: String,
-        private val port: Int
+        private val port: Int,
+        private val connectionHandler: IConnectionHandler
 ) : ICommunicationBootstrap {
 
     private var packetSearchClassLoader: ClassLoader = this::class.java.classLoader
@@ -126,6 +128,10 @@ abstract class AbstractCommunicationBootstrap(
 
     override fun getPacketManager(): IPacketManager {
         return this.packetManager
+    }
+
+    override fun getConnectionHandler(): IConnectionHandler {
+        return this.connectionHandler
     }
 
     override fun setPacketClassConverter(function: (Class<out IPacket>) -> Class<out IPacket>) {

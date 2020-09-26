@@ -52,9 +52,9 @@ import io.netty.util.concurrent.EventExecutorGroup
 class NettyServer<T : IConnectedClientValue>(
         host: String,
         port: Int,
-        private val connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+        connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
         private val serverHandler: IServerHandler<T> = DefaultServerHandler()
-) : AbstractCommunicationBootstrap(host, port), INettyServer<T> {
+) : AbstractCommunicationBootstrap(host, port, connectionHandler), INettyServer<T> {
 
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null
@@ -84,7 +84,7 @@ class NettyServer<T : IConnectedClientValue>(
                 pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
                 pipeline.addLast(PacketEncoder(instance))
                 //pipeline.addLast("streamer", ChunkedWriteHandler())
-                pipeline.addLast(eventExecutorGroup, "serverHandler", NettyServerHandler(instance, connectionHandler))
+                pipeline.addLast(eventExecutorGroup, "serverHandler", NettyServerHandler(instance, getConnectionHandler()))
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
 
             }

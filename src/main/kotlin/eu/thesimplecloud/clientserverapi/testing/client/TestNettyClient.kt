@@ -41,8 +41,8 @@ import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
 class TestNettyClient(
         host: String,
         port: Int,
-        val connectionHandler: IConnectionHandler = DefaultConnectionHandler()
-) : AbstractCommunicationBootstrap(host, port), INettyClient {
+        connectionHandler: IConnectionHandler = DefaultConnectionHandler()
+) : AbstractCommunicationBootstrap(host, port, connectionHandler), INettyClient {
 
     private val clientConnection = TestClientConnection(this)
 
