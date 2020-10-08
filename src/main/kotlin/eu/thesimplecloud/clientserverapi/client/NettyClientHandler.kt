@@ -26,6 +26,7 @@ import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.packet.AbstractChannelInboundHandlerImpl
 import io.netty.channel.ChannelHandlerContext
+import java.io.IOException
 
 class NettyClientHandler(private val nettyClient: NettyClient, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
@@ -44,7 +45,11 @@ class NettyClientHandler(private val nettyClient: NettyClient, private val conne
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        //super.exceptionCaught(ctx, cause)
+        //ignore because the error does not have any affect
+        if (cause is IOException && cause.message?.contains("reset by peer") == true) {
+            return
+        }
+
         if (!nettyClient.getConnection().wasConnectionCloseIntended())
             connectionHandler.onFailure(nettyClient.getConnection(), cause)
     }
