@@ -72,6 +72,7 @@ abstract class AbstractConnection() : IConnection {
 
     @Synchronized
     override fun sendFile(file: File, savePath: String, timeout: Long): ICommunicationPromise<Unit> {
+        println("trying to send file ${file.absolutePath}")
         val unitPromise = CommunicationPromise<Unit>(timeout)
         val queuedFile = QueuedFile(file, savePath, unitPromise)
         sendQueuedFile(queuedFile)
