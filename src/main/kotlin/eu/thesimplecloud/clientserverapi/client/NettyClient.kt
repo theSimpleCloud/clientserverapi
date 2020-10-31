@@ -54,9 +54,9 @@ class NettyClient(
     private var running = false
 
     override fun start(): ICommunicationPromise<Unit> {
-        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
-        check(!this.running) { "Can't start client multiple times." }
+        check(!this.running) { "Cannot start client while it is running" }
         this.running = true
+        addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
         val startedPromise = CommunicationPromise<Unit>(enableTimeout = false)
         val instance = this
         this.workerGroup = NioEventLoopGroup()
