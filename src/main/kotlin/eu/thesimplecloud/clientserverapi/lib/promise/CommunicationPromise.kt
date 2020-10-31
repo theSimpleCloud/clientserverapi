@@ -26,6 +26,7 @@ import eu.thesimplecloud.clientserverapi.lib.promise.exception.CompletedWithNull
 import eu.thesimplecloud.clientserverapi.lib.promise.exception.PromiseCreationException
 import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromiseTimeoutHandler
 import io.netty.util.concurrent.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -236,14 +237,14 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
         /**
          * Runs the specified [block] async and return it result.
          */
-        fun <R : Any> runAsync(block: () -> R): ICommunicationPromise<R> {
+        fun <R : Any> runAsync(block: suspend CoroutineScope.() -> R): ICommunicationPromise<R> {
             return runAsync(-1, block)
         }
 
         /**
          * Runs the specified [block] async and return it result.
          */
-        fun <R : Any> runAsync(timeout: Long, block: () -> R): ICommunicationPromise<R> {
+        fun <R : Any> runAsync(timeout: Long, block: suspend CoroutineScope.() -> R): ICommunicationPromise<R> {
             val timeoutEnabled = timeout > 0
             val promise = CommunicationPromise<R>(timeout, timeoutEnabled)
             val job = GlobalScope.launch {

@@ -89,22 +89,22 @@ abstract class AbstractConnection() : IConnection {
         val fileBytes = Files.readAllBytes(queuedFile.file.toPath())
         var bytes = fileBytes.size
         GlobalScope.launch {
-            sendUnitQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath, queuedFile.file.lastModified())).syncUninterruptibly()
+            sendUnitQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath, queuedFile.file.lastModified())).awaitCoroutine()
             while (bytes != 0) {
                 when {
                     bytes > BYTES_PER_FILEPACKET -> {
                         val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, (fileBytes.size - bytes) + BYTES_PER_FILEPACKET)
                         bytes -= BYTES_PER_FILEPACKET
-                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes), 3000).syncUninterruptibly()
+                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes), 3000).awaitCoroutine()
                     }
                     else -> {
                         val sendBytes = Arrays.copyOfRange(fileBytes, fileBytes.size - bytes, fileBytes.size)
                         bytes = 0
-                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes), 3000).syncUninterruptibly()
+                        sendUnitQuery(PacketIOFileTransfer(transferUuid, sendBytes), 3000).awaitCoroutine()
                     }
                 }
             }
-            sendUnitQuery(PacketIOFileTransferComplete(transferUuid), 3000).syncUninterruptibly()
+            sendUnitQuery(PacketIOFileTransferComplete(transferUuid), 3000).awaitCoroutine()
             queuedFile.promise.trySuccess(Unit)
 
             //check for next file
