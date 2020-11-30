@@ -23,6 +23,8 @@
 package eu.thesimplecloud.clientserverapi.client
 
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.AbstractCommunicationBootstrap
+import eu.thesimplecloud.clientserverapi.lib.codec.ProtobufVarint32FrameDecoder
+import eu.thesimplecloud.clientserverapi.lib.codec.ProtobufVarint32LengthFieldPrepender
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOConnectionWillClose
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
@@ -36,8 +38,6 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
-import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
-import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
