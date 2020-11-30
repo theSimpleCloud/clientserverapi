@@ -36,8 +36,8 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder
-import io.netty.handler.codec.LengthFieldPrepender
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
@@ -67,9 +67,9 @@ class NettyClient(
             override fun initChannel(channel: Channel) {
                 val pipeline = channel.pipeline()
                 pipeline.addLast("idleStateHandler", IdleStateHandler(0, 0, 5)) // add with name
-                pipeline.addLast("frameDecoder", LengthFieldBasedFrameDecoder(1048576000, 0, 4, 0, 4))
+                pipeline.addLast("frameDecoder", ProtobufVarint32FrameDecoder())
                 pipeline.addLast(PacketDecoder(instance, getPacketManager())) // add without name, name auto generated
-                pipeline.addLast("frameEncoder", LengthFieldPrepender(4))
+                pipeline.addLast("frameEncoder", ProtobufVarint32LengthFieldPrepender())
                 pipeline.addLast(PacketEncoder(instance)) // add without name, name auto generated
                 pipeline.addLast(NettyClientHandler(instance, getConnectionHandler()))
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
