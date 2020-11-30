@@ -22,19 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.directorysync
 
-import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
-import eu.thesimplecloud.jsonlib.JsonLib
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.apache.commons.io.FileUtils
-import org.junit.After
-import org.junit.Assert
-import org.junit.Test
-import java.io.File
-
 class DirectorySyncTest {
-
+    /*
     val factory = BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST).getFactory()
 
     var nettyServer = factory.createServer<TestConnectedClientValue>("127.0.0.1", 1919)
@@ -92,6 +81,7 @@ class DirectorySyncTest {
 
 
 
+     */
 
 
 
