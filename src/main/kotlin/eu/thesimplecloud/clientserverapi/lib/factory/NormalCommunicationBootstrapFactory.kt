@@ -36,7 +36,7 @@ import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnecte
  * Time: 19:08
  * @author Frederick Baier
  */
-class NormalCommunicationBootstrapFactory  : ICommunicationBootstrapFactory {
+class NormalCommunicationBootstrapFactory : ICommunicationBootstrapFactory {
 
     override fun <T : IConnectedClientValue> createServer(
             host: String,
