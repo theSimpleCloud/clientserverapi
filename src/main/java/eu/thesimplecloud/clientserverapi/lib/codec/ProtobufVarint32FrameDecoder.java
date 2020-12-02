@@ -40,7 +40,6 @@ import java.util.List;
  * | 0xAC02 |  (300 bytes)  |      |  (300 bytes)  |
  * +--------+---------------+      +---------------+
  * </pre>
- *
  */
 public class ProtobufVarint32FrameDecoder extends ByteToMessageDecoder {
 
@@ -63,7 +62,8 @@ public class ProtobufVarint32FrameDecoder extends ByteToMessageDecoder {
         if (in.readableBytes() < length) {
             in.resetReaderIndex();
         } else {
-            out.add(in.readRetainedSlice(length));
+            out.add(in.slice(in.readerIndex(), length).retain());
+            in.skipBytes(length);
         }
     }
 
