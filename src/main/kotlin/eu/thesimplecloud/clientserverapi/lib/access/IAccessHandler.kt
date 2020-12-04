@@ -20,29 +20,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.handler
+package eu.thesimplecloud.clientserverapi.lib.access
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
 
-open class DefaultConnectionHandler : IConnectionHandler {
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 04.12.2020
+ * Time: 17:02
+ * @author Frederick Baier
+ */
+@FunctionalInterface
+interface IAccessHandler {
 
-    override fun onConnectionActive(connection: IConnection) {
-        val accessAllowed = connection.getCommunicationBootstrap().getAccessHandler().isAccessAllowed(connection)
-        if (!accessAllowed) {
-            connection.closeConnection()
-            return
-        }
-    }
-
-    override fun onFailure(connection: IConnection, ex: Throwable) {
-        throw ex
-    }
-
-    override fun onConnectionInactive(connection: IConnection) {
-        val directorySyncManager = connection.getCommunicationBootstrap().getDirectorySyncManager()
-        directorySyncManager as DirectorySyncManager
-        directorySyncManager.removeFromDirectorySyncs(connection)
-    }
+    /**
+     * This function is called every time a packets gets decoded.
+     * So this function must be non-blocking
+     * @return whether the access is allowed
+     */
+    fun isAccessAllowed(connection: IConnection) : Boolean
 
 }

@@ -22,6 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
+import eu.thesimplecloud.clientserverapi.lib.access.IAccessHandler
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
@@ -54,9 +56,18 @@ abstract class AbstractCommunicationBootstrap(
         private val connectionHandler: IConnectionHandler
 ) : ICommunicationBootstrap {
 
+    @Volatile
     private var packetSearchClassLoader: ClassLoader = this::class.java.classLoader
+    @Volatile
     private var classLoaderToSearchObjectPacketClasses: ClassLoader = this::class.java.classLoader
+    @Volatile
     private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
+    @Volatile
+    private var accessHandler: IAccessHandler = object: IAccessHandler {
+        override fun isAccessAllowed(connection: IConnection): Boolean {
+            return true
+        }
+    }
 
 
     private val transferFileManager = TransferFileManager()
@@ -104,6 +115,14 @@ abstract class AbstractCommunicationBootstrap(
 
     override fun getClassLoaderToSearchObjectPacketsClasses(): ClassLoader {
         return this.classLoaderToSearchObjectPacketClasses
+    }
+
+    override fun setAccessHandler(accessHandler: IAccessHandler) {
+        this.accessHandler = accessHandler
+    }
+
+    override fun getAccessHandler(): IAccessHandler {
+        return this.accessHandler
     }
 
     override fun getTransferFileManager(): ITransferFileManager {

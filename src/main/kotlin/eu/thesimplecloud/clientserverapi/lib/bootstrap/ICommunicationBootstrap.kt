@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
+import eu.thesimplecloud.clientserverapi.lib.access.IAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
@@ -64,6 +65,16 @@ interface ICommunicationBootstrap : IBootstrap {
      * Returns the [ClassLoader]s used to find the classes in [ObjectPacket]s
      */
     fun getClassLoaderToSearchObjectPacketsClasses(): ClassLoader
+
+    /**
+     * Sets the access handler
+     */
+    fun setAccessHandler(accessHandler: IAccessHandler)
+
+    /**
+     * Returns the [IAccessHandler]
+     */
+    fun getAccessHandler(): IAccessHandler
 
     /**
      * Returns the [ITransferFileManager] to transfer files
