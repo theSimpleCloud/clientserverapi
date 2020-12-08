@@ -30,7 +30,11 @@ open class DefaultConnectionHandler : IConnectionHandler {
     override fun onConnectionActive(connection: IConnection) {
         val accessAllowed = connection.getCommunicationBootstrap().getAccessHandler().isAccessAllowed(connection)
         if (!accessAllowed) {
-            connection.closeConnection()
+            try {
+                connection.closeConnection()
+            } catch (e: Exception) {
+                //ignore because connection might be harmful
+            }
             return
         }
     }
