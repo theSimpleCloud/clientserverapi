@@ -97,7 +97,7 @@ fun <T : Any> ICommunicationPromise<T>.createNonBlockingDirectCallInterface(expe
     }
 }
 
-fun <T : Any> handleMethodCallNonBlocking(promise: ICommunicationPromise<T>, method: Method, args: Array<Any>): ICommunicationPromise<out Any> {
+fun <T : Any> handleMethodCallNonBlocking(promise: ICommunicationPromise<T>, method: Method, args: Array<Any>): ICommunicationPromise<Any> {
     if (method.returnType != ICommunicationPromise::class.java)
         throw UnsupportedOperationException("Cannot call a method non blocking not returning a ICommunicationPromise")
     return promise.then { method.invoke(it, *args) as ICommunicationPromise<Any> }.flatten()

@@ -34,7 +34,7 @@ class PacketIOSetLastModified() : ObjectPacket<FileInfo>() {
         this.value = fileInfo
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         val fileInfo = this.value ?: return contentException("value")
         val file = File(fileInfo.relativePath)
         if (file.exists()) file.setLastModified(fileInfo.lastModified)

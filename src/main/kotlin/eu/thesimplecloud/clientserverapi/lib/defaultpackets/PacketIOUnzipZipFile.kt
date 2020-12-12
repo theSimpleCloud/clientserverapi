@@ -34,7 +34,7 @@ class PacketIOUnzipZipFile() : JsonPacket() {
         this.jsonLib.append("pathToZipFile", pathToZipFile).append("dirToUnzipPath", dirToUnzipPath)
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         val pathToZipFile = this.jsonLib.getString("pathToZipFile") ?: return contentException("pathToZipFile")
         val dirToUnzipPath = this.jsonLib.getString("dirToUnzipPath") ?: return contentException("dirToUnzipPath")
         val zipFile = File(pathToZipFile)

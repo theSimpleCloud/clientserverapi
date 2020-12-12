@@ -36,7 +36,7 @@ class PacketIOSyncDirectories() : JsonPacket() {
                 .append("directoriesOnOtherSide", directoriesOnOtherSide)
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         val dirPathOnOtherSide = this.jsonLib.getString("dirPathOnOtherSide")
                 ?: return contentException("dirPathOnOtherSide")
         val fileInfoList = this.jsonLib.getObject("directoriesOnOtherSide", Array<String>::class.java)

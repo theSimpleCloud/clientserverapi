@@ -29,7 +29,7 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 class PacketIOConnectionWillClose() : ObjectPacket<Unit>() {
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         connection as AbstractNettyConnection
         connection.setConnectionCloseIntended()
         return unit()

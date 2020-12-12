@@ -68,7 +68,7 @@ abstract class AbstractConnection() : IConnection {
         incomingPacketHandler.handleIncomingPacket(wrappedPacket)
     }
 
-    abstract fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>)
+    abstract fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>)
 
     @Synchronized
     override fun sendFile(file: File, savePath: String, timeout: Long): ICommunicationPromise<Unit> {

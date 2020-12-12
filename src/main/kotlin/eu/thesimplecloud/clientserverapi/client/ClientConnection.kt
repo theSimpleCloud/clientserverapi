@@ -54,7 +54,7 @@ class ClientConnection(
         return bootstrap
     }
 
-    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
+    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>) {
         if (!isOpen())
             this.queuedPackets.add(wrappedPacket to promise)
         else

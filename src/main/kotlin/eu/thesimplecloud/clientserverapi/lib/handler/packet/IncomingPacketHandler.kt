@@ -66,7 +66,7 @@ class IncomingPacketHandler(private val connection: AbstractConnection) {
         }
     }
 
-    private fun handleResult(result: ICommunicationPromise<out Any>, wrappedPacket: WrappedPacket) {
+    private fun handleResult(result: ICommunicationPromise<Any>, wrappedPacket: WrappedPacket) {
         val packetPromise = getPacketFromResult(result)
         packetPromise.then { packetToSend ->
             sendResponsePacket(wrappedPacket, packetToSend)
@@ -82,7 +82,7 @@ class IncomingPacketHandler(private val connection: AbstractConnection) {
         this.connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
     }
 
-    private fun getPacketFromResult(result: ICommunicationPromise<out Any>): ICommunicationPromise<ObjectPacket<out Any>> {
+    private fun getPacketFromResult(result: ICommunicationPromise<Any>): ICommunicationPromise<ObjectPacket<out Any>> {
         val returnPromise = CommunicationPromise<ObjectPacket<out Any>>(enableTimeout = false)
         result.addCompleteListener {
             if (it.isSuccess) {

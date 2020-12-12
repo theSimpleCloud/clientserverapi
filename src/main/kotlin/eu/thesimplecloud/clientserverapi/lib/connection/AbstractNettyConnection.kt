@@ -31,7 +31,7 @@ import java.net.InetSocketAddress
 abstract class AbstractNettyConnection() : AbstractConnection() {
 
     @Synchronized
-    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<out Any>) {
+    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>) {
         if (!isOpen()) {
             val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}.")
             promise.tryFailure(exception)

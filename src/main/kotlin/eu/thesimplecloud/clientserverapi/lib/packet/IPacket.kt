@@ -50,6 +50,6 @@ interface IPacket : IPacketHelperMethods {
      * @return the [ICommunicationPromise] that will be completed with the result or a failure.
      * The result will be sent as response.
      */
-    suspend fun handle(connection: IConnection): ICommunicationPromise<out Any>
+    suspend fun handle(connection: IConnection): ICommunicationPromise<Any>
 
 }
