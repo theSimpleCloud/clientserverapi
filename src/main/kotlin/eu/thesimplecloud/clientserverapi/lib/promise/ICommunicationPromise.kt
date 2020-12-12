@@ -32,7 +32,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 
-interface ICommunicationPromise<T : Any> : Promise<T> {
+interface ICommunicationPromise<out T : Any> : Promise<@UnsafeVariance T> {
 
     /**
      * Combines this promise with the specified promise.
@@ -57,32 +57,32 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
      * The listener will be called once the result is ready.
      * This listener will not be notified when the promise completes successfully.
      */
-    fun addResultListener(listener: (T) -> Unit): ICommunicationPromise<T>
+    fun addResultListener(listener: (@UnsafeVariance T) -> Unit): ICommunicationPromise<T>
 
     /**
      * Adds a promise listener to this future.
      * This listener will be called once the future is done
      */
-    fun addCompleteListener(listener: (ICommunicationPromise<T>) -> Unit): ICommunicationPromise<T>
+    fun addCompleteListener(listener: (ICommunicationPromise<@UnsafeVariance T>) -> Unit): ICommunicationPromise<T>
 
     /**
      * Adds a promise listener to this future.
      * This listener will be called once the future is done
      */
-    fun addCompleteListener(listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T>
+    fun addCompleteListener(listener: ICommunicationPromiseListener<@UnsafeVariance T>): ICommunicationPromise<T>
 
     /**
      * Adds all specified promise listener to this future.
      * The listeners will be called once the future is done
      */
-    fun addCommunicationPromiseListeners(vararg listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T>
+    fun addCommunicationPromiseListeners(vararg listener: ICommunicationPromiseListener<@UnsafeVariance T>): ICommunicationPromise<T>
 
     /**
      * Executes the specified [function] when this promise is completed successfully.
      * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [CompletedWithNullException]
      * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
      */
-    fun <R : Any> then(function: (T) -> R?): ICommunicationPromise<R> = thenDelayed(0, TimeUnit.MILLISECONDS, function)
+    fun <R : Any> then(function: (@UnsafeVariance T) -> R?): ICommunicationPromise<R> = thenDelayed(0, TimeUnit.MILLISECONDS, function)
 
     /**
      * Executes the specified [function] when this promise is completed and the [delay] is over.
@@ -91,7 +91,7 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
      * @param function that what shall be happened when this promise is successfully done. If the passed function returns null the returned promise will fail with [CompletedWithNullException]
      * @return a new communication promise completed with the result of the [function] or if this promise fails the returned promise will fail with the same cause.
      */
-    fun <R : Any> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R?): ICommunicationPromise<R>
+    fun <R : Any> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (@UnsafeVariance T) -> R?): ICommunicationPromise<R>
 
     /**
      * Returns the timeout of this promise
@@ -161,7 +161,7 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
     /**
      * Copies the information of the specified promise to this promise when the specified promise completes.
      */
-    fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>)
+    fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<@UnsafeVariance T>)
 
     /**
      * Throws the exception if one occurs
@@ -187,7 +187,7 @@ interface ICommunicationPromise<T : Any> : Promise<T> {
 
     override fun awaitUninterruptibly(): ICommunicationPromise<T>
 
-    override fun setSuccess(result: T): ICommunicationPromise<T>
+    override fun setSuccess(result: @UnsafeVariance T): ICommunicationPromise<T>
 
     override fun setFailure(cause: Throwable): ICommunicationPromise<T>
 

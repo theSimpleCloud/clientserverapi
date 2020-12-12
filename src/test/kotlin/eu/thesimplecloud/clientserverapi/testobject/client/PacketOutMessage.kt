@@ -32,7 +32,7 @@ class PacketOutMessage(val string: String) : ObjectPacket<String>() {
         this.value = string
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         return unit()
     }
 }

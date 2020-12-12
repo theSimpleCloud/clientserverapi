@@ -31,7 +31,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableTimeout: Boolean = true) : DefaultPromise<T>(), ICommunicationPromise<T> {
+class CommunicationPromise<out T : Any>(
+    private val timeout: Long = 200,
+    val enableTimeout: Boolean = true
+) : DefaultPromise<@UnsafeVariance T>(), ICommunicationPromise<T> {
 
     val creationError = PromiseCreationException()
 
@@ -61,7 +64,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
 
     override fun addCompleteListener(listener: (ICommunicationPromise<T>) -> Unit): ICommunicationPromise<T> {
         addCompleteListener(object : ICommunicationPromiseListener<T> {
-            override fun operationComplete(future: ICommunicationPromise<T>) {
+            override fun operationComplete(future: ICommunicationPromise<@UnsafeVariance T>) {
                 try {
                     listener(future)
                 } catch (e: Exception) {
@@ -72,12 +75,12 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
         return this
     }
 
-    override fun addCompleteListener(listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T> {
+    override fun addCompleteListener(listener: ICommunicationPromiseListener<@UnsafeVariance T>): ICommunicationPromise<T> {
         super.addListener(listener)
         return this
     }
 
-    override fun addCommunicationPromiseListeners(vararg listener: ICommunicationPromiseListener<T>): ICommunicationPromise<T> {
+    override fun addCommunicationPromiseListeners(vararg listener: ICommunicationPromiseListener<@UnsafeVariance T>): ICommunicationPromise<T> {
         super.addListeners(*listener)
         return this
     }
@@ -109,7 +112,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
 
     override fun isTimeoutEnabled(): Boolean = this.enableTimeout
 
-    override fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<T>) {
+    override fun copyStateFromOtherPromise(otherPromise: ICommunicationPromise<@UnsafeVariance T>) {
         otherPromise.addCompleteListener {
             if (it.isSuccess) {
                 this.trySuccess(it.get())
@@ -163,7 +166,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
         return GlobalEventExecutor.INSTANCE
     }
 
-    override fun setSuccess(result: T): ICommunicationPromise<T> {
+    override fun setSuccess(result: @UnsafeVariance T): ICommunicationPromise<T> {
         super.setSuccess(result)
         return this
     }
@@ -194,7 +197,7 @@ class CommunicationPromise<T : Any>(private val timeout: Long = 200, val enableT
         return super.tryFailure(cause)
     }
 
-    override fun trySuccess(result: T): Boolean {
+    override fun trySuccess(result: @UnsafeVariance T): Boolean {
         return super.trySuccess(result)
     }
 

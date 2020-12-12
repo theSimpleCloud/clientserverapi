@@ -24,7 +24,6 @@ package eu.thesimplecloud.clientserverapi.lib.packetresponse
 
 import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import java.util.*
 
 class PacketResponseManager : IPacketResponseManager {
@@ -48,9 +47,8 @@ class PacketResponseManager : IPacketResponseManager {
         val wrappedResponseHandler: WrappedResponseHandler<out Any>? = packetResponseHandlers.remove(wrappedPacket.packetData.uniqueId)
         wrappedResponseHandler
                 ?: throw IllegalStateException("Incoming: No response handler was available for packet by id ${wrappedPacket.packetData.uniqueId}")
-        val response = wrappedResponseHandler.packetResponseHandler.handleResponse(wrappedPacket.packet)
+        val response: Any? = wrappedResponseHandler.packetResponseHandler.handleResponse(wrappedPacket.packet)
         val packetPromise = wrappedResponseHandler.communicationPromise
-        packetPromise as ICommunicationPromise<Any>
         if (response is Throwable) {
             packetPromise.tryFailure(response)
         } else {

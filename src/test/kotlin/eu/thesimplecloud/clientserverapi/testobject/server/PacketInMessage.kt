@@ -28,7 +28,7 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.testobject.TestObj
 
 class PacketInMessage : ObjectPacket<String>() {
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         return success(TestObj(this.value!!.length))
     }
 }

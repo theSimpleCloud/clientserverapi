@@ -29,7 +29,7 @@ import eu.thesimplecloud.clientserverapi.testobject.TestObj
 
 open class PacketIOWork : ObjectPacket<String>() {
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<out Any> {
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         return success(TestObj(2))
     }
 }
