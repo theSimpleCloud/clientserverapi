@@ -112,7 +112,7 @@ class NettyServer<T : IConnectedClientValue>(
     override fun shutdown(): ICommunicationPromise<Unit> {
         if (!listening) return CommunicationPromise.of(Unit)
         getClientManager().sendPacketToAllClients(PacketIOConnectionWillClose())
-        val shutdownPromise = CommunicationPromise<Unit>()
+        val shutdownPromise = CommunicationPromise<Unit>(enableTimeout = false)
         this.listening = false
         this.bossGroup?.shutdownGracefully()
         this.workerGroup?.shutdownGracefully()

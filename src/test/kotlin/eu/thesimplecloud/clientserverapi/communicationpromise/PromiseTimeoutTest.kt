@@ -23,7 +23,9 @@
 package eu.thesimplecloud.clientserverapi.communicationpromise
 
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.promise.exception.PromiseTimeoutException
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -34,6 +36,15 @@ class PromiseTimeoutTest {
         val promise = CommunicationPromise<Int>()
         Thread.sleep(400)
         assertTrue(promise.cause() is PromiseTimeoutException)
+    }
+
+    @Test
+    fun test2() {
+        val promise1 = CommunicationPromise<Int>()
+        val promise2 = CommunicationPromise<Int>(enableTimeout = false)
+        val combineAllPromises = listOf(promise1, promise2).combineAllPromises()
+        Thread.sleep(5000)
+        assertFalse(combineAllPromises.isDone)
     }
 
 }
