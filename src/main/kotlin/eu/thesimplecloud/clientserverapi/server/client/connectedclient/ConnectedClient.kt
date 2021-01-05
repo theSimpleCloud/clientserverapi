@@ -32,7 +32,7 @@ class ConnectedClient<T : IConnectedClientValue>(
 ) : AbstractNettyConnection(), IConnectedClient<T> {
 
 
-    private var clientValue: T? = null
+    @Volatile private var clientValue: T? = null
 
     override fun getClientValue(): T? = clientValue
 
@@ -44,7 +44,7 @@ class ConnectedClient<T : IConnectedClientValue>(
 
     override fun getCommunicationBootstrap(): INettyServer<T> = nettyServer
 
-    override fun getChannel(): Channel? = channel
+    override fun getChannel(): Channel = channel
 
 
 }

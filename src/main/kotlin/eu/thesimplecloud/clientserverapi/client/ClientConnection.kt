@@ -38,7 +38,7 @@ class ClientConnection(
         private val bootstrap: INettyClient
 ) : AbstractNettyConnection() {
 
-    private var channel: Channel? = null
+    @Volatile private var channel: Channel? = null
 
     private val queuedPackets = CopyOnWriteArrayList<Pair<WrappedPacket, ICommunicationPromise<*>>>()
 

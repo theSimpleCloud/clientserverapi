@@ -35,7 +35,6 @@ import io.netty.buffer.ByteBuf
 abstract class JsonPacket : IPacket {
 
     companion object {
-
         val PACKET_GSON = GsonCreator().excludeAnnotations(PacketExclude::class.java).create()
 
         fun getNewEmptyJsonPacket() = object: JsonPacket() {
