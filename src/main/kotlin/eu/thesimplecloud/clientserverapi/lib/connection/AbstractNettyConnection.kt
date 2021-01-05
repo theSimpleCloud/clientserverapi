@@ -35,7 +35,7 @@ abstract class AbstractNettyConnection() : AbstractConnection() {
         if (!isOpen()) {
             val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}.")
             promise.tryFailure(exception)
-            throw exception
+            return
         }
         val channel = getChannel()!!
         channel.eventLoop().execute {
