@@ -32,15 +32,29 @@ import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnecte
  * Date: 30/01/2021
  * Time: 16:25
  * @author Frederick Baier
+ *
+ * Represents a node that is currently part of the cluster
  */
 interface INode : IConnectedClientValue {
 
+    /**
+     * Returns the time the node was started
+     */
     fun getStartupTime(): Long
 
+    /**
+     * Returns the address the nodes server listens on
+     */
     fun getServerAddress(): Address
 
+    /**
+     * Returns the cluster this node is part of
+     */
     fun getCluster(): ICluster
 
+    /**
+     * Returns a serializable object with some information about the node
+     */
     fun getNodeInfo(): NodeInfo {
         return NodeInfo(getCluster().getVersion(), getServerAddress(), getStartupTime())
     }

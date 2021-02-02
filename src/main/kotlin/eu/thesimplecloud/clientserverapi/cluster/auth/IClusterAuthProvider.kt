@@ -30,9 +30,14 @@ import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
  * Date: 31/01/2021
  * Time: 12:48
  * @author Frederick Baier
+ *
+ * Handles authentication
  */
 interface IClusterAuthProvider {
 
+    /**
+     * Authenticates this node on all remote nodes
+     */
     fun authenticateOnRemoteNodes(cluster: ICluster, remoteNodes: List<IRemoteNode>)
 
 }

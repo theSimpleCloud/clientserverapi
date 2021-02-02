@@ -30,10 +30,21 @@ package eu.thesimplecloud.clientserverapi.cluster.list.adapter
  */
 interface IClusterListAdapter<T> {
 
+    /**
+     * Gets called when an element was added to the list
+     */
     fun onElementAdded(element: T)
 
+    /**
+     * Gets called when an element gets removed from the list
+     */
     fun onElementRemoved(element: T)
 
+    /**
+     * Gets called when an element gets updated
+     * @param oldValue the old value
+     * @param updatedValue the current value (also the one currently cached)
+     */
     fun onElementUpdated(oldValue: T, updatedValue: T)
 
 }

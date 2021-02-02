@@ -46,13 +46,13 @@ class ClusterList<T : IClusterListItem>(
     private val list = CopyOnWriteArrayList<WrappedListItem<T>>()
     private val adapters = CopyOnWriteArrayList<IClusterListAdapter<T>>()
 
-    override fun addElement(item: T, fromPacket: Boolean) {
-        list.removeIf { it.clusterListItem.getIdentifier() == item.getIdentifier() }
-        list.add(WrappedListItem(item))
+    override fun addElement(element: T, fromPacket: Boolean) {
+        list.removeIf { it.clusterListItem.getIdentifier() == element.getIdentifier() }
+        list.add(WrappedListItem(element))
 
-        this.adapters.forEach { it.onElementAdded(item) }
+        this.adapters.forEach { it.onElementAdded(element) }
         if (!fromPacket) {
-            cluster.sendPacketToAllNodes(PacketIOAddElementToClusterList(name, item)).syncUninterruptibly()
+            cluster.sendPacketToAllNodes(PacketIOAddElementToClusterList(name, element)).syncUninterruptibly()
         }
     }
 
@@ -94,7 +94,7 @@ class ClusterList<T : IClusterListItem>(
         return this.list.map { it.clusterListItem }
     }
 
-    override fun setAllElements(elements: List<T>) {
+    fun setAllElements(elements: List<T>) {
         this.list.clear()
         elements.forEach { this.list.add(WrappedListItem(it)) }
     }

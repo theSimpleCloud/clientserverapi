@@ -29,6 +29,8 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
  * Date: 31/01/2021
  * Time: 12:51
  * @author Frederick Baier
+ *
+ * A special auth provider that authenticated using a key
  */
 interface ISecretClusterAuthProvider : IClusterAuthProvider {
 

@@ -33,22 +33,43 @@ import eu.thesimplecloud.jsonlib.JsonLib
  */
 interface IClusterList<T : IClusterListItem> {
 
-    fun addElement(item: T, fromPacket: Boolean = false)
+    /**
+     * Adds an element to the list
+     * @param element the element to be added
+     */
+    fun addElement(element: T, fromPacket: Boolean = false)
 
+    /**
+     * Removes the element found by the specified [identifier]
+     * @param identifier the unique identifier to find the element to remove
+     */
     fun removeElement(identifier: Any, fromPacket: Boolean = false)
 
+    /**
+     * Sends the changes to the other nodes
+     */
     fun updateElement(cachedValue: T)
 
+    /**
+     * Applies changes received by another node
+     */
     fun applyUpdate(json: JsonLib)
 
-    fun setAllElements(elements: List<T>)
-
+    /**
+     * Returns all elements
+     */
     fun getAllElements(): List<T>
 
     fun getArrayClass(): Class<Array<Any>>
 
+    /**
+     * Adds an adapter to the list to listen for changes
+     */
     fun addAdapter(adapter: IClusterListAdapter<T>)
 
+    /**
+     * Removes the specified [adapter]
+     */
     fun removeAdapter(adapter: IClusterListAdapter<T>)
 
 }

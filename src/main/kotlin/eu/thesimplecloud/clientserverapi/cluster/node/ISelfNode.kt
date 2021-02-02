@@ -29,6 +29,7 @@ import eu.thesimplecloud.clientserverapi.server.INettyServer
  * Date: 30/01/2021
  * Time: 17:31
  * @author Frederick Baier
+ *
  */
 interface ISelfNode : INode {
 

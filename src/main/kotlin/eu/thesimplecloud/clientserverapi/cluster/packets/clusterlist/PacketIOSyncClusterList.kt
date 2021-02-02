@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist
 
+import eu.thesimplecloud.clientserverapi.cluster.list.ClusterList
 import eu.thesimplecloud.clientserverapi.cluster.list.IClusterList
 import eu.thesimplecloud.clientserverapi.cluster.list.IClusterListItem
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
@@ -51,6 +52,7 @@ class PacketIOSyncClusterList() : JsonPacket() {
 
         val cluster = connection.getCommunicationBootstrap().getCluster()!!
         val clusterList = cluster.getClusterListManager().getClusterListByNameOrCreate<IClusterListItem>(name, clazz as Class<Array<*>>)
+        clusterList as ClusterList<IClusterListItem>
         clusterList.setAllElements(array.toList())
         return unit()
     }

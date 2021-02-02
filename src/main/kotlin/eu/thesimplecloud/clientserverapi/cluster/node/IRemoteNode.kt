@@ -29,9 +29,14 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
  * Date: 30/01/2021
  * Time: 17:31
  * @author Frederick Baier
+ *
+ * Represents a node that is connected to the cluster and is not the [ISelfNode]
  */
 interface IRemoteNode : INode {
 
+    /**
+     * Return the connection to send packets to this node
+     */
     fun getConnection(): IConnection
 
 }
