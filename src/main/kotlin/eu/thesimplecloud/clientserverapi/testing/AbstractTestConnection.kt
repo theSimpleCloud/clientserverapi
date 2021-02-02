@@ -37,7 +37,9 @@ import java.io.IOException
  * @author Frederick Baier
  */
 
-abstract class AbstractTestConnection() : AbstractConnection() {
+abstract class AbstractTestConnection(
+    val port: Int
+) : AbstractConnection() {
 
 
     @Volatile
@@ -65,7 +67,7 @@ abstract class AbstractTestConnection() : AbstractConnection() {
 
     override fun getAddress(): Address {
         if (!isOpen()) throw IllegalStateException("Connection is not open")
-        return Address("127.0.0.1", 1600)
+        return Address("127.0.0.1", port)
     }
 
 

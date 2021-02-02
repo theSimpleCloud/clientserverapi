@@ -28,6 +28,7 @@ import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.testing.AbstractTestConnection
+import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,7 +40,7 @@ import eu.thesimplecloud.clientserverapi.testing.AbstractTestConnection
 class TestConnectedClient(
         private val nettyServer: INettyServer,
         otherSideConnection: IConnection
-) : AbstractTestConnection(), IConnectedClient {
+) : AbstractTestConnection(NetworkTestManager.generateRandomPortForClient()), IConnectedClient {
 
     private val nameToClientValue = Maps.newConcurrentMap<String, IConnectedClientValue>()
 

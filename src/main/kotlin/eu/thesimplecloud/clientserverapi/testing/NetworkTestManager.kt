@@ -33,7 +33,9 @@ import eu.thesimplecloud.clientserverapi.testing.client.TestNettyClient
 import eu.thesimplecloud.clientserverapi.testing.server.TestClientManager
 import eu.thesimplecloud.clientserverapi.testing.server.TestConnectedClient
 import eu.thesimplecloud.clientserverapi.testing.server.TestNettyServer
+import java.net.BindException
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.random.Random
 
 /**
  * Created by IntelliJ IDEA.
@@ -52,7 +54,10 @@ object NetworkTestManager {
     }
 
     fun registerServer(server: TestNettyServer) {
-        this.portServerMap[server.getAddress().port] = server
+        val port = server.getAddress().port
+        if (getServerListeningOnPort(port) != null)
+            throw BindException("Port $port is already in use")
+        this.portServerMap[port] = server
     }
 
     fun unregisterServer(server: INettyServer) {
@@ -72,7 +77,7 @@ object NetworkTestManager {
         server as TestNettyServer
 
         val clientManager = server.getClientManager() as TestClientManager
-        val connectedClient = TestConnectedClient(server, client.getConnection())
+        val connectedClient = TestConnectedClient(server, client.getConnection() as AbstractTestConnection)
         clientManager.addClient(connectedClient)
 
         //set other side connections
@@ -124,6 +129,10 @@ object NetworkTestManager {
         val clientManager = server.getClientManager() as TestClientManager
         clientManager.removeClient(connection)
         server.getConnectionHandler().onConnectionInactive(connection)
+    }
+
+    fun generateRandomPortForClient(): Int {
+        return Random.nextInt(20_000) + 50_000
     }
 
 }

@@ -22,14 +22,9 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.factory
 
-import eu.thesimplecloud.clientserverapi.client.INettyClient
-import eu.thesimplecloud.clientserverapi.cluster.DefaultCluster
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.packets.PacketIOGetOtherNodes
-import eu.thesimplecloud.clientserverapi.cluster.packets.auth.NodeInfo
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
+import eu.thesimplecloud.clientserverapi.cluster.impl.DefaultCluster
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 
 /**
@@ -54,19 +49,9 @@ class DefaultClusterFactory : IClusterFactory {
         bindAddress: Address,
         connectAddress: Address
     ): ICluster {
-        val client = createIPsClient(connectAddress)
-        val promise = client.getConnection().sendQuery<Array<NodeInfo>>(PacketIOGetOtherNodes(), 4000)
-        val allNodeAddresses = promise.getBlocking().toList()
-        return DefaultCluster(version, authProvider, bindAddress, allNodeAddresses)
+        return DefaultCluster(version, authProvider, bindAddress, connectAddress)
     }
 
-    private fun createIPsClient(address: Address): INettyClient {
-        val factory = BootstrapFactoryGetter.getFactory()
-        val client = factory.createClient(address)
-        client.addPacketsByPackage("eu.thesimplecloud.clientserverapi.cluster.packets")
-        client.start().syncUninterruptibly()
-        println("connected IPs")
-        return client
-    }
+
 
 }

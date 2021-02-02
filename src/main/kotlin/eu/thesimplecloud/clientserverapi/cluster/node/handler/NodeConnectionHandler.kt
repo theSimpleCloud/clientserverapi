@@ -34,6 +34,7 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 class NodeConnectionHandler : IConnectionHandler {
 
     override fun onConnectionActive(connection: IConnection) {
+        println(connection.getCommunicationBootstrap()::class.java.name)
         println("Node connected " + connection.getAddress().toString())
     }
 

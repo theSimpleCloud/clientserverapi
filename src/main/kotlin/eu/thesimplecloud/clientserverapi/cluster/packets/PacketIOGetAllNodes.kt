@@ -32,7 +32,7 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
  * Time: 18:44
  * @author Frederick Baier
  */
-class PacketIOGetOtherNodes : ObjectPacket<Unit>() {
+class PacketIOGetAllNodes : ObjectPacket<Unit>() {
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         val communicationBootstrap = connection.getCommunicationBootstrap()

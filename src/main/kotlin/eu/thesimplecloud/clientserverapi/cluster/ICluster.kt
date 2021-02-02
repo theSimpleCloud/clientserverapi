@@ -114,4 +114,9 @@ interface ICluster {
      */
     fun getClusterListManager(): IClusterListManager
 
+    /**
+     * Shuts this node down
+     */
+    fun shutdown(): ICommunicationPromise<Unit>
+
 }

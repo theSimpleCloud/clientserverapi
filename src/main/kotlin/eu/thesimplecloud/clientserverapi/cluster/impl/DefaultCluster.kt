@@ -20,9 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster
+package eu.thesimplecloud.clientserverapi.cluster.impl
 
-import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterAdapter
 import eu.thesimplecloud.clientserverapi.cluster.adapter.impl.DefaultClusterAdapter
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
@@ -31,11 +31,9 @@ import eu.thesimplecloud.clientserverapi.cluster.list.manager.IClusterListManage
 import eu.thesimplecloud.clientserverapi.cluster.node.INode
 import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.node.ISelfNode
-import eu.thesimplecloud.clientserverapi.cluster.node.handler.NodeConnectionHandler
-import eu.thesimplecloud.clientserverapi.cluster.node.impl.DefaultRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.node.impl.DefaultSelfNode
-import eu.thesimplecloud.clientserverapi.cluster.packets.auth.NodeInfo
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -49,7 +47,7 @@ class DefaultCluster(
     private val version: String,
     private val authProvider: IClusterAuthProvider,
     bindAddress: Address,
-    remoteAddresses: List<NodeInfo> = emptyList()
+    connectAddress: Address? = null
 ) : ICluster, IClusterAdapter {
 
     private val clusterListManager = ClusterListManager(this)
@@ -61,16 +59,13 @@ class DefaultCluster(
     private val nodes: CopyOnWriteArrayList<INode>
 
     init {
-        val remoteNodes = remoteAddresses.map {
-            DefaultRemoteNode(
-                createNodeClient(it.serverAddress).getConnection(),
-                this,
-                it.serverAddress,
-                it.startupTime
-            )
-        }
-        nodes = CopyOnWriteArrayList(remoteNodes.union(listOf(selfNode)))
-        authProvider.authenticateOnRemoteNodes(this, getRemoteNodes())
+        val allRemoteNodes = if (connectAddress == null)
+            emptyList<IRemoteNode>()
+        else
+            ClusterConnector(this, connectAddress).connectToAllNodes()
+
+        this.nodes = CopyOnWriteArrayList(allRemoteNodes.union(listOf(selfNode)))
+        this.authProvider.authenticateOnRemoteNodes(this, getRemoteNodes())
 
         addClusterAdapter(this)
         addClusterAdapter(DefaultClusterAdapter())
@@ -112,12 +107,10 @@ class DefaultCluster(
         return this.clusterListManager
     }
 
-    private fun createNodeClient(address: Address): INettyClient {
-        val factory = BootstrapFactoryGetter.getFactory()
-        val client = factory.createClient(address, NodeConnectionHandler(), cluster = this)
-        client.addPacketsByPackage("eu.thesimplecloud.clientserverapi.cluster.packets")
-        client.start().syncUninterruptibly()
-        return client
+    override fun shutdown(): ICommunicationPromise<Unit> {
+        val remoteNodePromise = this.getRemoteNodes().map { it.getConnection().closeConnection() }.combineAllPromises()
+        val serverPromise = this.selfNode.getServer().shutdown()
+        return serverPromise.combine(remoteNodePromise)
     }
 
     override fun onNodeJoin(remoteNode: IRemoteNode) {
@@ -125,6 +118,6 @@ class DefaultCluster(
     }
 
     override fun onNodeLeave(remoteNode: IRemoteNode) {
-        this.nodes.removeIf {it === remoteNode }
+        this.nodes.removeIf { it === remoteNode }
     }
 }

@@ -34,7 +34,7 @@ import eu.thesimplecloud.clientserverapi.testing.AbstractTestConnection
  */
 class TestClientConnection(
         private val client: INettyClient
-) : AbstractTestConnection() {
+) : AbstractTestConnection(client.getAddress().port) {
 
     override fun getCommunicationBootstrap(): ICommunicationBootstrap {
         return client

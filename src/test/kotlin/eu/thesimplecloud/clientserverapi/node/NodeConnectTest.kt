@@ -22,11 +22,12 @@
 
 package eu.thesimplecloud.clientserverapi.node
 
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
+import org.junit.Assert
+import org.junit.BeforeClass
 import org.junit.Test
 
 /**
@@ -35,16 +36,53 @@ import org.junit.Test
  * Time: 22:16
  * @author Frederick Baier
  */
-class NodeTest {
+class NodeConnectTest {
+
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun beforeClass() {
+            BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+        }
+    }
+
 
     @Test
-    fun test() {
-        BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.NORMAL)
+    fun newCluster_IsNotConnected() {
         val clusterFactory = DefaultClusterFactory()
         val cluster = clusterFactory.createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1600))
-        val list = cluster.getClusterListManager().getClusterListByNameOrCreate<TestListObj>("test", Array<TestListObj>::class.java)
-        list.addElement(TestListObj("ddd", 4))
-        list.addElement(TestListObj("2222", 2))
+
+        Assert.assertEquals(0, cluster.getRemoteNodes().size)
+        Assert.assertEquals(1, cluster.getNodes().size)
+
+        cluster.shutdown()
+    }
+
+    @Test
+    fun afterTwoInstancesConnected_RemoteNoesIs1() {
+        val clusterFactory = DefaultClusterFactory()
+        val cluster = clusterFactory.createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1600))
+
+        val otherCluster = clusterFactory.joinCluster(
+            "1.0",
+            SecretAuthProvider("123"),
+            Address("127.0.0.1", 1602),
+            Address("127.0.0.1", 1600)
+        )
+
+        Assert.assertEquals(1, cluster.getRemoteNodes().size)
+        Assert.assertEquals(1, otherCluster.getRemoteNodes().size)
+
+        cluster.shutdown()
+        otherCluster.shutdown()
+
+    }
+
+    @Test
+    fun after4InstancesConnected_RemoteNoesIs3() {
+        val clusterFactory = DefaultClusterFactory()
+        val cluster = clusterFactory.createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1600))
+
         val otherCluster = clusterFactory.joinCluster(
             "1.0",
             SecretAuthProvider("123"),
@@ -66,44 +104,15 @@ class NodeTest {
             Address("127.0.0.1", 1600)
         )
 
-        val otherCluster4 = clusterFactory.joinCluster(
-            "1.0",
-            SecretAuthProvider("123"),
-            Address("127.0.0.1", 1604),
-            Address("127.0.0.1", 1600)
-        )
+        Assert.assertEquals(3, cluster.getRemoteNodes().size)
+        Assert.assertEquals(3, otherCluster.getRemoteNodes().size)
+        Assert.assertEquals(3, otherCluster2.getRemoteNodes().size)
+        Assert.assertEquals(3, otherCluster3.getRemoteNodes().size)
 
+        cluster.shutdown()
+        otherCluster.shutdown()
+        otherCluster2.shutdown()
+        otherCluster3.shutdown()
 
-
-        printClusterInfo(cluster)
-        printClusterInfo(otherCluster)
-        printClusterInfo(otherCluster2)
-        printClusterInfo(otherCluster3)
-        printClusterInfo(otherCluster4)
-        list.removeElement("ddd")
-        printClusterInfo(cluster)
-        printClusterInfo(otherCluster)
-        printClusterInfo(otherCluster2)
-        printClusterInfo(otherCluster3)
-        printClusterInfo(otherCluster4)
-        val test = TestListObj("ddda333", 54)
-        list.addElement(test)
-        printClusterInfo(cluster)
-        printClusterInfo(otherCluster)
-        printClusterInfo(otherCluster2)
-        printClusterInfo(otherCluster3)
-        printClusterInfo(otherCluster4)
-        test.number = 4343
-        list.updateElement(test)
-        printClusterInfo(cluster)
-        printClusterInfo(otherCluster)
-        printClusterInfo(otherCluster2)
-        printClusterInfo(otherCluster3)
-    }
-
-    private fun printClusterInfo(cluster: ICluster) {
-        println("me: " + cluster.getSelfNode().getServerAddress())
-        println(cluster.getClusterListManager().getClusterListByName<TestListObj>("test")!!.getAllElements().map { it.getIdentifier() })
-        println(cluster.getClusterListManager().getClusterListByName<TestListObj>("test")!!.getAllElements().map { it.number })
     }
 }
