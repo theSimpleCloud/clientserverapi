@@ -45,6 +45,6 @@ class NodeConnectionHandler : IConnectionHandler {
     override fun onConnectionInactive(connection: IConnection) {
         val cluster = connection.getCommunicationBootstrap().getCluster()!!
         val remoteNode = cluster.getNodeByConnection(connection) ?: return
-        cluster.getClusterAdapters().forEach { it.onNodeLeave(remoteNode) }
+        cluster.getClusterListeners().forEach { it.onNodeLeave(remoteNode) }
     }
 }

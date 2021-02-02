@@ -20,33 +20,26 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.factory
+package eu.thesimplecloud.clientserverapi.testing.packets
 
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.lib.util.Address
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 30/01/2021
- * Time: 18:16
+ * Date: 02/02/2021
+ * Time: 11:51
  * @author Frederick Baier
  */
-interface IClusterFactory {
+class PacketIOTest() : ObjectPacket<String>() {
 
-    fun createNewCluster(
-        version: String,
-        authProvider: IClusterAuthProvider,
-        bindAddress: Address,
-        packetsPackages: List<String> = emptyList()
-    ): ICluster
+    constructor(value: String) : this() {
+        this.value = value
+    }
 
-    fun joinCluster(
-        version: String,
-        authProvider: IClusterAuthProvider,
-        bindAddress: Address,
-        connectAddress: Address,
-        packetsPackages: List<String> = emptyList()
-    ): ICluster
-
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+        println(this.value)
+        return unit()
+    }
 }

@@ -20,33 +20,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.factory
-
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.lib.util.Address
+package eu.thesimplecloud.clientserverapi.cluster.list.listener
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 30/01/2021
- * Time: 18:16
+ * Date: 01/02/2021
+ * Time: 23:02
  * @author Frederick Baier
  */
-interface IClusterFactory {
+interface IClusterListListenerAdapter<T> {
 
-    fun createNewCluster(
-        version: String,
-        authProvider: IClusterAuthProvider,
-        bindAddress: Address,
-        packetsPackages: List<String> = emptyList()
-    ): ICluster
+    /**
+     * Gets called when an element was added to the list
+     */
+    fun onElementAdded(element: T)
 
-    fun joinCluster(
-        version: String,
-        authProvider: IClusterAuthProvider,
-        bindAddress: Address,
-        connectAddress: Address,
-        packetsPackages: List<String> = emptyList()
-    ): ICluster
+    /**
+     * Gets called when an element gets removed from the list
+     */
+    fun onElementRemoved(element: T)
+
+    /**
+     * Gets called when an element gets updated
+     * @param oldValue the old value
+     * @param updatedValue the current value (also the one currently cached)
+     */
+    fun onElementUpdated(oldValue: T, updatedValue: T)
 
 }

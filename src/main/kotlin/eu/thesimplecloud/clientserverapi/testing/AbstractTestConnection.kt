@@ -29,6 +29,7 @@ import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import java.io.IOException
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Created by IntelliJ IDEA.
@@ -45,13 +46,22 @@ abstract class AbstractTestConnection(
     @Volatile
     var otherSideConnection: IConnection? = null
 
+    val receivedPackets = CopyOnWriteArrayList<WrappedPacket>()
+
+    override fun incomingPacket(wrappedPacket: WrappedPacket) {
+        this.receivedPackets.add(wrappedPacket)
+        if (this.receivedPackets.size > 100)
+            this.receivedPackets.dropLast(1)
+
+        super.incomingPacket(wrappedPacket)
+    }
 
     override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>) {
         if (!isOpen()) {
             val exception =
                 IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}. This: ${this::class.java.name}")
             promise.tryFailure(exception)
-            throw exception
+            return
         }
         NetworkTestManager.sendPacket(this, wrappedPacket)
     }

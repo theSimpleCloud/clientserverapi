@@ -23,7 +23,7 @@
 package eu.thesimplecloud.clientserverapi.cluster.impl
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterAdapter
+import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.adapter.impl.DefaultClusterAdapter
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.list.manager.ClusterListManager
@@ -47,14 +47,15 @@ class DefaultCluster(
     private val version: String,
     private val authProvider: IClusterAuthProvider,
     bindAddress: Address,
+    packetsPackages: List<String>,
     connectAddress: Address? = null
-) : ICluster, IClusterAdapter {
+) : ICluster, IClusterListenerAdapter {
 
     private val clusterListManager = ClusterListManager(this)
 
-    private val selfNode = DefaultSelfNode(bindAddress, this)
+    private val selfNode = DefaultSelfNode(bindAddress, this, packetsPackages)
 
-    private val clusterAdapters = CopyOnWriteArrayList<IClusterAdapter>()
+    private val clusterListeners = CopyOnWriteArrayList<IClusterListenerAdapter>()
 
     private val nodes: CopyOnWriteArrayList<INode>
 
@@ -62,13 +63,19 @@ class DefaultCluster(
         val allRemoteNodes = if (connectAddress == null)
             emptyList<IRemoteNode>()
         else
-            ClusterConnector(this, connectAddress).connectToAllNodes()
+            ClusterConnector(this, connectAddress, packetsPackages).connectToAllNodes()
 
         this.nodes = CopyOnWriteArrayList(allRemoteNodes.union(listOf(selfNode)))
-        this.authProvider.authenticateOnRemoteNodes(this, getRemoteNodes())
 
-        addClusterAdapter(this)
-        addClusterAdapter(DefaultClusterAdapter())
+        try {
+            this.authProvider.authenticateOnRemoteNodes(this, getRemoteNodes())
+        } catch (e: Exception) {
+            selfNode.getServer().shutdown()
+            throw e
+        }
+
+        addListener(this)
+        addListener(DefaultClusterAdapter())
     }
 
     override fun getHeadNode(): INode {
@@ -87,16 +94,16 @@ class DefaultCluster(
         return this.authProvider
     }
 
-    override fun getClusterAdapters(): List<IClusterAdapter> {
-        return this.clusterAdapters
+    override fun getClusterListeners(): List<IClusterListenerAdapter> {
+        return this.clusterListeners
     }
 
-    override fun addClusterAdapter(adapter: IClusterAdapter) {
-        this.clusterAdapters.add(adapter)
+    override fun addListener(listener: IClusterListenerAdapter) {
+        this.clusterListeners.add(listener)
     }
 
-    override fun removeClusterAdapter(adapter: IClusterAdapter) {
-        this.clusterAdapters.remove(adapter)
+    override fun removeListener(listener: IClusterListenerAdapter) {
+        this.clusterListeners.remove(listener)
     }
 
     override fun getVersion(): String {

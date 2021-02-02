@@ -39,19 +39,20 @@ class DefaultClusterFactory : IClusterFactory {
         version: String,
         authProvider: IClusterAuthProvider,
         bindAddress: Address,
+        packetsPackages: List<String>
     ): ICluster {
-        return DefaultCluster(version, authProvider, bindAddress)
+        return DefaultCluster(version, authProvider, bindAddress, packetsPackages)
     }
 
     override fun joinCluster(
         version: String,
         authProvider: IClusterAuthProvider,
         bindAddress: Address,
-        connectAddress: Address
+        connectAddress: Address,
+        packetsPackages: List<String>
     ): ICluster {
-        return DefaultCluster(version, authProvider, bindAddress, connectAddress)
+        return DefaultCluster(version, authProvider, bindAddress, packetsPackages, connectAddress)
     }
-
 
 
 }

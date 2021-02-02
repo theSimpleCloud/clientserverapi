@@ -49,8 +49,9 @@ class SecretAuthProvider(
         val version = cluster.getVersion()
         remoteNodes.forEach {
             it.getConnection().setAuthenticated(true)
-            val promise = it.getConnection().sendUnitQuery(PacketIOSecretAuth(SecretAuthNodeInfo(version, ownServerAddress, startupTime, secret)), 5000)
-                    .awaitUninterruptibly()
+            it.getConnection().sendUnitQuery(
+                PacketIOSecretAuth(SecretAuthNodeInfo(version, ownServerAddress, startupTime, secret)), 5000
+            ).syncUninterruptibly()
         }
     }
 }

@@ -92,7 +92,7 @@ class NettyClient(
 
     override fun shutdown(): ICommunicationPromise<Unit> {
         val shutdownPromise = CommunicationPromise<Unit>(enableTimeout = false)
-        if (this.clientConnection.getChannel() == null) shutdownPromise.trySuccess(Unit)
+        if (this.clientConnection.getChannel() == null || !this.clientConnection.getChannel()!!.isActive) shutdownPromise.trySuccess(Unit)
         this.clientConnection.sendUnitQuery(PacketIOConnectionWillClose())
         this.workerGroup?.shutdownGracefully()
         this.running = false

@@ -23,10 +23,12 @@
 package eu.thesimplecloud.clientserverapi.cluster.list
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.cluster.list.adapter.IClusterListAdapter
+import eu.thesimplecloud.clientserverapi.cluster.list.listener.IClusterListListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist.PacketIOAddElementToClusterList
 import eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist.PacketIORemoveElementFromClusterList
 import eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist.PacketIOUpdateClusterListElement
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.JsonSerializedClass
 import eu.thesimplecloud.jsonlib.JsonLib
 import java.util.concurrent.CopyOnWriteArrayList
@@ -44,39 +46,41 @@ class ClusterList<T : IClusterListItem>(
 ) : IClusterList<T> {
 
     private val list = CopyOnWriteArrayList<WrappedListItem<T>>()
-    private val adapters = CopyOnWriteArrayList<IClusterListAdapter<T>>()
+    private val listeners = CopyOnWriteArrayList<IClusterListListenerAdapter<T>>()
 
-    override fun addElement(element: T, fromPacket: Boolean) {
+    override fun addElement(element: T, fromPacket: Boolean): ICommunicationPromise<Unit> {
         list.removeIf { it.clusterListItem.getIdentifier() == element.getIdentifier() }
         list.add(WrappedListItem(element))
 
-        this.adapters.forEach { it.onElementAdded(element) }
+        this.listeners.forEach { it.onElementAdded(element) }
         if (!fromPacket) {
-            cluster.sendPacketToAllNodes(PacketIOAddElementToClusterList(name, element)).syncUninterruptibly()
+            return cluster.sendPacketToAllNodes(PacketIOAddElementToClusterList(name, element))
         }
+        return CommunicationPromise.UNIT_PROMISE
     }
 
-    override fun removeElement(identifier: Any, fromPacket: Boolean) {
-        val value = getValueByIdentifier(identifier) ?: return
+    override fun removeElement(identifier: Any, fromPacket: Boolean): ICommunicationPromise<Unit> {
+        val value = getValueByIdentifier(identifier) ?: return CommunicationPromise.failed(NoSuchElementException())
         list.remove(value)
 
-        this.adapters.forEach { it.onElementRemoved(value.clusterListItem) }
+        this.listeners.forEach { it.onElementRemoved(value.clusterListItem) }
         if (!fromPacket) {
-            cluster.sendPacketToAllNodes(PacketIORemoveElementFromClusterList(name, identifier)).syncUninterruptibly()
+            return cluster.sendPacketToAllNodes(PacketIORemoveElementFromClusterList(name, identifier))
         }
+        return CommunicationPromise.UNIT_PROMISE
     }
 
-    override fun updateElement(cachedValue: T) {
+    override fun updateElement(cachedValue: T): ICommunicationPromise<Unit> {
         val identifier = cachedValue.getIdentifier()
         val wrappedListItem = getValueByIdentifier(identifier)
         if (wrappedListItem == null || wrappedListItem.clusterListItem !== cachedValue)
             throw IllegalArgumentException("Cannot update a value that is not contained in the list")
         val oldValue = wrappedListItem.currentJson.getObject(cachedValue::class.java)
 
-        this.adapters.forEach { it.onElementUpdated(oldValue, cachedValue) }
+        this.listeners.forEach { it.onElementUpdated(oldValue, cachedValue) }
 
         val json = wrappedListItem.updateToItem(cachedValue)
-        cluster.sendPacketToAllNodes(PacketIOUpdateClusterListElement(name, json)).syncUninterruptibly()
+        return cluster.sendPacketToAllNodes(PacketIOUpdateClusterListElement(name, json))
     }
 
     private fun getValueByIdentifier(identifier: Any): WrappedListItem<T>? {
@@ -103,11 +107,11 @@ class ClusterList<T : IClusterListItem>(
         return this.arrayClass
     }
 
-    override fun addAdapter(adapter: IClusterListAdapter<T>) {
-        this.adapters.add(adapter)
+    override fun addListener(listener: IClusterListListenerAdapter<T>) {
+        this.listeners.add(listener)
     }
 
-    override fun removeAdapter(adapter: IClusterListAdapter<T>) {
-        this.adapters.remove(adapter)
+    override fun removeListener(listener: IClusterListListenerAdapter<T>) {
+        this.listeners.remove(listener)
     }
 }

@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.cluster
 
-import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterAdapter
+import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.list.manager.IClusterListManager
 import eu.thesimplecloud.clientserverapi.cluster.node.INode
@@ -76,19 +76,19 @@ interface ICluster {
     fun getAuthProvider() : IClusterAuthProvider
 
     /**
-     * Returns all [IClusterAdapter]s
+     * Returns all [IClusterListenerAdapter]s
      */
-    fun getClusterAdapters(): List<IClusterAdapter>
+    fun getClusterListeners(): List<IClusterListenerAdapter>
 
     /**
-     * Adds the specified [IClusterAdapter]
+     * Adds the specified [IClusterListenerAdapter]
      */
-    fun addClusterAdapter(adapter: IClusterAdapter)
+    fun addListener(listener: IClusterListenerAdapter)
 
     /**
-     * Removes the specified [IClusterAdapter]
+     * Removes the specified [IClusterListenerAdapter]
      */
-    fun removeClusterAdapter(adapter: IClusterAdapter)
+    fun removeListener(listener: IClusterListenerAdapter)
 
     /**
      * Returns the [IRemoteNode] found by the specified connection

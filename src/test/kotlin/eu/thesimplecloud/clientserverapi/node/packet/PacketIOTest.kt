@@ -20,31 +20,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.list.adapter
+package eu.thesimplecloud.clientserverapi.node.packet
+
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 01/02/2021
- * Time: 23:02
+ * Date: 02/02/2021
+ * Time: 11:51
  * @author Frederick Baier
  */
-interface IClusterListAdapter<T> {
+class PacketIOTest() : ObjectPacket<String>() {
 
-    /**
-     * Gets called when an element was added to the list
-     */
-    fun onElementAdded(element: T)
+    constructor(value: String) : this() {
+        this.value = value
+    }
 
-    /**
-     * Gets called when an element gets removed from the list
-     */
-    fun onElementRemoved(element: T)
-
-    /**
-     * Gets called when an element gets updated
-     * @param oldValue the old value
-     * @param updatedValue the current value (also the one currently cached)
-     */
-    fun onElementUpdated(oldValue: T, updatedValue: T)
-
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+        return unit()
+    }
 }

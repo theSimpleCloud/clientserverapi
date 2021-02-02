@@ -22,7 +22,6 @@
 
 package eu.thesimplecloud.clientserverapi.testing
 
-import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
 import eu.thesimplecloud.clientserverapi.lib.util.Address
@@ -58,21 +57,16 @@ class ObjectPacketTestTest {
         }
         val nettyClient = factory.createClient(Address("127.0.0.1", 1921))
         nettyClient.addPacketsByPackage("eu.thesimplecloud.clientserverapi.testobject.client")
-        thread {
-            nettyClient.start()
-        }
+        nettyClient.start().syncUninterruptibly()
 
-        //nettyClient.sendQuery<JsonData>(PacketIOMessage("hi"))
-        //        .thenNonNull { println(it.getString("test")) }
-        //        .addFailureListener { println(it.message) }
-        Thread.sleep(1000)
-        val time = System.currentTimeMillis()
-        nettyClient.getConnection().sendUnitQuery(PacketOutMessage("hi"), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
-                .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
-        nettyClient.getConnection().sendQuery<ITestObj>(PacketIOWork(), 1500).addResultListener { println("result: $it time: ${System.currentTimeMillis() - time}") }
-                .addFailureListener { println("failure ${it::class.java.simpleName} ${it.message}") }
-        nettyServer.getDebugMessageManager().enable(DebugMessage.PACKET_RECEIVED)
-        Thread.sleep(1000)
+
+
+        val clientConnection = nettyClient.getConnection()
+        clientConnection.sendUnitQuery(PacketOutMessage("hi"), 1500).syncUninterruptibly()
+        val packetIOWork = PacketIOWork()
+        clientConnection.sendQuery<ITestObj>(packetIOWork, 1500).syncUninterruptibly()
+        ConnectionAssert.assertSentPacketReceived(PacketOutMessage::class.java, clientConnection)
+        ConnectionAssert.assertSentPacketReceived(packetIOWork, clientConnection)
         nettyClient.shutdown()
     }
 

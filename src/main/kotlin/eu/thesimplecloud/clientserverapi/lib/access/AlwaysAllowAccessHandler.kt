@@ -20,33 +20,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.factory
+package eu.thesimplecloud.clientserverapi.lib.access
 
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.lib.util.Address
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 30/01/2021
- * Time: 18:16
+ * Date: 02/02/2021
+ * Time: 12:26
  * @author Frederick Baier
  */
-interface IClusterFactory {
+class AlwaysAllowAccessHandler : IAccessHandler {
 
-    fun createNewCluster(
-        version: String,
-        authProvider: IClusterAuthProvider,
-        bindAddress: Address,
-        packetsPackages: List<String> = emptyList()
-    ): ICluster
-
-    fun joinCluster(
-        version: String,
-        authProvider: IClusterAuthProvider,
-        bindAddress: Address,
-        connectAddress: Address,
-        packetsPackages: List<String> = emptyList()
-    ): ICluster
-
+    override fun isAccessAllowed(connection: IConnection, packet: IPacket): Boolean {
+        return true
+    }
 }

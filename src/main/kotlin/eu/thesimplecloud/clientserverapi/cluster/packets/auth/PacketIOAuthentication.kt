@@ -50,7 +50,7 @@ abstract class PacketIOAuthentication<T : NodeInfo>() : ObjectPacket<T>() {
         val node = DefaultRemoteNode(connection, cluster, value.serverAddress)
         connection as IConnectedClient
         connection.setClientValue("node", node)
-        cluster.getClusterAdapters().forEach { it.onNodeJoin(node) }
+        cluster.getClusterListeners().forEach { it.onNodeJoin(node) }
         return unit()
     }
 

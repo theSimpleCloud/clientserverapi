@@ -20,12 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.node
+package eu.thesimplecloud.clientserverapi.node.connect
 
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
+import eu.thesimplecloud.clientserverapi.testing.ClusterAssert
 import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Test
@@ -70,8 +71,8 @@ class NodeConnectTest {
             Address("127.0.0.1", 1600)
         )
 
-        Assert.assertEquals(1, cluster.getRemoteNodes().size)
-        Assert.assertEquals(1, otherCluster.getRemoteNodes().size)
+        ClusterAssert.assertRemoteNodeCount(1, cluster)
+        ClusterAssert.assertRemoteNodeCount(1, otherCluster)
 
         cluster.shutdown()
         otherCluster.shutdown()
@@ -104,10 +105,10 @@ class NodeConnectTest {
             Address("127.0.0.1", 1600)
         )
 
-        Assert.assertEquals(3, cluster.getRemoteNodes().size)
-        Assert.assertEquals(3, otherCluster.getRemoteNodes().size)
-        Assert.assertEquals(3, otherCluster2.getRemoteNodes().size)
-        Assert.assertEquals(3, otherCluster3.getRemoteNodes().size)
+        ClusterAssert.assertRemoteNodeCount(3, cluster)
+        ClusterAssert.assertRemoteNodeCount(3, otherCluster)
+        ClusterAssert.assertRemoteNodeCount(3, otherCluster2)
+        ClusterAssert.assertRemoteNodeCount(3, otherCluster3)
 
         cluster.shutdown()
         otherCluster.shutdown()

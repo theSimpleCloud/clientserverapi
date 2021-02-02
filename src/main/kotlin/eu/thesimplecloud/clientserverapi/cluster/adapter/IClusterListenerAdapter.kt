@@ -30,7 +30,7 @@ import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
  * Time: 17:39
  * @author Frederick Baier
  */
-interface IClusterAdapter {
+interface IClusterListenerAdapter {
 
     /**
      * Gets called when a node joins

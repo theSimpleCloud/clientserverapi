@@ -26,6 +26,7 @@ import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.node.ISelfNode
 import eu.thesimplecloud.clientserverapi.cluster.node.handler.NodeConnectionHandler
 import eu.thesimplecloud.clientserverapi.cluster.node.handler.ServerHandler
+import eu.thesimplecloud.clientserverapi.lib.access.AuthAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
@@ -38,7 +39,8 @@ import eu.thesimplecloud.clientserverapi.server.INettyServer
  */
 class DefaultSelfNode(
     private val bindAddress: Address,
-    private val cluster: ICluster
+    private val cluster: ICluster,
+    packetsPackages: List<String>
 ) : ISelfNode {
 
     private val startupTime = System.currentTimeMillis()
@@ -47,7 +49,9 @@ class DefaultSelfNode(
         .createServer(bindAddress, NodeConnectionHandler(), ServerHandler(), cluster)
 
     init {
+        server.setAccessHandler(AuthAccessHandler())
         server.addPacketsByPackage("eu.thesimplecloud.clientserverapi.cluster.packets")
+        server.addPacketsByPackage(*packetsPackages.toTypedArray())
         server.start().syncUninterruptibly()
     }
 

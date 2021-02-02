@@ -23,7 +23,7 @@
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.lib.access.AuthAccessHandler
+import eu.thesimplecloud.clientserverapi.lib.access.AlwaysAllowAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.access.IAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
@@ -68,7 +68,7 @@ abstract class AbstractCommunicationBootstrap(
     private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
 
     @Volatile
-    private var accessHandler: IAccessHandler = AuthAccessHandler()
+    private var accessHandler: IAccessHandler = AlwaysAllowAccessHandler()
 
 
     private val transferFileManager = TransferFileManager()

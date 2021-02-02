@@ -66,7 +66,7 @@ abstract class AbstractConnection() : IConnection {
         return packetPromise
     }
 
-    fun incomingPacket(wrappedPacket: WrappedPacket) {
+    open fun incomingPacket(wrappedPacket: WrappedPacket) {
         incomingPacketHandler.handleIncomingPacket(wrappedPacket)
     }
 

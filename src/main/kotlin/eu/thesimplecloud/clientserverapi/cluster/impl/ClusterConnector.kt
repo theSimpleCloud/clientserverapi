@@ -29,6 +29,7 @@ import eu.thesimplecloud.clientserverapi.cluster.node.handler.NodeConnectionHand
 import eu.thesimplecloud.clientserverapi.cluster.node.impl.DefaultRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.packets.PacketIOGetAllNodes
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.NodeInfo
+import eu.thesimplecloud.clientserverapi.lib.access.AuthAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
 import eu.thesimplecloud.clientserverapi.lib.util.Address
@@ -41,7 +42,8 @@ import eu.thesimplecloud.clientserverapi.lib.util.Address
  */
 class ClusterConnector(
     private val cluster: ICluster,
-    private val connectAddress: Address
+    private val connectAddress: Address,
+    private val packetsPackages: List<String>
 ) {
 
     fun connectToAllNodes(): List<IRemoteNode> {
@@ -64,7 +66,9 @@ class ClusterConnector(
     private fun startClusterClient(address: Address): INettyClient {
         val factory = BootstrapFactoryGetter.getFactory()
         val client = factory.createClient(address, NodeConnectionHandler(), cluster = cluster)
+        client.setAccessHandler(AuthAccessHandler())
         client.addPacketsByPackage("eu.thesimplecloud.clientserverapi.cluster.packets")
+        client.addPacketsByPackage(*packetsPackages.toTypedArray())
         client.start().syncUninterruptibly()
         return client
     }

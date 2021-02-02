@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.adapter.impl
 
-import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterAdapter
+import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
 
 /**
@@ -31,7 +31,7 @@ import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
  * Time: 17:45
  * @author Frederick Baier
  */
-class DefaultClusterAdapter : IClusterAdapter {
+class DefaultClusterAdapter : IClusterListenerAdapter {
 
     override fun onNodeJoin(remoteNode: IRemoteNode) {
         val cluster = remoteNode.getCluster()

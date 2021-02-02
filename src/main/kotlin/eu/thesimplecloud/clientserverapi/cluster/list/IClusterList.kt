@@ -22,7 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.list
 
-import eu.thesimplecloud.clientserverapi.cluster.list.adapter.IClusterListAdapter
+import eu.thesimplecloud.clientserverapi.cluster.list.listener.IClusterListListenerAdapter
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.jsonlib.JsonLib
 
 /**
@@ -37,18 +38,18 @@ interface IClusterList<T : IClusterListItem> {
      * Adds an element to the list
      * @param element the element to be added
      */
-    fun addElement(element: T, fromPacket: Boolean = false)
+    fun addElement(element: T, fromPacket: Boolean = false): ICommunicationPromise<Unit>
 
     /**
      * Removes the element found by the specified [identifier]
      * @param identifier the unique identifier to find the element to remove
      */
-    fun removeElement(identifier: Any, fromPacket: Boolean = false)
+    fun removeElement(identifier: Any, fromPacket: Boolean = false): ICommunicationPromise<Unit>
 
     /**
      * Sends the changes to the other nodes
      */
-    fun updateElement(cachedValue: T)
+    fun updateElement(cachedValue: T): ICommunicationPromise<Unit>
 
     /**
      * Applies changes received by another node
@@ -65,11 +66,11 @@ interface IClusterList<T : IClusterListItem> {
     /**
      * Adds an adapter to the list to listen for changes
      */
-    fun addAdapter(adapter: IClusterListAdapter<T>)
+    fun addListener(listener: IClusterListListenerAdapter<T>)
 
     /**
-     * Removes the specified [adapter]
+     * Removes the specified [listener]
      */
-    fun removeAdapter(adapter: IClusterListAdapter<T>)
+    fun removeListener(listener: IClusterListListenerAdapter<T>)
 
 }
