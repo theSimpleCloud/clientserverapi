@@ -49,6 +49,8 @@ abstract class AbstractConnection() : IConnection {
     private var wasCloseIntended: Boolean = false
     @Volatile
     private var sendingFile = false
+    @Volatile
+    private var authenticated = false
     private val fileQueue = LinkedBlockingQueue<QueuedFile>()
     private val packetResponseManager by lazy { getCommunicationBootstrap().getPacketResponseManager() }
 
@@ -121,6 +123,14 @@ abstract class AbstractConnection() : IConnection {
 
     override fun wasConnectionCloseIntended(): Boolean {
         return !isOpen() && wasCloseIntended
+    }
+
+    override fun setAuthenticated(authenticated: Boolean) {
+        this.authenticated = authenticated
+    }
+
+    override fun isAuthenticated(): Boolean {
+        return this.authenticated
     }
 
 }

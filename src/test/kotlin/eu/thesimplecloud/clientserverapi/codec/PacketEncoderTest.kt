@@ -56,7 +56,7 @@ class PacketEncoderTest {
     private val bootstrap = mockNettyServer()
     private lateinit var channel: EmbeddedChannel
 
-    private fun mockNettyServer(): INettyServer<*> {
+    private fun mockNettyServer(): INettyServer {
         val bootstrap = mock(INettyServer::class.java)
         val debugMessageManager = DebugMessageManager()
         debugMessageManager.enable(DebugMessage.PACKET_RECEIVED)

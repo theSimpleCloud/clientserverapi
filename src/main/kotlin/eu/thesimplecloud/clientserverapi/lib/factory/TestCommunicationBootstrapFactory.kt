@@ -23,10 +23,11 @@
 package eu.thesimplecloud.clientserverapi.lib.factory
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.testing.client.TestNettyClient
 import eu.thesimplecloud.clientserverapi.testing.server.TestNettyServer
 
@@ -36,23 +37,23 @@ import eu.thesimplecloud.clientserverapi.testing.server.TestNettyServer
  * Time: 19:08
  * @author Frederick Baier
  */
-class TestCommunicationBootstrapFactory  : ICommunicationBootstrapFactory {
+class TestCommunicationBootstrapFactory : ICommunicationBootstrapFactory {
 
-    override fun <T : IConnectedClientValue> createServer(
-            host: String,
-            port: Int,
-            connectionHandler: IConnectionHandler,
-            serverHandler: IServerHandler<T>
-    ): INettyServer<T> {
-        return TestNettyServer<T>(host, port, connectionHandler, serverHandler)
+    override fun createServer(
+        address: Address,
+        connectionHandler: IConnectionHandler,
+        serverHandler: IServerHandler,
+        cluster: ICluster?
+    ): INettyServer {
+        return TestNettyServer(address, connectionHandler, serverHandler, cluster)
     }
 
     override fun createClient(
-            host: String,
-            port: Int,
-            connectionHandler: IConnectionHandler
+        address: Address,
+        connectionHandler: IConnectionHandler,
+        cluster: ICluster?
     ): INettyClient {
-        return TestNettyClient(host, port, connectionHandler)
+        return TestNettyClient(address, connectionHandler, cluster)
     }
 
 }

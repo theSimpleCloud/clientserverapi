@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.access.IAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManager
@@ -32,19 +33,15 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 
 interface ICommunicationBootstrap : IBootstrap {
 
     /**
-     * Returns the host
+     * Returns the address
      */
-    fun getHost(): String
-
-    /**
-     * Returns the port
-     */
-    fun getPort(): Int
+    fun getAddress(): Address
 
     /**
      * Registers all packets in the specified packages
@@ -114,7 +111,7 @@ interface ICommunicationBootstrap : IBootstrap {
     /**
      * Returns whether this is a server.
      */
-    fun isServer() = this is INettyServer<*>
+    fun isServer() = this is INettyServer
 
     /**
      * Sets the packet class converter.
@@ -122,5 +119,10 @@ interface ICommunicationBootstrap : IBootstrap {
      * convert these classes later to an other class to avoid class loader bugs.
      */
     fun setPacketClassConverter(function: (Class<out IPacket>) -> Class<out IPacket>)
+
+    /**
+     * Returns the cluster this bootstrap is part of
+     */
+    fun getCluster(): ICluster?
 
 }

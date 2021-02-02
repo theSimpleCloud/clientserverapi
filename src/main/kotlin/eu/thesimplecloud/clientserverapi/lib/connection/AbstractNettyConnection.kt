@@ -24,6 +24,7 @@ package eu.thesimplecloud.clientserverapi.lib.connection
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import io.netty.channel.Channel
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -63,9 +64,10 @@ abstract class AbstractNettyConnection() : AbstractConnection() {
         return connectionPromise
     }
 
-    override fun getHost(): String? {
-        if (!isOpen()) return null
-        return (getChannel()!!.remoteAddress() as InetSocketAddress).hostString
+    override fun getAddress(): Address {
+        if (!isOpen()) throw IllegalStateException("Connection is not open")
+        val address = (getChannel()!!.remoteAddress() as InetSocketAddress)
+        return Address(address.address.hostAddress, address.port)
     }
 
 }

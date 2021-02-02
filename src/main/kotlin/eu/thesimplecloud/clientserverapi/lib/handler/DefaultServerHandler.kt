@@ -23,16 +23,15 @@
 package eu.thesimplecloud.clientserverapi.lib.handler
 
 import eu.thesimplecloud.clientserverapi.server.INettyServer
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
-open class DefaultServerHandler<T : IConnectedClientValue> : IServerHandler<T> {
-    override fun onServerStarted(nettyServer: INettyServer<T>) {
+open class DefaultServerHandler : IServerHandler {
+    override fun onServerStarted(nettyServer: INettyServer) {
     }
 
-    override fun onServerStartException(nettyServer: INettyServer<T>, ex: Throwable) {
+    override fun onServerStartException(nettyServer: INettyServer, ex: Throwable) {
     }
 
-    override fun onServerShutdown(nettyServer: INettyServer<T>) {
+    override fun onServerShutdown(nettyServer: INettyServer) {
     }
 
 }

@@ -24,11 +24,12 @@ package eu.thesimplecloud.clientserverapi.lib.factory
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
 import eu.thesimplecloud.clientserverapi.client.NettyClient
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.NettyServer
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
 /**
  * Created by IntelliJ IDEA.
@@ -38,21 +39,21 @@ import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnecte
  */
 class NormalCommunicationBootstrapFactory : ICommunicationBootstrapFactory {
 
-    override fun <T : IConnectedClientValue> createServer(
-            host: String,
-            port: Int,
-            connectionHandler: IConnectionHandler,
-            serverHandler: IServerHandler<T>
-    ): INettyServer<T> {
-        return NettyServer<T>(host, port, connectionHandler, serverHandler)
+    override fun createServer(
+        address: Address,
+        connectionHandler: IConnectionHandler,
+        serverHandler: IServerHandler,
+        cluster: ICluster?
+    ): INettyServer {
+        return NettyServer(address, connectionHandler, serverHandler, cluster)
     }
 
     override fun createClient(
-            host: String,
-            port: Int,
-            connectionHandler: IConnectionHandler
+        address: Address,
+        connectionHandler: IConnectionHandler,
+        cluster: ICluster?
     ): INettyClient {
-        return NettyClient(host, port, connectionHandler)
+        return NettyClient(address, connectionHandler, cluster)
     }
 
 }

@@ -26,12 +26,12 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
-interface IClientManager<T : IConnectedClientValue> {
+interface IClientManager{
 
     /**
      * Returns the [IConnectedClient] found by the specified [clientValue]
      */
-    fun getClientByClientValue(clientValue: IConnectedClientValue): IConnectedClient<T>?
+    fun <T : IConnectedClientValue> getClientByClientValue(name: String, clientValue: T): IConnectedClient?
 
     /**
      * Sends the specified packet to all connected clients.
@@ -40,6 +40,6 @@ interface IClientManager<T : IConnectedClientValue> {
     /**
      * Returns a list containing all connected clients.
      */
-    fun getClients(): Collection<IConnectedClient<T>>
+    fun getClients(): Collection<IConnectedClient>
 
 }

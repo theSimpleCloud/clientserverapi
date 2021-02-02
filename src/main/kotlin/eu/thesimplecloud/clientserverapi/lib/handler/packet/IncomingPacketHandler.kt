@@ -23,6 +23,8 @@
 package eu.thesimplecloud.clientserverapi.lib.handler.packet
 
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
@@ -43,6 +45,10 @@ import kotlinx.coroutines.launch
 class IncomingPacketHandler(private val connection: AbstractConnection) {
 
     fun handleIncomingPacket(wrappedPacket: WrappedPacket) {
+        if (!hasAccess(wrappedPacket)) {
+            println("IncomingPacketHandler access blocked")
+            return
+        }
         if (wrappedPacket.packetData.isResponse) {
             handleResponsePacket(wrappedPacket)
         } else {
@@ -50,6 +56,23 @@ class IncomingPacketHandler(private val connection: AbstractConnection) {
                 handleQuery(wrappedPacket)
             }
         }
+    }
+
+    private fun hasAccess(wrappedPacket: WrappedPacket): Boolean {
+        if (wrappedPacket.packetData.isResponse) {
+            return isValidResponsePacket(connection, wrappedPacket.packetData)
+        }
+
+        return checkAccess(connection, wrappedPacket.packet)
+    }
+
+    private fun isValidResponsePacket(connection: IConnection, packetData: PacketData): Boolean {
+        val packetResponseManager = connection.getCommunicationBootstrap().getPacketResponseManager()
+        return packetResponseManager.isResponseHandlerAvailable(packetData.uniqueId)
+    }
+
+    private fun checkAccess(connection: IConnection, packet: IPacket): Boolean {
+        return connection.getCommunicationBootstrap().getAccessHandler().isAccessAllowed(connection, packet)
     }
 
     private fun handleResponsePacket(wrappedPacket: WrappedPacket) {

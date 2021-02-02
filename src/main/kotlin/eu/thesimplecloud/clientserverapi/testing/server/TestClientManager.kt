@@ -33,23 +33,23 @@ import java.util.concurrent.CopyOnWriteArrayList
  * Time: 14:37
  * @author Frederick Baier
  */
-class TestClientManager<T : IConnectedClientValue> : IClientManager<T> {
+class TestClientManager: IClientManager {
 
-    private val clients = CopyOnWriteArrayList<IConnectedClient<T>>()
+    private val clients = CopyOnWriteArrayList<IConnectedClient>()
 
-    override fun getClientByClientValue(clientValue: IConnectedClientValue): IConnectedClient<T>? {
-        return clients.firstOrNull { it.getClientValue() == clientValue }
+    override fun <T : IConnectedClientValue> getClientByClientValue(name: String, clientValue: T): IConnectedClient? {
+        return this.clients.firstOrNull { it.getClientValue<T>(name) == clientValue }
     }
 
-    override fun getClients(): Collection<IConnectedClient<T>> {
+    override fun getClients(): Collection<IConnectedClient> {
         return this.clients
     }
 
-    fun addClient(client: IConnectedClient<T>) {
+    fun addClient(client: IConnectedClient) {
         this.clients.add(client)
     }
 
-    fun removeClient(client: IConnectedClient<T>) {
+    fun removeClient(client: IConnectedClient) {
         this.clients.remove(client)
     }
 

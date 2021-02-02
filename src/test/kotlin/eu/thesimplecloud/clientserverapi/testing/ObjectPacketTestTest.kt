@@ -22,10 +22,10 @@
 
 package eu.thesimplecloud.clientserverapi.testing
 
-import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.testobject.ITestObj
 import eu.thesimplecloud.clientserverapi.testobject.client.PacketIOWork
 import eu.thesimplecloud.clientserverapi.testobject.client.PacketOutMessage
@@ -45,7 +45,7 @@ class ObjectPacketTestTest {
     fun test() {
         BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
         val factory = BootstrapFactoryGetter.getFactory()
-        val nettyServer = factory.createServer<TestConnectedClientValue>("127.0.0.1", 1921)
+        val nettyServer = factory.createServer(Address("127.0.0.1", 1921))
 
 
         nettyServer.getPacketManager().registerPacket(PacketIOWork::class.java)
@@ -56,7 +56,7 @@ class ObjectPacketTestTest {
         while (!nettyServer.isListening()) {
             Thread.sleep(10)
         }
-        val nettyClient = factory.createClient("127.0.0.1", 1921)
+        val nettyClient = factory.createClient(Address("127.0.0.1", 1921))
         nettyClient.addPacketsByPackage("eu.thesimplecloud.clientserverapi.testobject.client")
         thread {
             nettyClient.start()

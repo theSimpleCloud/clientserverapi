@@ -26,10 +26,12 @@ import eu.thesimplecloud.clientserverapi.client.INettyClient
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Address
+import eu.thesimplecloud.clientserverapi.lib.util.IAuthenticatable
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import java.io.File
 
-interface IConnection : IPacketSender {
+interface IConnection : IAuthenticatable, IPacketSender {
 
 
     /**
@@ -63,9 +65,10 @@ interface IConnection : IPacketSender {
     fun closeConnection(): ICommunicationPromise<Unit>
 
     /**
-     * Returns the host of this [IConnection] or null if the [IConnection] is not open.
+     * Returns the address of this [IConnection]
+     * @throws IllegalStateException if the connection is closed
      */
-    fun getHost(): String?
+    fun getAddress(): Address
 
 
 }

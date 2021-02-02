@@ -24,14 +24,13 @@ package eu.thesimplecloud.clientserverapi.server
 
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
-interface INettyServer<T : IConnectedClientValue> : ICommunicationBootstrap {
+interface INettyServer: ICommunicationBootstrap {
 
     /**
      * Returns the [IClientManager] for this server
      */
-    fun getClientManager(): IClientManager<T>
+    fun getClientManager(): IClientManager
 
     /**
      * Returns weather the server is listening

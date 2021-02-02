@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.testing.server
 
+import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
@@ -35,28 +36,31 @@ import eu.thesimplecloud.clientserverapi.testing.AbstractTestConnection
  * @author Frederick Baier
  */
 
-class TestConnectedClient<T : IConnectedClientValue>(
-        private val nettyServer: INettyServer<T>,
+class TestConnectedClient(
+        private val nettyServer: INettyServer,
         otherSideConnection: IConnection
-) : AbstractTestConnection(), IConnectedClient<T> {
+) : AbstractTestConnection(), IConnectedClient {
 
-    private var clientValue: T? = null
+    private val nameToClientValue = Maps.newConcurrentMap<String, IConnectedClientValue>()
 
     init {
         this.otherSideConnection = otherSideConnection
     }
 
-    override fun getCommunicationBootstrap(): INettyServer<T> {
+    override fun <T : IConnectedClientValue> getClientValue(name: String): T? {
+        return this.nameToClientValue[name] as T?
+    }
+
+    override fun <T : IConnectedClientValue> setClientValue(name: String, connectedClientValue: T) {
+        this.nameToClientValue[name] = connectedClientValue
+    }
+
+    override fun getCommunicationBootstrap(): INettyServer {
         return this.nettyServer
     }
 
-    override fun getNettyServer(): INettyServer<T> {
+    override fun getNettyServer(): INettyServer {
         return nettyServer
     }
 
-    override fun getClientValue(): T? = clientValue
-
-    override fun setClientValue(connectedClientValue: T) {
-        this.clientValue = connectedClientValue
-    }
 }

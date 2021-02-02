@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.client
 
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.AbstractCommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.codec.ProtobufVarint32FrameDecoder
 import eu.thesimplecloud.clientserverapi.lib.codec.ProtobufVarint32LengthFieldPrepender
@@ -33,6 +34,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
@@ -43,10 +45,10 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.IdleStateHandler
 
 class NettyClient(
-        host: String,
-        port: Int,
-        connectionHandler: IConnectionHandler = DefaultConnectionHandler()
-) : AbstractCommunicationBootstrap(host, port, connectionHandler), INettyClient {
+    address: Address,
+    connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+    cluster: ICluster? = null
+) : AbstractCommunicationBootstrap(address, connectionHandler, cluster), INettyClient {
 
     private var workerGroup: NioEventLoopGroup? = null
     private val clientConnection = ClientConnection(this)
@@ -76,7 +78,7 @@ class NettyClient(
             }
 
         })
-        val channel = bootstrap.connect(getHost(), getPort()).addListener { future ->
+        val channel = bootstrap.connect(getAddress().host, getAddress().port).addListener { future ->
             if (future.isSuccess) {
                 startedPromise.trySuccess(Unit)
             } else {

@@ -20,14 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.communication.testclasses
+package eu.thesimplecloud.clientserverapi.cluster.packets.auth
 
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 
-import kotlin.random.Random
-
-class TestConnectedClientValue : IConnectedClientValue {
-
-    val number = Random.nextInt(0, 100)
-
-}
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 31/01/2021
+ * Time: 15:37
+ * @author Frederick Baier
+ */
+open class NodeInfo(
+    val version: String,
+    val serverAddress: Address,
+    val startupTime: Long
+)

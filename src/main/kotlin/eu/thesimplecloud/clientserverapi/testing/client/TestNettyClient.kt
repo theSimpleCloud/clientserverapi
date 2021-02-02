@@ -23,12 +23,14 @@
 package eu.thesimplecloud.clientserverapi.testing.client
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.AbstractCommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
 
 /**
@@ -39,10 +41,10 @@ import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
  */
 
 class TestNettyClient(
-        host: String,
-        port: Int,
-        connectionHandler: IConnectionHandler = DefaultConnectionHandler()
-) : AbstractCommunicationBootstrap(host, port, connectionHandler), INettyClient {
+    address: Address,
+    connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+    cluster: ICluster? = null
+) : AbstractCommunicationBootstrap(address, connectionHandler, cluster), INettyClient {
 
     private val clientConnection = TestClientConnection(this)
 

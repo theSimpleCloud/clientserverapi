@@ -22,27 +22,29 @@
 
 package eu.thesimplecloud.clientserverapi.server.client.connectedclient
 
+import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import io.netty.channel.Channel
 
-class ConnectedClient<T : IConnectedClientValue>(
+class ConnectedClient(
         private val channel: Channel,
-        private val nettyServer: INettyServer<T>
-) : AbstractNettyConnection(), IConnectedClient<T> {
+        private val nettyServer: INettyServer
+) : AbstractNettyConnection(), IConnectedClient {
 
+    private val nameToClientValue = Maps.newConcurrentMap<String, IConnectedClientValue>()
 
-    @Volatile private var clientValue: T? = null
-
-    override fun getClientValue(): T? = clientValue
-
-    override fun setClientValue(connectedClientValue: T) {
-        this.clientValue = connectedClientValue
+    override fun <T : IConnectedClientValue> getClientValue(name: String): T? {
+        return this.nameToClientValue[name] as T?
     }
 
-    override fun getNettyServer(): INettyServer<T> = nettyServer
+    override fun <T : IConnectedClientValue> setClientValue(name: String, connectedClientValue: T) {
+        this.nameToClientValue[name] = connectedClientValue
+    }
 
-    override fun getCommunicationBootstrap(): INettyServer<T> = nettyServer
+    override fun getNettyServer(): INettyServer = nettyServer
+
+    override fun getCommunicationBootstrap(): INettyServer = nettyServer
 
     override fun getChannel(): Channel = channel
 

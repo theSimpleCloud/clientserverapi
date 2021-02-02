@@ -25,25 +25,25 @@ package eu.thesimplecloud.clientserverapi.server.client.connectedclient
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 
-interface IConnectedClient<T : IConnectedClientValue> : IConnection {
+interface IConnectedClient : IConnection {
 
     /**
      * Returns the [INettyServer] this client is connected to
      */
-    fun getNettyServer(): INettyServer<T>
+    fun getNettyServer(): INettyServer
 
     /**
      * Returns the [IConnectedClientValue] of this [IConnectedClient] or null if no value was set.
      * Use this to get the stored object
      */
-    fun getClientValue(): T?
+    fun <T : IConnectedClientValue> getClientValue(name: String): T?
 
     /**
      * Sets the [IConnectedClientValue] of this [IConnectedClient]
      * Use this to store an object in this [IConnectedClient]
      */
-    fun setClientValue(connectedClientValue: T)
+    fun <T : IConnectedClientValue> setClientValue(name: String, connectedClientValue: T)
 
-    override fun getCommunicationBootstrap(): INettyServer<T>
+    override fun getCommunicationBootstrap(): INettyServer
 
 }

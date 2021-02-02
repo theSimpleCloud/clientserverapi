@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.server
 
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.AbstractCommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.codec.ProtobufVarint32FrameDecoder
 import eu.thesimplecloud.clientserverapi.lib.codec.ProtobufVarint32LengthFieldPrepender
@@ -34,9 +35,9 @@ import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManager
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
@@ -49,19 +50,19 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup
 import io.netty.util.concurrent.EventExecutorGroup
 
 
-class NettyServer<T : IConnectedClientValue>(
-        host: String,
-        port: Int,
-        connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
-        private val serverHandler: IServerHandler<T> = DefaultServerHandler()
-) : AbstractCommunicationBootstrap(host, port, connectionHandler), INettyServer<T> {
+class NettyServer(
+    address: Address,
+    connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+    private val serverHandler: IServerHandler = DefaultServerHandler(),
+    cluster: ICluster? = null
+) : AbstractCommunicationBootstrap(address, connectionHandler, cluster), INettyServer {
 
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null
     private var eventExecutorGroup: EventExecutorGroup? = null
     private var active = false
     private var listening = false
-    private val clientManager = ClientManager<T>(this)
+    private val clientManager = ClientManager(this)
 
     override fun start(): ICommunicationPromise<Unit> {
         addPacketsByPackage("eu.thesimplecloud.clientserverapi.lib.defaultpackets")
@@ -90,7 +91,7 @@ class NettyServer<T : IConnectedClientValue>(
             }
         })
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true)
-        val channelFuture = bootstrap.bind(getHost(), getPort())
+        val channelFuture = bootstrap.bind(getAddress().host, getAddress().port)
         channelFuture.addListener { future ->
             if (future.isSuccess) {
                 this.listening = true
@@ -128,7 +129,7 @@ class NettyServer<T : IConnectedClientValue>(
         return shutdownPromise
     }
 
-    override fun getClientManager(): IClientManager<T> {
+    override fun getClientManager(): IClientManager {
         return this.clientManager
     }
 

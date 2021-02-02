@@ -31,14 +31,14 @@ import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnecte
 import io.netty.channel.ChannelHandlerContext
 import java.util.concurrent.CopyOnWriteArrayList
 
-class ClientManager<T : IConnectedClientValue>(private val nettyServer: INettyServer<T>) : IClientManager<T> {
-    private val clients = CopyOnWriteArrayList<IConnectedClient<T>>()
+class ClientManager(private val nettyServer: INettyServer) : IClientManager {
+    private val clients = CopyOnWriteArrayList<IConnectedClient>()
 
     /**
      * Adds the specified [ChannelHandlerContext] as a client
      */
     fun addClient(ctx: ChannelHandlerContext): IConnection {
-        val connection = ConnectedClient<T>(ctx.channel(), nettyServer)
+        val connection = ConnectedClient(ctx.channel(), nettyServer)
         this.clients.add(connection)
         return connection
     }
@@ -51,7 +51,9 @@ class ClientManager<T : IConnectedClientValue>(private val nettyServer: INettySe
         it.getChannel() == ctx.channel()
     }
 
-    override fun getClientByClientValue(clientValue: IConnectedClientValue): IConnectedClient<T>? = this.clients.firstOrNull { it.getClientValue() == clientValue }
+    override fun <T : IConnectedClientValue> getClientByClientValue(name: String, clientValue: T): IConnectedClient? {
+        return this.clients.firstOrNull { it.getClientValue<T>(name) == clientValue }
+    }
 
 
     /**
@@ -64,6 +66,6 @@ class ClientManager<T : IConnectedClientValue>(private val nettyServer: INettySe
         return client
     }
 
-    override fun getClients(): Collection<IConnectedClient<T>> = clients.filter { it.isOpen() }
+    override fun getClients(): Collection<IConnectedClient> = clients.filter { it.isOpen() }
 
 }

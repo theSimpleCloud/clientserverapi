@@ -29,9 +29,9 @@ import eu.thesimplecloud.clientserverapi.server.client.clientmanager.ClientManag
 import io.netty.channel.ChannelHandlerContext
 import java.io.IOException
 
-class NettyServerHandler(nettyServer: INettyServer<*>, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
+class NettyServerHandler(nettyServer: INettyServer, private val connectionHandler: IConnectionHandler) : AbstractChannelInboundHandlerImpl() {
 
-    private val clientManager = nettyServer.getClientManager() as ClientManager<*>
+    private val clientManager = nettyServer.getClientManager() as ClientManager
 
     override fun getConnection(ctx: ChannelHandlerContext): AbstractNettyConnection = this.clientManager.getClient(ctx)!! as AbstractNettyConnection
 

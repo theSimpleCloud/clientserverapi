@@ -28,15 +28,7 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyn
 open class DefaultConnectionHandler : IConnectionHandler {
 
     override fun onConnectionActive(connection: IConnection) {
-        val accessAllowed = connection.getCommunicationBootstrap().getAccessHandler().isAccessAllowed(connection)
-        if (!accessAllowed) {
-            try {
-                connection.closeConnection()
-            } catch (e: Exception) {
-                //ignore because connection might be harmful
-            }
-            return
-        }
+
     }
 
     override fun onFailure(connection: IConnection, ex: Throwable) {

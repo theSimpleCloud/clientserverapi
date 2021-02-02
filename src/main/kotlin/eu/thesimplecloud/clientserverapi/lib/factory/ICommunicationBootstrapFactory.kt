@@ -23,12 +23,13 @@
 package eu.thesimplecloud.clientserverapi.lib.factory
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultServerHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
 /**
  * Created by IntelliJ IDEA.
@@ -40,28 +41,26 @@ interface ICommunicationBootstrapFactory {
 
     /**
      * Creates a server
-     * @param host the host to bind to
-     * @param port the port to bind to
+     * @param address the address to bind to
      * @param connectionHandler the handler to listen for connections (connect, disconnect, failure)
      * @param serverHandler the handler to listen for server events (start, close, failure)
      */
-    fun <T : IConnectedClientValue> createServer(
-            host: String,
-            port: Int,
-            connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
-            serverHandler: IServerHandler<T> = DefaultServerHandler()
-    ): INettyServer<T>
+    fun createServer(
+        address: Address,
+        connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+        serverHandler: IServerHandler = DefaultServerHandler(),
+        cluster: ICluster? = null
+    ): INettyServer
 
     /**
      * Creates a client
-     * @param host the host to connect to
-     * @param port the port to connect to
+     * @param address the address to connect to
      * @param connectionHandler the handler to listen for connect, close, failure
      */
     fun createClient(
-            host: String,
-            port: Int,
-            connectionHandler: IConnectionHandler = DefaultConnectionHandler()
+        address: Address,
+        connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+        cluster: ICluster? = null
     ): INettyClient
 
 }

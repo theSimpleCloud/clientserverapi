@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.testing.server
 
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.bootstrap.AbstractCommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultServerHandler
@@ -29,9 +30,9 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
 
 /**
@@ -41,14 +42,14 @@ import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
  * @author Frederick Baier
  */
 
-class TestNettyServer<T : IConnectedClientValue>(
-        host: String,
-        port: Int,
-        connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
-        val serverHandler: IServerHandler<T> = DefaultServerHandler()
-) : AbstractCommunicationBootstrap(host, port, connectionHandler), INettyServer<T> {
+class TestNettyServer(
+    address: Address,
+    connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+    val serverHandler: IServerHandler = DefaultServerHandler(),
+    cluster: ICluster? = null
+) : AbstractCommunicationBootstrap(address, connectionHandler, cluster), INettyServer {
 
-    private val clientManager = TestClientManager<T>()
+    private val clientManager = TestClientManager()
 
     override fun start(): ICommunicationPromise<Unit> {
         NetworkTestManager.registerServer(this)
@@ -66,7 +67,7 @@ class TestNettyServer<T : IConnectedClientValue>(
         return NetworkTestManager.isServerRegistered(this)
     }
 
-    override fun getClientManager(): IClientManager<T> {
+    override fun getClientManager(): IClientManager {
         return clientManager
     }
 

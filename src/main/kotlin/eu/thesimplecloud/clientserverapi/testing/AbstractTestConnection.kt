@@ -27,6 +27,7 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import java.io.IOException
 
 /**
@@ -45,7 +46,8 @@ abstract class AbstractTestConnection() : AbstractConnection() {
 
     override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>) {
         if (!isOpen()) {
-            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}. This: ${this::class.java.name}")
+            val exception =
+                IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}. This: ${this::class.java.name}")
             promise.tryFailure(exception)
             throw exception
         }
@@ -61,9 +63,9 @@ abstract class AbstractTestConnection() : AbstractConnection() {
         return CommunicationPromise.of(Unit)
     }
 
-    override fun getHost(): String? {
-        if (!isOpen()) return null
-        return "127.0.0.1"
+    override fun getAddress(): Address {
+        if (!isOpen()) throw IllegalStateException("Connection is not open")
+        return Address("127.0.0.1", 1600)
     }
 
 

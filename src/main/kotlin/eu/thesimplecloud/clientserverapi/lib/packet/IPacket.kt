@@ -29,6 +29,10 @@ import io.netty.buffer.ByteBuf
 
 interface IPacket : IPacketHelperMethods {
 
+    /**
+     * Returns whether this packet requires authentication
+     */
+    fun isAuthRequired(): Boolean = true
 
     /**
      * This method is used to read the content of the [ByteBuf] and save it in the packet

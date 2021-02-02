@@ -42,4 +42,11 @@ interface IPacketResponseManager {
      */
     fun incomingPacket(wrappedPacket: WrappedPacket)
 
+    /**
+     * Returns whether a response handler for the specified packet id is registered
+     */
+    fun isResponseHandlerAvailable(packetUniqueId: UUID): Boolean {
+        return getResponseHandler(packetUniqueId) != null
+    }
+
 }

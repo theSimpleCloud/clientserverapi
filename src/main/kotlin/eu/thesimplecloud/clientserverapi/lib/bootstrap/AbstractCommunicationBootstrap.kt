@@ -22,8 +22,9 @@
 
 package eu.thesimplecloud.clientserverapi.lib.bootstrap
 
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
+import eu.thesimplecloud.clientserverapi.lib.access.AuthAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.access.IAccessHandler
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessage
 import eu.thesimplecloud.clientserverapi.lib.debug.DebugMessageManager
 import eu.thesimplecloud.clientserverapi.lib.debug.IDebugMessageManager
@@ -42,6 +43,7 @@ import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
+import eu.thesimplecloud.clientserverapi.lib.util.Address
 import org.reflections.Reflections
 
 /**
@@ -51,23 +53,22 @@ import org.reflections.Reflections
  * @author Frederick Baier
  */
 abstract class AbstractCommunicationBootstrap(
-        private val host: String,
-        private val port: Int,
-        private val connectionHandler: IConnectionHandler
+    private val address: Address,
+    private val connectionHandler: IConnectionHandler,
+    private val cluster: ICluster? = null
 ) : ICommunicationBootstrap {
 
     @Volatile
     private var packetSearchClassLoader: ClassLoader = this::class.java.classLoader
+
     @Volatile
     private var classLoaderToSearchObjectPacketClasses: ClassLoader = this::class.java.classLoader
+
     @Volatile
     private var packetClassConverter: (Class<out IPacket>) -> Class<out IPacket> = { it }
+
     @Volatile
-    private var accessHandler: IAccessHandler = object: IAccessHandler {
-        override fun isAccessAllowed(connection: IConnection): Boolean {
-            return true
-        }
-    }
+    private var accessHandler: IAccessHandler = AuthAccessHandler()
 
 
     private val transferFileManager = TransferFileManager()
@@ -82,24 +83,22 @@ abstract class AbstractCommunicationBootstrap(
     }
 
 
-    override fun getHost(): String {
-        return this.host
-    }
-
-    override fun getPort(): Int {
-        return this.port
+    override fun getAddress(): Address {
+        return this.address
     }
 
     override fun addPacketsByPackage(vararg packages: String) {
         packages.forEach { packageName ->
             val reflections = Reflections(packageName, this.packetSearchClassLoader)
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
-                    .union(reflections.getSubTypesOf(JsonPacket::class.java))
-                    .union(reflections.getSubTypesOf(ObjectPacket::class.java))
-                    .union(reflections.getSubTypesOf(BytePacket::class.java))
-                    .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
+                .union(reflections.getSubTypesOf(JsonPacket::class.java))
+                .union(reflections.getSubTypesOf(ObjectPacket::class.java))
+                .union(reflections.getSubTypesOf(BytePacket::class.java))
+                .filter { it != JsonPacket::class.java && it != BytePacket::class.java && it != ObjectPacket::class.java }
             allClasses.forEach { packetClass ->
-                if (this.getDebugMessageManager().isActive(DebugMessage.REGISTER_PACKET)) println("Registered packet: ${packetClass.simpleName}")
+                if (this.getDebugMessageManager()
+                        .isActive(DebugMessage.REGISTER_PACKET)
+                ) println("Registered packet: ${packetClass.simpleName}")
                 this.packetManager.registerPacket(this.packetClassConverter(packetClass))
             }
         }
@@ -155,5 +154,9 @@ abstract class AbstractCommunicationBootstrap(
 
     override fun setPacketClassConverter(function: (Class<out IPacket>) -> Class<out IPacket>) {
         this.packetClassConverter = function
+    }
+
+    override fun getCluster(): ICluster? {
+        return this.cluster
     }
 }
