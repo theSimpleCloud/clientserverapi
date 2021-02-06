@@ -115,7 +115,7 @@ class CommunicationPromiseTest {
 
     @Test
     fun to_unit_promise_later_success_test() {
-        val promise = CommunicationPromise<Int>()
+        val promise = CommunicationPromise<Int>(timeout = 500)
         GlobalScope.launch {
             delay(100)
             promise.trySuccess(2)
@@ -125,7 +125,7 @@ class CommunicationPromiseTest {
 
     @Test
     fun to_unit_promise_later_failure_test() {
-        val promise = CommunicationPromise<Int>()
+        val promise = CommunicationPromise<Int>(timeout = 500)
         GlobalScope.launch {
             delay(100)
             promise.tryFailure(TestException())
@@ -152,7 +152,7 @@ class CommunicationPromiseTest {
     }
 
     private fun createLaterCompletingPromise(): ICommunicationPromise<Int> {
-        val promise = CommunicationPromise<Int>()
+        val promise = CommunicationPromise<Int>(timeout = 500)
         GlobalScope.launch {
             delay(50 + Random.nextInt(100).toLong())
             promise.trySuccess(4)
