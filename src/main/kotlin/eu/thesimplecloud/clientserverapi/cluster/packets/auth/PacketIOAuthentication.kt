@@ -46,10 +46,10 @@ abstract class PacketIOAuthentication<T : NodeInfo>() : ObjectPacket<T>() {
         if (!authSuccess) {
             return failure(AuthFailedException())
         }
-        connection.setAuthenticated(true)
         val node = DefaultRemoteNode(connection, cluster, value.serverAddress)
         connection as IConnectedClient
         connection.setClientValue("node", node)
+        connection.setAuthenticated(true)
         cluster.getClusterListeners().forEach { it.onNodeJoin(node) }
         return unit()
     }

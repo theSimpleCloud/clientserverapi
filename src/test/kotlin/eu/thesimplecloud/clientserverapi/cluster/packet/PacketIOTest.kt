@@ -20,16 +20,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.list
+package eu.thesimplecloud.clientserverapi.cluster.packet
+
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 31/01/2021
- * Time: 20:59
+ * Date: 02/02/2021
+ * Time: 11:51
  * @author Frederick Baier
  */
-interface IClusterListItem {
+class PacketIOTest() : ObjectPacket<String>() {
 
-    fun getIdentifier(): Any
+    constructor(value: String) : this() {
+        this.value = value
+    }
 
+    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+        return unit()
+    }
 }

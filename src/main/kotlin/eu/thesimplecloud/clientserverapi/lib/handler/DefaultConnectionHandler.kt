@@ -28,7 +28,22 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyn
 open class DefaultConnectionHandler : IConnectionHandler {
 
     override fun onConnectionActive(connection: IConnection) {
+        connection.setAuthenticated(true)
+    }
 
+    override fun onConnectionAuthenticated(connection: IConnection) {
+        synchronizeSyncListsIfThisIsServer(connection)
+    }
+
+    private fun synchronizeSyncListsIfThisIsServer(connection: IConnection) {
+        if (connection.getCommunicationBootstrap().isServer()) {
+            synchronizeSyncLists(connection)
+        }
+    }
+
+    private fun synchronizeSyncLists(connection: IConnection) {
+        val syncListManager = connection.getCommunicationBootstrap().getClientServerSyncListManager()
+        syncListManager.synchronizeAllWithConnection(connection)
     }
 
     override fun onFailure(connection: IConnection, ex: Throwable) {

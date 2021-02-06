@@ -20,25 +20,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.node.packet
+package eu.thesimplecloud.clientserverapi.lib.list.manager
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.list.ISyncList
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 02/02/2021
- * Time: 11:51
+ * Date: 01/02/2021
+ * Time: 11:18
  * @author Frederick Baier
  */
-class PacketIOTest() : ObjectPacket<String>() {
+interface ISyncListManager {
 
-    constructor(value: String) : this() {
-        this.value = value
-    }
+    fun registerSyncList(name: String, syncList: ISyncList<out Identifiable>)
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
-        return unit()
-    }
+    fun <T : Identifiable> getSyncListByName(name: String): ISyncList<T>?
+
+
+    fun <T : Identifiable> getSyncListByNameOrCreate(name: String): ISyncList<T>
+
+    fun synchronizeAllWithConnection(connection: IConnection)
+
 }

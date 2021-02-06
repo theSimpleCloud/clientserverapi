@@ -20,21 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.node
+package eu.thesimplecloud.clientserverapi.lib.list.manager.impl
 
-import eu.thesimplecloud.clientserverapi.cluster.list.IClusterListItem
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.defaultpackets.synclist.PacketIOAddElementToClientServerList
+import eu.thesimplecloud.clientserverapi.lib.list.ISyncList
+import eu.thesimplecloud.clientserverapi.lib.list.impl.ClientServerSyncList
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
 /**
  * Created by IntelliJ IDEA.
  * Date: 01/02/2021
- * Time: 13:26
+ * Time: 12:06
  * @author Frederick Baier
  */
-class TestListObj(
-    private val name: String,
-    var number: Int
-) : IClusterListItem {
-    override fun getIdentifier(): Any {
-        return name
+class ClientServerSyncListManager(
+    val communicationBootstrap: ICommunicationBootstrap
+) : AbstractSyncListManager() {
+
+    override fun <T : Identifiable> createNewSyncList(name: String): ISyncList<T> {
+        return ClientServerSyncList<T>(communicationBootstrap, name)
     }
+
+    override fun synchronizeAllWithConnection(connection: IConnection) {
+        this.nameToSyncList.forEach { name, list ->
+            list.getAllElements().map { connection.sendUnitQuery(PacketIOAddElementToClientServerList(name, it)) }
+                .combineAllPromises().awaitUninterruptibly()
+        }
+    }
+
 }

@@ -20,15 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.node
+package eu.thesimplecloud.clientserverapi.cluster
 
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
-import eu.thesimplecloud.clientserverapi.cluster.packets.auth.PacketIOAuthentication
+import eu.thesimplecloud.clientserverapi.cluster.packet.PacketIOTest
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
+import eu.thesimplecloud.clientserverapi.testing.ClusterAssert
 import org.junit.After
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -38,7 +39,7 @@ import org.junit.Test
  * Time: 11:51
  * @author Frederick Baier
  */
-class NodeAuthTest {
+class NodePacketTest {
 
     companion object {
         @BeforeClass
@@ -51,6 +52,22 @@ class NodeAuthTest {
     private lateinit var clusterOne: ICluster
     private lateinit var clusterTwo: ICluster
 
+    @Before
+    fun setUp() {
+        clusterOne = DefaultClusterFactory().createNewCluster(
+            "1.0",
+            SecretAuthProvider("123"),
+            Address("127.0.0.1", 1504),
+            listOf("eu.thesimplecloud.clientserverapi.node.packet")
+        )
+        clusterTwo = DefaultClusterFactory().joinCluster(
+            "1.0", SecretAuthProvider("123"),
+            Address("127.0.0.1", 1505),
+            Address("127.0.0.1", 1504),
+            listOf("eu.thesimplecloud.clientserverapi.node.packet")
+        )
+    }
+
     @After
     fun after() {
         if (this::clusterOne.isInitialized)
@@ -59,37 +76,23 @@ class NodeAuthTest {
             clusterTwo.shutdown().syncUninterruptibly()
     }
 
-    @Test(expected = PacketIOAuthentication.NotTheSameVersionException::class)
-    fun clusterWithDifferentVersion_ConnectionWillFail() {
-        clusterOne =
-            DefaultClusterFactory().createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1504))
-        clusterTwo = DefaultClusterFactory().joinCluster(
-            "2.0", SecretAuthProvider("123"),
-            Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
-        )
-    }
-
-    @Test(expected = PacketIOAuthentication.AuthFailedException::class)
-    fun clusterWithDifferentAuthKey_ConnectionWillFail() {
-        clusterOne =
-            DefaultClusterFactory().createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1504))
-        clusterTwo = DefaultClusterFactory().joinCluster(
-            "1.0", SecretAuthProvider("124"),
-            Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
-        )
+    @Test(expected = AssertionError::class)
+    fun whenNoPacketWasSent_ThrowException() {
+        ClusterAssert.assertPacketReceived(PacketIOTest::class.java, clusterOne)
     }
 
     @Test
-    fun clusterWithMatchingVersionAndAuthKey_WillNotFail() {
-        clusterOne =
-            DefaultClusterFactory().createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1504))
-        clusterTwo = DefaultClusterFactory().joinCluster(
-            "1.0", SecretAuthProvider("123"),
-            Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
-        )
+    fun whenPacketWasSent_DoNotFail() {
+        this.clusterTwo.sendPacketToAllNodes(PacketIOTest("test2")).syncUninterruptibly()
+        ClusterAssert.assertPacketReceived(PacketIOTest::class.java, clusterOne)
     }
+
+    @Test
+    fun whenPacketWasSent_DoNotFail2() {
+        val packet = PacketIOTest("test2")
+        this.clusterTwo.sendPacketToAllNodes(packet).syncUninterruptibly()
+        ClusterAssert.assertPacketReceived(packet, clusterOne)
+    }
+
 
 }

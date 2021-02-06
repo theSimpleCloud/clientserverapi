@@ -29,6 +29,7 @@ import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchManag
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.ITransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetmanager.IPacketManager
@@ -92,6 +93,11 @@ interface ICommunicationBootstrap : IBootstrap {
      * Returns the [IDebugMessageManager] to handle debug messages.
      */
     fun getDebugMessageManager(): IDebugMessageManager
+
+    /**
+     * Returns the client-server [ISyncListManager]
+     */
+    fun getClientServerSyncListManager(): ISyncListManager
 
     /**
      * Returns the [IPacketResponseManager]

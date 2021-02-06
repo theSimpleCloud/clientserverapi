@@ -20,10 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.list
+package eu.thesimplecloud.clientserverapi.lib.list
 
-import eu.thesimplecloud.clientserverapi.cluster.list.listener.IClusterListListenerAdapter
+import eu.thesimplecloud.clientserverapi.lib.list.listener.ISyncListListenerAdapter
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 import eu.thesimplecloud.jsonlib.JsonLib
 
 /**
@@ -32,7 +33,7 @@ import eu.thesimplecloud.jsonlib.JsonLib
  * Time: 20:56
  * @author Frederick Baier
  */
-interface IClusterList<T : IClusterListItem> {
+interface ISyncList<T : Identifiable> {
 
     /**
      * Adds an element to the list
@@ -54,23 +55,21 @@ interface IClusterList<T : IClusterListItem> {
     /**
      * Applies changes received by another node
      */
-    fun applyUpdate(json: JsonLib)
+    fun applyUpdate(json: JsonLib): ICommunicationPromise<Unit>
 
     /**
      * Returns all elements
      */
     fun getAllElements(): List<T>
 
-    fun getArrayClass(): Class<Array<Any>>
-
     /**
      * Adds an adapter to the list to listen for changes
      */
-    fun addListener(listener: IClusterListListenerAdapter<T>)
+    fun addListener(listener: ISyncListListenerAdapter<T>)
 
     /**
      * Removes the specified [listener]
      */
-    fun removeListener(listener: IClusterListListenerAdapter<T>)
+    fun removeListener(listener: ISyncListListenerAdapter<T>)
 
 }

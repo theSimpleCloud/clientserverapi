@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist
+package eu.thesimplecloud.clientserverapi.lib.defaultpackets.synclist
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
@@ -30,25 +30,25 @@ import eu.thesimplecloud.clientserverapi.lib.util.JsonSerializedClass
 
 /**
  * Created by IntelliJ IDEA.
- * Date: 01/02/2021
- * Time: 11:55
+ * Date: 05/02/2021
+ * Time: 11:38
  * @author Frederick Baier
  */
-class PacketIORemoveElementFromClusterList() : JsonPacket() {
+class PacketIOAddElementToClientServerList() : JsonPacket() {
 
-    constructor(name: String, identifier: Any) : this() {
+    constructor(name: String, identifiable: Identifiable) : this() {
         this.jsonLib.append("name", name)
-            .append("identifier", JsonSerializedClass(identifier))
+            .append("item", JsonSerializedClass(identifiable))
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         val name = this.jsonLib.getString("name") ?: return contentException("name")
-        val jsonSerializedClass = this.jsonLib.getObject("identifier", JsonSerializedClass::class.java) ?: return contentException("identifier")
-        val identifier = jsonSerializedClass.getValue()
+        val jsonSerializedClass = this.jsonLib.getObject("item", JsonSerializedClass::class.java) ?: return contentException("item")
+        val value = jsonSerializedClass.getValue() as Identifiable
 
-        val cluster = connection.getCommunicationBootstrap().getCluster()!!
-        val clusterList = cluster.getClusterListManager().getSyncListByName<Identifiable>(name) ?: return failure(NoSuchElementException("List not found"))
-        clusterList.removeElement(identifier, true)
-        return unit()
+        val syncListManager = connection.getCommunicationBootstrap().getClientServerSyncListManager()
+        val syncList = syncListManager.getSyncListByNameOrCreate<Identifiable>(name)
+        return syncList.addElement(value, true)
     }
+
 }

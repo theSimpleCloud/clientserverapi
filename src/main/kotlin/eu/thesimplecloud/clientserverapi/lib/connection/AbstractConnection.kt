@@ -126,6 +126,7 @@ abstract class AbstractConnection() : IConnection {
     }
 
     override fun setAuthenticated(authenticated: Boolean) {
+        super.setAuthenticated(authenticated)
         this.authenticated = authenticated
     }
 

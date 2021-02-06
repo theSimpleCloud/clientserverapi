@@ -20,36 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.handler
+package eu.thesimplecloud.clientserverapi.lib.util
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 31/01/2021
+ * Time: 20:59
+ * @author Frederick Baier
+ */
+interface Identifiable {
 
-interface IConnectionHandler {
-
-    /**
-     * Called when a connection is now active
-     * client side -> when the client is connected to the server
-     * server side -> when a client connects to the server
-     */
-    fun onConnectionActive(connection: IConnection)
-
-    /**
-     * This method gets called when a connection gets authenticated
-     */
-    fun onConnectionAuthenticated(connection: IConnection)
-
-    /**
-     * Called when an exception was caught
-     */
-    @Throws(Throwable::class)
-    fun onFailure(connection: IConnection, ex: Throwable)
-
-    /**
-     * Called when a connection disconnects
-     * client side -> when the client disconnects form the server
-     * server side -> when a client disconnects from the server
-     */
-    fun onConnectionInactive(connection: IConnection)
-
+    fun getIdentifier(): Any
 
 }

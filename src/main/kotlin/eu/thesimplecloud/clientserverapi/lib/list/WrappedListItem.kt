@@ -20,10 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.list
+package eu.thesimplecloud.clientserverapi.lib.list
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 import eu.thesimplecloud.clientserverapi.lib.util.JsonSerializedClass
 import eu.thesimplecloud.jsonlib.JsonLib
 
@@ -33,15 +34,15 @@ import eu.thesimplecloud.jsonlib.JsonLib
  * Time: 21:59
  * @author Frederick Baier
  */
-class WrappedListItem<T : IClusterListItem>(
-   clusterListItem: T
+class WrappedListItem<T : Identifiable>(
+    element: T
 ) {
     @Volatile
-    var clusterListItem: T = clusterListItem
+    var element: T = element
         private set
 
     @Volatile
-    var currentJson: JsonLib = JsonLib.fromObject(clusterListItem)
+    var currentJson: JsonLib = JsonLib.fromObject(element)
         private set
 
     /**
@@ -49,7 +50,7 @@ class WrappedListItem<T : IClusterListItem>(
      */
     fun updateToItem(item: T): JsonLib {
         val oldJson = this.currentJson
-        this.clusterListItem = item
+        this.element = item
         this.currentJson = JsonLib.fromObject(item)
 
         return generateUpdateJsonWithIdentifier(oldJson, this.currentJson)
@@ -57,7 +58,7 @@ class WrappedListItem<T : IClusterListItem>(
 
     private fun generateUpdateJsonWithIdentifier(oldJson: JsonLib, newJson: JsonLib): JsonLib {
         val changesJson = generateChangesJson(oldJson, newJson)
-        changesJson.append("identifier", JsonSerializedClass(this.clusterListItem.getIdentifier()))
+        changesJson.append("identifier", JsonSerializedClass(this.element.getIdentifier()))
         return changesJson
     }
 
@@ -89,7 +90,7 @@ class WrappedListItem<T : IClusterListItem>(
     }
 
     fun applyChangesJson(updatesJson: JsonLib) {
-        val currentJson = JsonLib.fromObject(this.clusterListItem)
+        val currentJson = JsonLib.fromObject(this.element)
         val currentJsonObject = currentJson.jsonElement as JsonObject
         val updatesJsonObject = updatesJson.jsonElement as JsonObject
 
@@ -97,8 +98,7 @@ class WrappedListItem<T : IClusterListItem>(
 
         allUpdateProperties.forEach { currentJsonObject.remove(it) }
         allUpdateProperties.forEach { currentJsonObject.add(it, updatesJsonObject[it]) }
-
-        updateToItem(JsonLib.fromJsonElement(currentJsonObject).getObject(this.clusterListItem::class.java))
+        updateToItem(JsonLib.fromJsonElement(currentJsonObject).getObject(this.element::class.java))
     }
 
 }

@@ -70,5 +70,11 @@ interface IConnection : IAuthenticatable, IPacketSender {
      */
     fun getAddress(): Address
 
+    override fun setAuthenticated(authenticated: Boolean) {
+        if (authenticated) {
+            getCommunicationBootstrap().getConnectionHandler().onConnectionAuthenticated(this)
+        }
+    }
+
 
 }

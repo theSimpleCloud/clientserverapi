@@ -20,35 +20,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist
+package eu.thesimplecloud.clientserverapi.lib.list.manager.impl
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
-import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import com.google.common.collect.Maps
+import eu.thesimplecloud.clientserverapi.lib.list.ISyncList
+import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
-import eu.thesimplecloud.clientserverapi.lib.util.JsonSerializedClass
 
 /**
  * Created by IntelliJ IDEA.
  * Date: 01/02/2021
- * Time: 11:55
+ * Time: 12:06
  * @author Frederick Baier
  */
-class PacketIORemoveElementFromClusterList() : JsonPacket() {
+abstract class AbstractSyncListManager : ISyncListManager {
 
-    constructor(name: String, identifier: Any) : this() {
-        this.jsonLib.append("name", name)
-            .append("identifier", JsonSerializedClass(identifier))
+    protected val nameToSyncList = Maps.newConcurrentMap<String, ISyncList<out Identifiable>>()
+
+    override fun registerSyncList(name: String, syncList: ISyncList<out Identifiable>) {
+        this.nameToSyncList[name] = syncList
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
-        val name = this.jsonLib.getString("name") ?: return contentException("name")
-        val jsonSerializedClass = this.jsonLib.getObject("identifier", JsonSerializedClass::class.java) ?: return contentException("identifier")
-        val identifier = jsonSerializedClass.getValue()
-
-        val cluster = connection.getCommunicationBootstrap().getCluster()!!
-        val clusterList = cluster.getClusterListManager().getSyncListByName<Identifiable>(name) ?: return failure(NoSuchElementException("List not found"))
-        clusterList.removeElement(identifier, true)
-        return unit()
+    override fun <T : Identifiable> getSyncListByName(name: String): ISyncList<T>? {
+        return this.nameToSyncList[name] as ISyncList<T>?
     }
+
+    override fun <T : Identifiable> getSyncListByNameOrCreate(name: String): ISyncList<T> {
+        val existingList = getSyncListByName<T>(name)
+        if (existingList == null) {
+            val newClusterList = createNewSyncList<T>(name)
+            registerSyncList(name, newClusterList)
+            return newClusterList
+        }
+        return existingList
+    }
+
+    abstract fun <T : Identifiable> createNewSyncList(name: String): ISyncList<T>
 }

@@ -36,7 +36,7 @@ class DefaultClusterAdapter : IClusterListenerAdapter {
     override fun onNodeJoin(remoteNode: IRemoteNode) {
         val cluster = remoteNode.getCluster()
         if (cluster.isHeadNode()) {
-            cluster.getClusterListManager().synchronizeAllWithNode(remoteNode)
+            cluster.getClusterListManager().synchronizeAllWithConnection(remoteNode.getConnection())
         }
     }
 

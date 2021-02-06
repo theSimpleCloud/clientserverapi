@@ -20,31 +20,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.list.listener
+package eu.thesimplecloud.clientserverapi.cluster
+
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
 /**
  * Created by IntelliJ IDEA.
  * Date: 01/02/2021
- * Time: 23:02
+ * Time: 13:26
  * @author Frederick Baier
  */
-interface IClusterListListenerAdapter<T> {
-
-    /**
-     * Gets called when an element was added to the list
-     */
-    fun onElementAdded(element: T)
-
-    /**
-     * Gets called when an element gets removed from the list
-     */
-    fun onElementRemoved(element: T)
-
-    /**
-     * Gets called when an element gets updated
-     * @param oldValue the old value
-     * @param updatedValue the current value (also the one currently cached)
-     */
-    fun onElementUpdated(oldValue: T, updatedValue: T)
-
+class TestListObj(
+    private val name: String,
+    var number: Int
+) : Identifiable {
+    override fun getIdentifier(): Any {
+        return name
+    }
 }

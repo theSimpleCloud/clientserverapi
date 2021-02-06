@@ -22,12 +22,11 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist
 
-import eu.thesimplecloud.clientserverapi.cluster.list.ClusterList
-import eu.thesimplecloud.clientserverapi.cluster.list.IClusterList
-import eu.thesimplecloud.clientserverapi.cluster.list.IClusterListItem
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
+import eu.thesimplecloud.jsonlib.JsonLib
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,25 +34,18 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
  * Time: 11:55
  * @author Frederick Baier
  */
-class PacketIOSyncClusterList() : JsonPacket() {
+class PacketIOUpdateElementFromClusterList() : JsonPacket() {
 
-    constructor(name: String, clusterList: IClusterList<out IClusterListItem>) : this() {
+    constructor(name: String, updateJson: JsonLib) : this() {
         this.jsonLib.append("name", name)
-            .append("list", clusterList.getAllElements().toTypedArray())
-            .append("class", clusterList.getArrayClass().name)
+            .append("updateJson", updateJson)
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         val name = this.jsonLib.getString("name") ?: return contentException("name")
-        val className = this.jsonLib.getString("class") ?: return contentException("class")
-        val clazz = Class.forName(className)
-        val array = this.jsonLib.getObject("list", clazz) ?: return contentException("list")
-        array as Array<out IClusterListItem>
-
+        val updateJson = this.jsonLib.getProperty("updateJson") ?: return contentException("updateJson")
         val cluster = connection.getCommunicationBootstrap().getCluster()!!
-        val clusterList = cluster.getClusterListManager().getClusterListByNameOrCreate<IClusterListItem>(name, clazz as Class<Array<*>>)
-        clusterList as ClusterList<IClusterListItem>
-        clusterList.setAllElements(array.toList())
-        return unit()
+        val clusterList = cluster.getClusterListManager().getSyncListByName<Identifiable>(name) ?: return failure(NoSuchElementException("List not found"))
+        return clusterList.applyUpdate(updateJson)
     }
 }

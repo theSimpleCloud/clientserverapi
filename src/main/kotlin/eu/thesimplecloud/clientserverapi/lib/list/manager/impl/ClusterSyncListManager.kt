@@ -20,27 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.list.manager
+package eu.thesimplecloud.clientserverapi.lib.list.manager.impl
 
-import eu.thesimplecloud.clientserverapi.cluster.list.IClusterList
-import eu.thesimplecloud.clientserverapi.cluster.list.IClusterListItem
-import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
+import eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist.PacketIOAddElementToClusterList
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.list.ISyncList
+import eu.thesimplecloud.clientserverapi.lib.list.impl.ClusterSyncList
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
 /**
  * Created by IntelliJ IDEA.
  * Date: 01/02/2021
- * Time: 11:18
+ * Time: 12:06
  * @author Frederick Baier
  */
-interface IClusterListManager {
+class ClusterSyncListManager(
+    private val cluster: ICluster
+) : AbstractSyncListManager() {
 
-    fun registerClusterList(name: String, clusterList: IClusterList<out IClusterListItem>)
+    override fun <T : Identifiable> createNewSyncList(name: String): ISyncList<T> {
+        return ClusterSyncList<T>(cluster, name)
+    }
 
-    fun <T : IClusterListItem> getClusterListByName(name: String): IClusterList<T>?
-
-
-    fun <T : IClusterListItem> getClusterListByNameOrCreate(name: String, arrayClass: Class<*>): IClusterList<T>
-
-    fun synchronizeAllWithNode(node: IRemoteNode)
+    override fun synchronizeAllWithConnection(connection: IConnection) {
+        this.nameToSyncList.forEach { name, list ->
+            list.getAllElements().map { connection.sendUnitQuery(PacketIOAddElementToClusterList(name, it)) }
+                .combineAllPromises().awaitUninterruptibly()
+        }
+    }
 
 }

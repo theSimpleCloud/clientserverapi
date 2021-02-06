@@ -20,13 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist
+package eu.thesimplecloud.clientserverapi.lib.defaultpackets.synclist
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
-import eu.thesimplecloud.clientserverapi.lib.util.JsonSerializedClass
+import eu.thesimplecloud.jsonlib.JsonLib
 
 /**
  * Created by IntelliJ IDEA.
@@ -34,21 +34,18 @@ import eu.thesimplecloud.clientserverapi.lib.util.JsonSerializedClass
  * Time: 11:55
  * @author Frederick Baier
  */
-class PacketIORemoveElementFromClusterList() : JsonPacket() {
+class PacketIOUpdateElementFromClientServerList() : JsonPacket() {
 
-    constructor(name: String, identifier: Any) : this() {
+    constructor(name: String, updateJson: JsonLib) : this() {
         this.jsonLib.append("name", name)
-            .append("identifier", JsonSerializedClass(identifier))
+            .append("updateJson", updateJson)
     }
 
     override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
         val name = this.jsonLib.getString("name") ?: return contentException("name")
-        val jsonSerializedClass = this.jsonLib.getObject("identifier", JsonSerializedClass::class.java) ?: return contentException("identifier")
-        val identifier = jsonSerializedClass.getValue()
-
-        val cluster = connection.getCommunicationBootstrap().getCluster()!!
-        val clusterList = cluster.getClusterListManager().getSyncListByName<Identifiable>(name) ?: return failure(NoSuchElementException("List not found"))
-        clusterList.removeElement(identifier, true)
-        return unit()
+        val updateJson = this.jsonLib.getProperty("updateJson") ?: return contentException("updateJson")
+        val syncListManager = connection.getCommunicationBootstrap().getClientServerSyncListManager()
+        val syncList = syncListManager.getSyncListByName<Identifiable>(name) ?: return failure(NoSuchElementException("List not found"))
+        return syncList.applyUpdate(updateJson)
     }
 }

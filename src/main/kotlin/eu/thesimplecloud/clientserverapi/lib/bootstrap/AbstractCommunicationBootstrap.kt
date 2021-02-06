@@ -35,6 +35,8 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.TransferFileManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.DirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.directory.IDirectorySyncManager
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
+import eu.thesimplecloud.clientserverapi.lib.list.manager.impl.ClientServerSyncListManager
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
@@ -57,6 +59,8 @@ abstract class AbstractCommunicationBootstrap(
     private val connectionHandler: IConnectionHandler,
     private val cluster: ICluster? = null
 ) : ICommunicationBootstrap {
+
+    private val clientServerSyncListManager: ISyncListManager = ClientServerSyncListManager(this)
 
     @Volatile
     private var packetSearchClassLoader: ClassLoader = this::class.java.classLoader
@@ -138,6 +142,10 @@ abstract class AbstractCommunicationBootstrap(
 
     override fun getDebugMessageManager(): IDebugMessageManager {
         return this.debugMessageManager
+    }
+
+    override fun getClientServerSyncListManager(): ISyncListManager {
+        return this.clientServerSyncListManager
     }
 
     override fun getPacketResponseManager(): IPacketResponseManager {

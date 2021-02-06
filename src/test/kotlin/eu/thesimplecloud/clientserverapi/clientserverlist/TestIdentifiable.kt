@@ -20,36 +20,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.handler
+package eu.thesimplecloud.clientserverapi.clientserverlist
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
-interface IConnectionHandler {
-
-    /**
-     * Called when a connection is now active
-     * client side -> when the client is connected to the server
-     * server side -> when a client connects to the server
-     */
-    fun onConnectionActive(connection: IConnection)
-
-    /**
-     * This method gets called when a connection gets authenticated
-     */
-    fun onConnectionAuthenticated(connection: IConnection)
-
-    /**
-     * Called when an exception was caught
-     */
-    @Throws(Throwable::class)
-    fun onFailure(connection: IConnection, ex: Throwable)
-
-    /**
-     * Called when a connection disconnects
-     * client side -> when the client disconnects form the server
-     * server side -> when a client disconnects from the server
-     */
-    fun onConnectionInactive(connection: IConnection)
-
-
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 01/02/2021
+ * Time: 13:26
+ * @author Frederick Baier
+ */
+class TestIdentifiable(
+    private val name: String,
+    var number: Int
+) : Identifiable {
+    override fun getIdentifier(): Any {
+        return name
+    }
 }

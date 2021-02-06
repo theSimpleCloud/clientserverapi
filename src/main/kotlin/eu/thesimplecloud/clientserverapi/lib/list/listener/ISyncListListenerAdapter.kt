@@ -20,36 +20,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.handler
+package eu.thesimplecloud.clientserverapi.lib.list.listener
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-
-interface IConnectionHandler {
-
-    /**
-     * Called when a connection is now active
-     * client side -> when the client is connected to the server
-     * server side -> when a client connects to the server
-     */
-    fun onConnectionActive(connection: IConnection)
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 01/02/2021
+ * Time: 23:02
+ * @author Frederick Baier
+ */
+interface ISyncListListenerAdapter<T> {
 
     /**
-     * This method gets called when a connection gets authenticated
+     * Gets called when an element was added to the list
      */
-    fun onConnectionAuthenticated(connection: IConnection)
+    fun onElementAdded(element: T)
 
     /**
-     * Called when an exception was caught
+     * Gets called when an element gets removed from the list
      */
-    @Throws(Throwable::class)
-    fun onFailure(connection: IConnection, ex: Throwable)
+    fun onElementRemoved(element: T)
 
     /**
-     * Called when a connection disconnects
-     * client side -> when the client disconnects form the server
-     * server side -> when a client disconnects from the server
+     * Gets called when an element gets updated
+     * @param oldValue the old value
+     * @param updatedValue the current value (also the one currently cached)
      */
-    fun onConnectionInactive(connection: IConnection)
-
+    fun onElementUpdated(oldValue: T, updatedValue: T)
 
 }

@@ -20,14 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.node.list
+package eu.thesimplecloud.clientserverapi.cluster.list
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
+import eu.thesimplecloud.clientserverapi.cluster.TestListObj
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
-import eu.thesimplecloud.clientserverapi.node.TestListObj
 import org.junit.*
 
 /**
@@ -73,17 +73,18 @@ class ClusterListTest {
 
     @Test
     fun newClusterList_IsEmpty() {
-        val clusterList = clusterTwo.getClusterListManager()
-            .getClusterListByNameOrCreate<TestListObj>("test", Array<TestListObj>::class.java)
+        val clusterList = clusterOne.getClusterListManager()
+            .getSyncListByNameOrCreate<TestListObj>("test")
         Assert.assertTrue(clusterList.getAllElements().isEmpty())
     }
 
     @Test
     fun afterElementAdded_OtherClusterCanSeeElement() {
-        val clusterList = clusterTwo.getClusterListManager()
-            .getClusterListByNameOrCreate<TestListObj>("test", Array<TestListObj>::class.java)
+        val clusterList = clusterOne.getClusterListManager()
+            .getSyncListByNameOrCreate<TestListObj>("test")
         clusterList.addElement(TestListObj("one", 45)).syncUninterruptibly()
-        val clusterListOther = clusterTwo.getClusterListManager().getClusterListByName<TestListObj>("test")!!
+
+        val clusterListOther = clusterTwo.getClusterListManager().getSyncListByName<TestListObj>("test")!!
         val first = clusterListOther.getAllElements().first()
         Assert.assertEquals("one", first.getIdentifier())
         Assert.assertEquals(45, first.number)
@@ -91,28 +92,48 @@ class ClusterListTest {
 
     @Test
     fun afterElementAddedAndRemoved_ElementIsGone() {
-        val clusterList = clusterTwo.getClusterListManager()
-            .getClusterListByNameOrCreate<TestListObj>("test", Array<TestListObj>::class.java)
+        val clusterList = clusterOne.getClusterListManager()
+            .getSyncListByNameOrCreate<TestListObj>("test")
         clusterList.addElement(TestListObj("one", 45)).syncUninterruptibly()
         clusterList.removeElement("one").syncUninterruptibly()
-        val clusterListOther = clusterTwo.getClusterListManager().getClusterListByName<TestListObj>("test")!!
+        val clusterListOther = clusterTwo.getClusterListManager().getSyncListByName<TestListObj>("test")!!
         Assert.assertTrue(clusterList.getAllElements().isEmpty())
         Assert.assertTrue(clusterListOther.getAllElements().isEmpty())
     }
 
     @Test
     fun afterElementAddedAndUpdated_OtherNodeCanSee() {
-        val clusterList = clusterTwo.getClusterListManager()
-            .getClusterListByNameOrCreate<TestListObj>("test", Array<TestListObj>::class.java)
+        val clusterList = clusterOne.getClusterListManager()
+            .getSyncListByNameOrCreate<TestListObj>("test")
         val element = TestListObj("one", 45)
         clusterList.addElement(element).syncUninterruptibly()
 
         element.number = 20
         clusterList.updateElement(element).syncUninterruptibly()
 
-        val clusterListOther = clusterTwo.getClusterListManager().getClusterListByName<TestListObj>("test")!!
+        val clusterListOther = clusterTwo.getClusterListManager().getSyncListByName<TestListObj>("test")!!
         val first = clusterListOther.getAllElements().first()
         Assert.assertEquals(20, first.number)
+    }
+
+    @Test
+    fun afterElementAddAndNodeJoin_NodeWilLSeeElement() {
+        this.clusterTwo.shutdown().syncUninterruptibly()
+
+        val clusterList = clusterOne.getClusterListManager()
+            .getSyncListByNameOrCreate<TestListObj>("test")
+        val element = TestListObj("one", 35)
+        clusterList.addElement(element).syncUninterruptibly()
+
+        clusterTwo = DefaultClusterFactory().joinCluster(
+            "1.0", SecretAuthProvider("123"),
+            Address("127.0.0.1", 1505),
+            Address("127.0.0.1", 1504)
+        )
+
+        val clusterListOther = clusterTwo.getClusterListManager().getSyncListByName<TestListObj>("test")!!
+        val first = clusterListOther.getAllElements().first()
+        Assert.assertEquals(35, first.number)
     }
 
 }

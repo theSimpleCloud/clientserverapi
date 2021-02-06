@@ -81,6 +81,10 @@ class PacketEncoderTest {
                         println("active $connection")
                     }
 
+                    override fun onConnectionAuthenticated(connection: IConnection) {
+
+                    }
+
                     override fun onFailure(connection: IConnection, ex: Throwable) {
                         throw ex
                     }

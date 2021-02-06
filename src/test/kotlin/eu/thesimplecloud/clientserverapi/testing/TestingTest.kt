@@ -23,9 +23,9 @@
 package eu.thesimplecloud.clientserverapi.testing
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
+import eu.thesimplecloud.clientserverapi.cluster.packet.PacketIOTest
 import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
-import eu.thesimplecloud.clientserverapi.node.packet.PacketIOTest
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import org.junit.After
 import org.junit.Assert

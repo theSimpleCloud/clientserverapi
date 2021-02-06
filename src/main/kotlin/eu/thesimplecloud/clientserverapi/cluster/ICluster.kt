@@ -24,11 +24,11 @@ package eu.thesimplecloud.clientserverapi.cluster
 
 import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.list.manager.IClusterListManager
 import eu.thesimplecloud.clientserverapi.cluster.node.INode
 import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.node.ISelfNode
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
@@ -110,9 +110,9 @@ interface ICluster {
     fun getVersion(): String
 
     /**
-     * Returns the [IClusterListManager]
+     * Returns the [ISyncListManager]
      */
-    fun getClusterListManager(): IClusterListManager
+    fun getClusterListManager(): ISyncListManager
 
     /**
      * Shuts this node down

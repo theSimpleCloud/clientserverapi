@@ -38,6 +38,10 @@ class NodeConnectionHandler : IConnectionHandler {
         println("Node connected " + connection.getAddress().toString())
     }
 
+    override fun onConnectionAuthenticated(connection: IConnection) {
+
+    }
+
     override fun onFailure(connection: IConnection, ex: Throwable) {
         throw ex
     }

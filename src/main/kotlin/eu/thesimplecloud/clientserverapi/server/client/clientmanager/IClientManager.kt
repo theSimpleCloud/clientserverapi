@@ -23,6 +23,7 @@
 package eu.thesimplecloud.clientserverapi.server.client.clientmanager
 
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
@@ -36,7 +37,7 @@ interface IClientManager{
     /**
      * Sends the specified packet to all connected clients.
      */
-    fun sendPacketToAllClients(packet: IPacket) = getClients().forEach { it.sendUnitQuery(packet) }
+    fun sendPacketToAllClients(packet: IPacket) = getClients().map { it.sendUnitQuery(packet) }.combineAllPromises()
     /**
      * Returns a list containing all connected clients.
      */

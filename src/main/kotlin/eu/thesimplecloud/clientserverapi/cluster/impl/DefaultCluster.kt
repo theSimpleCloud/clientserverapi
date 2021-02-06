@@ -26,12 +26,12 @@ import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.adapter.impl.DefaultClusterAdapter
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.list.manager.ClusterListManager
-import eu.thesimplecloud.clientserverapi.cluster.list.manager.IClusterListManager
 import eu.thesimplecloud.clientserverapi.cluster.node.INode
 import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.node.ISelfNode
 import eu.thesimplecloud.clientserverapi.cluster.node.impl.DefaultSelfNode
+import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
+import eu.thesimplecloud.clientserverapi.lib.list.manager.impl.ClusterSyncListManager
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.util.Address
@@ -51,7 +51,7 @@ class DefaultCluster(
     connectAddress: Address? = null
 ) : ICluster, IClusterListenerAdapter {
 
-    private val clusterListManager = ClusterListManager(this)
+    private val clusterListManager = ClusterSyncListManager(this)
 
     private val selfNode = DefaultSelfNode(bindAddress, this, packetsPackages)
 
@@ -110,7 +110,7 @@ class DefaultCluster(
         return version
     }
 
-    override fun getClusterListManager(): IClusterListManager {
+    override fun getClusterListManager(): ISyncListManager {
         return this.clusterListManager
     }
 
