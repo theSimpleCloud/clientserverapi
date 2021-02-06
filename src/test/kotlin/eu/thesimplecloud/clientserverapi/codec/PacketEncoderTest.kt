@@ -41,7 +41,8 @@ import io.netty.handler.codec.LengthFieldPrepender
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.util.*
 
 /**
@@ -103,16 +104,6 @@ class PacketEncoderTest {
                 WrappedPacket(PacketData(UUID.randomUUID(), "PacketIOWork", false), PacketIOWork())
         )
         assertTrue(future.awaitUninterruptibly().isSuccess)
-        //channel.writeInbound("test")
-    }
-
-    @Test
-    fun test_invalid_packet() {
-        val packet = spy(PacketIOWork())
-        channel.writeInbound(
-                WrappedPacket(PacketData(UUID.randomUUID(), "PacketIOWork", false), packet)
-        )
-        Thread.sleep(2 * 1000)
         //channel.writeInbound("test")
     }
 
