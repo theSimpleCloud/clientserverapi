@@ -22,7 +22,6 @@
 
 package eu.thesimplecloud.clientserverapi.server.client.connectedclient
 
-import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import io.netty.channel.Channel
@@ -31,16 +30,6 @@ class ConnectedClient(
         private val channel: Channel,
         private val nettyServer: INettyServer
 ) : AbstractNettyConnection(), IConnectedClient {
-
-    private val nameToClientValue = Maps.newConcurrentMap<String, IConnectedClientValue>()
-
-    override fun <T : IConnectedClientValue> getClientValue(name: String): T? {
-        return this.nameToClientValue[name] as T?
-    }
-
-    override fun <T : IConnectedClientValue> setClientValue(name: String, connectedClientValue: T) {
-        this.nameToClientValue[name] = connectedClientValue
-    }
 
     override fun getNettyServer(): INettyServer = nettyServer
 

@@ -32,18 +32,6 @@ interface IConnectedClient : IConnection {
      */
     fun getNettyServer(): INettyServer
 
-    /**
-     * Returns the [IConnectedClientValue] of this [IConnectedClient] or null if no value was set.
-     * Use this to get the stored object
-     */
-    fun <T : IConnectedClientValue> getClientValue(name: String): T?
-
-    /**
-     * Sets the [IConnectedClientValue] of this [IConnectedClient]
-     * Use this to store an object in this [IConnectedClient]
-     */
-    fun <T : IConnectedClientValue> setClientValue(name: String, connectedClientValue: T)
-
     override fun getCommunicationBootstrap(): INettyServer
 
 }

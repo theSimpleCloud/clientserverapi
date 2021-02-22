@@ -24,6 +24,7 @@ package eu.thesimplecloud.clientserverapi.testing
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 
 /**
  * Created by IntelliJ IDEA.
@@ -71,8 +72,8 @@ object ConnectionAssert {
         return assertPacketReceived(packet, otherSideConnection)
     }
 
-    fun checkForTestConnection(connection: IConnection) {
-        if (connection !is AbstractTestConnection) {
+    fun checkForTestConnection(sender: IPacketSender) {
+        if (sender !is AbstractTestConnection) {
             throw IllegalArgumentException("ConnectionAssert is only available in a TEST environment")
         }
     }

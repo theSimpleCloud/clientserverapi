@@ -76,5 +76,17 @@ interface IConnection : IAuthenticatable, IPacketSender {
         }
     }
 
+    /**
+     * Returns the value of this [IConnection] or null if no value was set.
+     * Use this to get the stored object
+     */
+    fun <T> getProperty(name: String): T?
+
+    /**
+     * Sets the [property] of this [IConnection]
+     * Use this to store an object in this [IConnection]
+     */
+    fun <T> setProperty(name: String, property: T)
+
 
 }

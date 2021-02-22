@@ -23,7 +23,9 @@
 package eu.thesimplecloud.clientserverapi.cluster.adapter.impl
 
 import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
-import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.component.client.IRemoteClusterClient
+import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,14 +35,15 @@ import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
  */
 class DefaultClusterAdapter : IClusterListenerAdapter {
 
-    override fun onNodeJoin(remoteNode: IRemoteNode) {
-        val cluster = remoteNode.getCluster()
-        if (cluster.isHeadNode()) {
-            cluster.getClusterListManager().synchronizeAllWithConnection(remoteNode.getConnection())
+    override fun onComponentJoin(remoteComponent: IRemoteClusterComponent) {
+        val cluster = remoteComponent.getCluster()
+        val shallSendLists = (cluster is INodeCluster && cluster.isHeadNode()) || remoteComponent is IRemoteClusterClient
+        if (shallSendLists) {
+            cluster.getClusterListManager().synchronizeAllWithPacketSender(remoteComponent.getPacketSender())
         }
     }
 
-    override fun onNodeLeave(remoteNode: IRemoteNode) {
+    override fun onComponentLeave(remoteComponent: IRemoteClusterComponent) {
 
     }
 }

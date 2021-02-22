@@ -25,7 +25,7 @@ package eu.thesimplecloud.clientserverapi.lib.handler.packet
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
+import eu.thesimplecloud.clientserverapi.lib.packet.PacketHeader
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -49,7 +49,7 @@ class IncomingPacketHandler(private val connection: AbstractConnection) {
             println("IncomingPacketHandler access blocked")
             return
         }
-        if (wrappedPacket.packetData.isResponse) {
+        if (wrappedPacket.packetHeader.isResponse) {
             handleResponsePacket(wrappedPacket)
         } else {
             GlobalScope.launch(Dispatchers.Default) {
@@ -59,16 +59,16 @@ class IncomingPacketHandler(private val connection: AbstractConnection) {
     }
 
     private fun hasAccess(wrappedPacket: WrappedPacket): Boolean {
-        if (wrappedPacket.packetData.isResponse) {
-            return isValidResponsePacket(connection, wrappedPacket.packetData)
+        if (wrappedPacket.packetHeader.isResponse) {
+            return isValidResponsePacket(connection, wrappedPacket.packetHeader)
         }
 
         return checkAccess(connection, wrappedPacket.packet)
     }
 
-    private fun isValidResponsePacket(connection: IConnection, packetData: PacketData): Boolean {
+    private fun isValidResponsePacket(connection: IConnection, packetHeader: PacketHeader): Boolean {
         val packetResponseManager = connection.getCommunicationBootstrap().getPacketResponseManager()
-        return packetResponseManager.isResponseHandlerAvailable(packetData.uniqueId)
+        return packetResponseManager.isResponseHandlerAvailable(packetHeader.uniqueId)
     }
 
     private fun checkAccess(connection: IConnection, packet: IPacket): Boolean {
@@ -101,7 +101,7 @@ class IncomingPacketHandler(private val connection: AbstractConnection) {
     }
 
     private fun sendResponsePacket(wrappedPacket: WrappedPacket, packetToSend: ObjectPacket<out Any>) {
-        val responseData = PacketData(wrappedPacket.packetData.uniqueId, packetToSend::class.java.simpleName, true)
+        val responseData = PacketHeader(wrappedPacket.packetHeader.uniqueId, packetToSend::class.java.simpleName, true)
         this.connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
     }
 

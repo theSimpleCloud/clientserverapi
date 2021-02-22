@@ -34,7 +34,7 @@ abstract class AbstractNettyConnection() : AbstractConnection() {
     @Synchronized
     override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>) {
         if (!isOpen()) {
-            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}.")
+            val exception = IOException("Connection is closed. Packet to send was ${wrappedPacket.packetHeader.sentPacketName}.")
             promise.tryFailure(exception)
             return
         }

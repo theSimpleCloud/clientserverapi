@@ -59,7 +59,7 @@ abstract class AbstractTestConnection(
     override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>) {
         if (!isOpen()) {
             val exception =
-                IOException("Connection is closed. Packet to send was ${wrappedPacket.packetData.sentPacketName}. This: ${this::class.java.name}")
+                IOException("Connection is closed. Packet to send was ${wrappedPacket.packetHeader.sentPacketName}. This: ${this::class.java.name}")
             promise.tryFailure(exception)
             return
         }

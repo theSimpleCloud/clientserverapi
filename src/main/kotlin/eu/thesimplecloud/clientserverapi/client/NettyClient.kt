@@ -30,8 +30,12 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOConnectionWillClose
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.impl.DefaultPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.impl.DefaultPacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.netty.NettyPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.netty.NettyPacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Address
@@ -47,8 +51,10 @@ import io.netty.handler.timeout.IdleStateHandler
 class NettyClient(
     address: Address,
     connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+    packetEncoder: IPacketEncoder = DefaultPacketEncoder(),
+    packetDecoder: IPacketDecoder = DefaultPacketDecoder(),
     cluster: ICluster? = null
-) : AbstractCommunicationBootstrap(address, connectionHandler, cluster), INettyClient {
+) : AbstractCommunicationBootstrap(address, connectionHandler, packetEncoder, packetDecoder, cluster), INettyClient {
 
     private var workerGroup: NioEventLoopGroup? = null
     private val clientConnection = ClientConnection(this)
@@ -70,9 +76,9 @@ class NettyClient(
                 val pipeline = channel.pipeline()
                 pipeline.addLast("idleStateHandler", IdleStateHandler(0, 0, 5)) // add with name
                 pipeline.addLast("frameDecoder", ProtobufVarint32FrameDecoder())
-                pipeline.addLast(PacketDecoder(instance, getPacketManager())) // add without name, name auto generated
+                pipeline.addLast(NettyPacketDecoder(instance)) // add without name, name auto generated
                 pipeline.addLast("frameEncoder", ProtobufVarint32LengthFieldPrepender())
-                pipeline.addLast(PacketEncoder(instance)) // add without name, name auto generated
+                pipeline.addLast(NettyPacketEncoder(instance)) // add without name, name auto generated
                 pipeline.addLast(NettyClientHandler(instance, getConnectionHandler()))
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
             }

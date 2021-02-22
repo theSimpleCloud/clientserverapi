@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.response
 
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketData
+import eu.thesimplecloud.clientserverapi.lib.packet.PacketHeader
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
@@ -71,7 +71,7 @@ class PacketResponseManagerTest {
         this.packetResponseManager.registerResponseHandler(uniqueId, wrappedResponseHandler)
 
         val incomingPacket = WrappedPacket(
-                PacketData(uniqueId, "ObjectPacket", true),
+                PacketHeader(uniqueId, "ObjectPacket", true),
                 ObjectPacket.getNewObjectPacketWithContent("test")
         )
 

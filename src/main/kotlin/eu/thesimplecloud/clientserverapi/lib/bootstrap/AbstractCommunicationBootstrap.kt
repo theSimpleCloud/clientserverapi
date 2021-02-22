@@ -38,6 +38,8 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
 import eu.thesimplecloud.clientserverapi.lib.list.manager.impl.ClientServerSyncListManager
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
@@ -57,6 +59,8 @@ import org.reflections.Reflections
 abstract class AbstractCommunicationBootstrap(
     private val address: Address,
     private val connectionHandler: IConnectionHandler,
+    private val packetEncoder: IPacketEncoder,
+    private val packetDecoder: IPacketDecoder,
     private val cluster: ICluster? = null
 ) : ICommunicationBootstrap {
 
@@ -73,7 +77,6 @@ abstract class AbstractCommunicationBootstrap(
 
     @Volatile
     private var accessHandler: IAccessHandler = AlwaysAllowAccessHandler()
-
 
     private val transferFileManager = TransferFileManager()
     private val directoryWatchManager = DirectoryWatchManager()
@@ -154,6 +157,14 @@ abstract class AbstractCommunicationBootstrap(
 
     override fun getPacketManager(): IPacketManager {
         return this.packetManager
+    }
+
+    override fun getPacketDecoder(): IPacketDecoder {
+        return this.packetDecoder
+    }
+
+    override fun getPacketEncoder(): IPacketEncoder {
+        return this.packetEncoder
     }
 
     override fun getConnectionHandler(): IConnectionHandler {

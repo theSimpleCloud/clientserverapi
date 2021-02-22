@@ -25,6 +25,7 @@ package eu.thesimplecloud.clientserverapi.testing
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 
 /**
  * Created by IntelliJ IDEA.
@@ -43,7 +44,7 @@ object ClusterAssert {
 
     fun assertPacketReceived(packetClass: Class<out IPacket>, cluster: ICluster) {
         val remoteNodes = cluster.getRemoteNodes()
-        val allConnections = remoteNodes.map { it.getConnection() }
+        val allConnections = remoteNodes.map { it.getPacketSender() }
         if (!allConnections.any { hasConnectionReceivedPacket(packetClass, it) }) {
             throw AssertionError("Cluster has not received packet ${packetClass.name}")
         }
@@ -51,26 +52,26 @@ object ClusterAssert {
 
     fun assertPacketReceived(packet: IPacket, cluster: ICluster) {
         val remoteNodes = cluster.getRemoteNodes()
-        val allConnections = remoteNodes.map { it.getConnection() }
-        if (!allConnections.any { hasConnectionReceivedPacket(packet, it) }) {
+        val allPackets = remoteNodes.map { it.getPacketSender() }
+        if (!allPackets.any { hasConnectionReceivedPacket(packet, it) }) {
             throw AssertionError("Cluster has not received packet $packet (${packet::class.java.name})")
         }
     }
 
-    private fun hasConnectionReceivedPacket(packetClass: Class<out IPacket>, connection: IConnection): Boolean {
-        ConnectionAssert.checkForTestConnection(connection)
+    private fun hasConnectionReceivedPacket(packetClass: Class<out IPacket>, sender: IPacketSender): Boolean {
+        ConnectionAssert.checkForTestConnection(sender)
         return try {
-            ConnectionAssert.assertPacketReceived(packetClass, connection)
+            ConnectionAssert.assertPacketReceived(packetClass, sender as IConnection)
             true
         } catch (e: Exception) {
             false
         }
     }
 
-    private fun hasConnectionReceivedPacket(packet: IPacket, connection: IConnection): Boolean {
-        ConnectionAssert.checkForTestConnection(connection)
+    private fun hasConnectionReceivedPacket(packet: IPacket, sender: IPacketSender): Boolean {
+        ConnectionAssert.checkForTestConnection(sender)
         return try {
-            ConnectionAssert.assertPacketReceived(packet, connection)
+            ConnectionAssert.assertPacketReceived(packet, sender as IConnection)
             true
         } catch (e: Exception) {
             false

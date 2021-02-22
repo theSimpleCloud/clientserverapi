@@ -25,14 +25,13 @@ package eu.thesimplecloud.clientserverapi.server.client.clientmanager
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 
 interface IClientManager{
 
     /**
      * Returns the [IConnectedClient] found by the specified [clientValue]
      */
-    fun <T : IConnectedClientValue> getClientByClientValue(name: String, clientValue: T): IConnectedClient?
+    fun <T> getClientByProperty(name: String, clientValue: T): IConnectedClient?
 
     /**
      * Sends the specified packet to all connected clients.

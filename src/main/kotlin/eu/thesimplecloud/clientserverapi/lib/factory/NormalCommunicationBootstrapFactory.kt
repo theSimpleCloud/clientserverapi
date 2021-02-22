@@ -45,7 +45,7 @@ class NormalCommunicationBootstrapFactory : ICommunicationBootstrapFactory {
         serverHandler: IServerHandler,
         cluster: ICluster?
     ): INettyServer {
-        return NettyServer(address, connectionHandler, serverHandler, cluster)
+        return NettyServer(address, connectionHandler, serverHandler, cluster = cluster)
     }
 
     override fun createClient(
@@ -53,7 +53,7 @@ class NormalCommunicationBootstrapFactory : ICommunicationBootstrapFactory {
         connectionHandler: IConnectionHandler,
         cluster: ICluster?
     ): INettyClient {
-        return NettyClient(address, connectionHandler, cluster)
+        return NettyClient(address, connectionHandler, cluster = cluster)
     }
 
 }

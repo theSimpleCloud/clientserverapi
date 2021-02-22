@@ -25,7 +25,7 @@ package eu.thesimplecloud.clientserverapi.cluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.PacketIOAuthentication
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import org.junit.After
 import org.junit.BeforeClass
@@ -43,7 +43,7 @@ class NodeAuthTest {
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+            CommunicationBootstrapFactoryGetter.setEnvironment(CommunicationBootstrapFactoryGetter.ApplicationEnvironment.TEST)
         }
     }
 
@@ -62,10 +62,10 @@ class NodeAuthTest {
     fun clusterWithDifferentVersion_ConnectionWillFail() {
         clusterOne =
             DefaultClusterFactory().createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1504))
-        clusterTwo = DefaultClusterFactory().joinCluster(
+        clusterTwo = DefaultClusterFactory().joinClusterAsNode(
             "2.0", SecretAuthProvider("123"),
             Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
+            listOf(Address("127.0.0.1", 1504))
         )
     }
 
@@ -73,10 +73,10 @@ class NodeAuthTest {
     fun clusterWithDifferentAuthKey_ConnectionWillFail() {
         clusterOne =
             DefaultClusterFactory().createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1504))
-        clusterTwo = DefaultClusterFactory().joinCluster(
+        clusterTwo = DefaultClusterFactory().joinClusterAsNode(
             "1.0", SecretAuthProvider("124"),
             Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
+            listOf(Address("127.0.0.1", 1504))
         )
     }
 
@@ -84,10 +84,10 @@ class NodeAuthTest {
     fun clusterWithMatchingVersionAndAuthKey_WillNotFail() {
         clusterOne =
             DefaultClusterFactory().createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1504))
-        clusterTwo = DefaultClusterFactory().joinCluster(
+        clusterTwo = DefaultClusterFactory().joinClusterAsNode(
             "1.0", SecretAuthProvider("123"),
             Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
+            listOf(Address("127.0.0.1", 1504))
         )
     }
 

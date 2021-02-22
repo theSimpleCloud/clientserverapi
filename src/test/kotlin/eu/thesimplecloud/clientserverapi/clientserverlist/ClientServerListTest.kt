@@ -23,7 +23,7 @@
 package eu.thesimplecloud.clientserverapi.clientserverlist
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import org.junit.*
@@ -40,7 +40,7 @@ class ClientServerListTest {
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+            CommunicationBootstrapFactoryGetter.setEnvironment(CommunicationBootstrapFactoryGetter.ApplicationEnvironment.TEST)
         }
     }
 
@@ -50,7 +50,7 @@ class ClientServerListTest {
 
     @Before
     fun setUp() {
-        val factory = BootstrapFactoryGetter.getFactory()
+        val factory = CommunicationBootstrapFactoryGetter.getFactory()
         server = factory.createServer(Address("127.0.0.1", 1630))
         clientOne = factory.createClient(Address("127.0.0.1", 1630))
         clientTwo = factory.createClient(Address("127.0.0.1", 1630))
@@ -172,7 +172,7 @@ class ClientServerListTest {
 
     @Test
     fun afterElementAddAndClientConnect_ClientWillSeeElement() {
-        val factory = BootstrapFactoryGetter.getFactory()
+        val factory = CommunicationBootstrapFactoryGetter.getFactory()
 
         this.clientOne.shutdown().syncUninterruptibly()
         val serverSyncList =

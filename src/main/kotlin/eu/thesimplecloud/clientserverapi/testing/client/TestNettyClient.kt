@@ -28,6 +28,10 @@ import eu.thesimplecloud.clientserverapi.lib.bootstrap.AbstractCommunicationBoot
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.impl.DefaultPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.impl.DefaultPacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Address
@@ -43,8 +47,10 @@ import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
 class TestNettyClient(
     address: Address,
     connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
+    packetEncoder: IPacketEncoder = DefaultPacketEncoder(),
+    packetDecoder: IPacketDecoder = DefaultPacketDecoder(),
     cluster: ICluster? = null
-) : AbstractCommunicationBootstrap(address, connectionHandler, cluster), INettyClient {
+) : AbstractCommunicationBootstrap(address, connectionHandler, packetEncoder, packetDecoder, cluster), INettyClient {
 
     private val clientConnection = TestClientConnection(this)
 

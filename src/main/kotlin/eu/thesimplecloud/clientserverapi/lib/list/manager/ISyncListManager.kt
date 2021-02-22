@@ -22,8 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.list.manager
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.list.ISyncList
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
 /**
@@ -41,6 +41,6 @@ interface ISyncListManager {
 
     fun <T : Identifiable> getSyncListByNameOrCreate(name: String): ISyncList<T>
 
-    fun synchronizeAllWithConnection(connection: IConnection)
+    fun synchronizeAllWithPacketSender(packetSender: IPacketSender)
 
 }

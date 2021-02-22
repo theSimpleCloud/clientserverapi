@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.adapter
 
-import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,13 +33,13 @@ import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
 interface IClusterListenerAdapter {
 
     /**
-     * Gets called when a node joins
+     * Gets called when a component joins the cluster
      */
-    fun onNodeJoin(remoteNode: IRemoteNode)
+    fun onComponentJoin(remoteComponent: IRemoteClusterComponent)
 
     /**
-     * Gets called when a node leaves
+     * Gets called when a component leaves the cluster
      */
-    fun onNodeLeave(remoteNode: IRemoteNode)
+    fun onComponentLeave(remoteComponent: IRemoteClusterComponent)
 
 }

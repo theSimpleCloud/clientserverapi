@@ -22,11 +22,9 @@
 
 package eu.thesimplecloud.clientserverapi.testing.server
 
-import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import eu.thesimplecloud.clientserverapi.testing.AbstractTestConnection
 import eu.thesimplecloud.clientserverapi.testing.NetworkTestManager
 
@@ -42,18 +40,8 @@ class TestConnectedClient(
         otherSideConnection: IConnection
 ) : AbstractTestConnection(NetworkTestManager.generateRandomPortForClient()), IConnectedClient {
 
-    private val nameToClientValue = Maps.newConcurrentMap<String, IConnectedClientValue>()
-
     init {
         this.otherSideConnection = otherSideConnection
-    }
-
-    override fun <T : IConnectedClientValue> getClientValue(name: String): T? {
-        return this.nameToClientValue[name] as T?
-    }
-
-    override fun <T : IConnectedClientValue> setClientValue(name: String, connectedClientValue: T) {
-        this.nameToClientValue[name] = connectedClientValue
     }
 
     override fun getCommunicationBootstrap(): INettyServer {

@@ -43,7 +43,7 @@ open class DefaultConnectionHandler : IConnectionHandler {
 
     private fun synchronizeSyncLists(connection: IConnection) {
         val syncListManager = connection.getCommunicationBootstrap().getClientServerSyncListManager()
-        syncListManager.synchronizeAllWithConnection(connection)
+        syncListManager.synchronizeAllWithPacketSender(connection)
     }
 
     override fun onFailure(connection: IConnection, ex: Throwable) {

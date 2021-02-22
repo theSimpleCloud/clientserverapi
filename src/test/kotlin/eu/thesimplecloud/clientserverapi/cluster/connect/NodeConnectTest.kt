@@ -24,7 +24,7 @@ package eu.thesimplecloud.clientserverapi.cluster.connect
 
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.testing.ClusterAssert
 import org.junit.Assert
@@ -43,7 +43,7 @@ class NodeConnectTest {
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+            CommunicationBootstrapFactoryGetter.setEnvironment(CommunicationBootstrapFactoryGetter.ApplicationEnvironment.TEST)
         }
     }
 
@@ -64,11 +64,11 @@ class NodeConnectTest {
         val clusterFactory = DefaultClusterFactory()
         val cluster = clusterFactory.createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1600))
 
-        val otherCluster = clusterFactory.joinCluster(
+        val otherCluster = clusterFactory.joinClusterAsNode(
             "1.0",
             SecretAuthProvider("123"),
             Address("127.0.0.1", 1602),
-            Address("127.0.0.1", 1600)
+            listOf(Address("127.0.0.1", 1600))
         )
 
         ClusterAssert.assertRemoteNodeCount(1, cluster)
@@ -84,25 +84,25 @@ class NodeConnectTest {
         val clusterFactory = DefaultClusterFactory()
         val cluster = clusterFactory.createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1600))
 
-        val otherCluster = clusterFactory.joinCluster(
+        val otherCluster = clusterFactory.joinClusterAsNode(
             "1.0",
             SecretAuthProvider("123"),
             Address("127.0.0.1", 1601),
-            Address("127.0.0.1", 1600)
+            listOf(Address("127.0.0.1", 1600))
         )
 
-        val otherCluster2 = clusterFactory.joinCluster(
+        val otherCluster2 = clusterFactory.joinClusterAsNode(
             "1.0",
             SecretAuthProvider("123"),
             Address("127.0.0.1", 1602),
-            Address("127.0.0.1", 1600)
+            listOf(Address("127.0.0.1", 1600))
         )
 
-        val otherCluster3 = clusterFactory.joinCluster(
+        val otherCluster3 = clusterFactory.joinClusterAsNode(
             "1.0",
             SecretAuthProvider("123"),
             Address("127.0.0.1", 1603),
-            Address("127.0.0.1", 1600)
+            listOf(Address("127.0.0.1", 1600))
         )
 
         ClusterAssert.assertRemoteNodeCount(3, cluster)

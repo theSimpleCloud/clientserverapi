@@ -26,7 +26,7 @@ import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.TestListObj
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import org.junit.*
 
@@ -42,7 +42,7 @@ class ClusterListTest {
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+            CommunicationBootstrapFactoryGetter.setEnvironment(CommunicationBootstrapFactoryGetter.ApplicationEnvironment.TEST)
         }
     }
 
@@ -56,10 +56,10 @@ class ClusterListTest {
             SecretAuthProvider("123"),
             Address("127.0.0.1", 1504)
         )
-        clusterTwo = DefaultClusterFactory().joinCluster(
+        clusterTwo = DefaultClusterFactory().joinClusterAsNode(
             "1.0", SecretAuthProvider("123"),
             Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
+            listOf(Address("127.0.0.1", 1504))
         )
     }
 
@@ -125,10 +125,10 @@ class ClusterListTest {
         val element = TestListObj("one", 35)
         clusterList.addElement(element).syncUninterruptibly()
 
-        clusterTwo = DefaultClusterFactory().joinCluster(
+        clusterTwo = DefaultClusterFactory().joinClusterAsNode(
             "1.0", SecretAuthProvider("123"),
             Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504)
+            listOf(Address("127.0.0.1", 1504))
         )
 
         val clusterListOther = clusterTwo.getClusterListManager().getSyncListByName<TestListObj>("test")!!

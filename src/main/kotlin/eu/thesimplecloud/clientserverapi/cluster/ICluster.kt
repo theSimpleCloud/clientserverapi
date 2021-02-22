@@ -24,14 +24,16 @@ package eu.thesimplecloud.clientserverapi.cluster
 
 import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.node.INode
-import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
-import eu.thesimplecloud.clientserverapi.cluster.node.ISelfNode
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.cluster.component.IClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.component.ISelfClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.component.node.INode
+import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.packetsender.IClientsPacketSender
+import eu.thesimplecloud.clientserverapi.cluster.packetsender.INodesPacketSender
 import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 
 /**
  * Created by IntelliJ IDEA.
@@ -47,27 +49,34 @@ interface ICluster {
     fun getHeadNode(): INode
 
     /**
-     * Returns the self node
+     * Returns the self component
      */
-    fun getSelfNode(): ISelfNode
+    fun getSelfComponent(): ISelfClusterComponent
+
+    /**
+     * Returns all components connected to this cluster
+     */
+    fun getComponents(): List<IClusterComponent>
+
+    /**
+    * Returns all remote components connected to this cluster
+    */
+    fun getRemoteComponents(): List<IRemoteClusterComponent> {
+        return getComponents().filterIsInstance<IRemoteClusterComponent>()
+    }
 
     /**
      * Returns all nodes connected to this cluster
      */
-    fun getNodes(): List<INode>
+    fun getNodes(): List<INode> {
+        return getComponents().filterIsInstance<INode>()
+    }
 
     /**
      * Returns all remote nodes
      */
     fun getRemoteNodes(): List<IRemoteNode> {
-        return getNodes().filterIsInstance<IRemoteNode>()
-    }
-
-    /**
-     * Returns whether this node is the head node
-     */
-    fun isHeadNode(): Boolean {
-        return getSelfNode() === getHeadNode()
+        return getComponents().filterIsInstance<IRemoteNode>()
     }
 
     /**
@@ -91,18 +100,21 @@ interface ICluster {
     fun removeListener(listener: IClusterListenerAdapter)
 
     /**
-     * Returns the [IRemoteNode] found by the specified connection
+     * Returns the [IRemoteClusterComponent] found by the specified connection
      */
-    fun getNodeByConnection(connection: IConnection): IRemoteNode? {
-        return getRemoteNodes().firstOrNull { it.getConnection() === connection }
+    fun getComponentByPacketSender(sender: IPacketSender): IRemoteClusterComponent? {
+        return getRemoteComponents().firstOrNull { it.getPacketSender() === sender }
     }
 
     /**
-     * Sends a packet to all connected nodes
+     * Returns the [INodesPacketSender] used to send packets to all nodes in the cluster
      */
-    fun sendPacketToAllNodes(packet: IPacket): ICommunicationPromise<Unit> {
-        return getRemoteNodes().map { it.getConnection() }.map { it.sendUnitQuery(packet) }.combineAllPromises()
-    }
+    fun getNodesPacketSender(): INodesPacketSender
+
+    /**
+     * Returns the [IClientsPacketSender] used to send packets to all clients in the cluster
+     */
+    fun getClientsPacketSender(): IClientsPacketSender
 
     /**
      * Returns the version of this cluster

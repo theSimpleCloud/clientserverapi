@@ -25,7 +25,7 @@ package eu.thesimplecloud.clientserverapi.cluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.impl.SecretAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.factory.DefaultClusterFactory
 import eu.thesimplecloud.clientserverapi.cluster.packet.PacketIOTest
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.testing.ClusterAssert
 import org.junit.After
@@ -45,7 +45,7 @@ class NodePacketTest {
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+            CommunicationBootstrapFactoryGetter.setEnvironment(CommunicationBootstrapFactoryGetter.ApplicationEnvironment.TEST)
         }
     }
 
@@ -60,10 +60,11 @@ class NodePacketTest {
             Address("127.0.0.1", 1504),
             listOf("eu.thesimplecloud.clientserverapi.node.packet")
         )
-        clusterTwo = DefaultClusterFactory().joinCluster(
-            "1.0", SecretAuthProvider("123"),
+        clusterTwo = DefaultClusterFactory().joinClusterAsNode(
+            "1.0",
+            SecretAuthProvider("123"),
             Address("127.0.0.1", 1505),
-            Address("127.0.0.1", 1504),
+            listOf(Address("127.0.0.1", 1504)),
             listOf("eu.thesimplecloud.clientserverapi.node.packet")
         )
     }
@@ -83,14 +84,14 @@ class NodePacketTest {
 
     @Test
     fun whenPacketWasSent_DoNotFail() {
-        this.clusterTwo.sendPacketToAllNodes(PacketIOTest("test2")).syncUninterruptibly()
+        this.clusterTwo.getNodesPacketSender().sendUnitQuery(PacketIOTest("test2")).syncUninterruptibly()
         ClusterAssert.assertPacketReceived(PacketIOTest::class.java, clusterOne)
     }
 
     @Test
     fun whenPacketWasSent_DoNotFail2() {
         val packet = PacketIOTest("test2")
-        this.clusterTwo.sendPacketToAllNodes(packet).syncUninterruptibly()
+        this.clusterTwo.getNodesPacketSender().sendUnitQuery(packet).syncUninterruptibly()
         ClusterAssert.assertPacketReceived(packet, clusterOne)
     }
 

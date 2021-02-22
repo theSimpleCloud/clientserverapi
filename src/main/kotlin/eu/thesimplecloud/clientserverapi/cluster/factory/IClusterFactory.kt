@@ -22,8 +22,9 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.factory
 
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
+import eu.thesimplecloud.clientserverapi.cluster.type.IClientCluster
+import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 
 /**
@@ -39,14 +40,21 @@ interface IClusterFactory {
         authProvider: IClusterAuthProvider,
         bindAddress: Address,
         packetsPackages: List<String> = emptyList()
-    ): ICluster
+    ): INodeCluster
 
-    fun joinCluster(
+    fun joinClusterAsNode(
         version: String,
         authProvider: IClusterAuthProvider,
         bindAddress: Address,
+        connectAddresses: List<Address>,
+        packetsPackages: List<String> = emptyList()
+    ): INodeCluster
+
+    fun joinClusterAsClient(
+        version: String,
+        authProvider: IClusterAuthProvider,
         connectAddress: Address,
         packetsPackages: List<String> = emptyList()
-    ): ICluster
+    ): IClientCluster
 
 }

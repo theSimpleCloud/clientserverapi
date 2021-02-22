@@ -24,9 +24,9 @@ package eu.thesimplecloud.clientserverapi.lib.list.manager.impl
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist.PacketIOAddElementToClusterList
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.list.ISyncList
 import eu.thesimplecloud.clientserverapi.lib.list.impl.ClusterSyncList
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
@@ -44,10 +44,10 @@ class ClusterSyncListManager(
         return ClusterSyncList<T>(cluster, name)
     }
 
-    override fun synchronizeAllWithConnection(connection: IConnection) {
+    override fun synchronizeAllWithPacketSender(packetSender: IPacketSender) {
         this.nameToSyncList.forEach { name, list ->
-            list.getAllElements().map { connection.sendUnitQuery(PacketIOAddElementToClusterList(name, it)) }
-                .combineAllPromises().awaitUninterruptibly()
+            list.getAllElements().map { packetSender.sendUnitQuery(PacketIOAddElementToClusterList(name, it)) }
+                    .combineAllPromises().awaitUninterruptibly()
         }
     }
 

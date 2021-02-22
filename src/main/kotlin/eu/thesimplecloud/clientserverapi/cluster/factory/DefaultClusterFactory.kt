@@ -22,9 +22,11 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.factory
 
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.impl.DefaultCluster
+import eu.thesimplecloud.clientserverapi.cluster.type.IClientCluster
+import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
+import eu.thesimplecloud.clientserverapi.cluster.type.client.DefaultClientCluster
+import eu.thesimplecloud.clientserverapi.cluster.type.node.DefaultNodeCluster
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 
 /**
@@ -34,24 +36,32 @@ import eu.thesimplecloud.clientserverapi.lib.util.Address
  * @author Frederick Baier
  */
 class DefaultClusterFactory : IClusterFactory {
-
     override fun createNewCluster(
         version: String,
         authProvider: IClusterAuthProvider,
         bindAddress: Address,
         packetsPackages: List<String>
-    ): ICluster {
-        return DefaultCluster(version, authProvider, bindAddress, packetsPackages)
+    ): INodeCluster {
+        return DefaultNodeCluster(version, authProvider, bindAddress, emptyList(), packetsPackages)
     }
 
-    override fun joinCluster(
+    override fun joinClusterAsNode(
         version: String,
         authProvider: IClusterAuthProvider,
         bindAddress: Address,
+        connectAddresses: List<Address>,
+        packetsPackages: List<String>
+    ): INodeCluster {
+        return DefaultNodeCluster(version, authProvider, bindAddress, connectAddresses, packetsPackages)
+    }
+
+    override fun joinClusterAsClient(
+        version: String,
+        authProvider: IClusterAuthProvider,
         connectAddress: Address,
         packetsPackages: List<String>
-    ): ICluster {
-        return DefaultCluster(version, authProvider, bindAddress, packetsPackages, connectAddress)
+    ): IClientCluster {
+        return DefaultClientCluster(version, authProvider, connectAddress, packetsPackages)
     }
 
 

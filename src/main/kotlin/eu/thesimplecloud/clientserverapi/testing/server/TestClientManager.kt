@@ -24,7 +24,6 @@ package eu.thesimplecloud.clientserverapi.testing.server
 
 import eu.thesimplecloud.clientserverapi.server.client.clientmanager.IClientManager
 import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClient
-import eu.thesimplecloud.clientserverapi.server.client.connectedclient.IConnectedClientValue
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -37,8 +36,8 @@ class TestClientManager: IClientManager {
 
     private val clients = CopyOnWriteArrayList<IConnectedClient>()
 
-    override fun <T : IConnectedClientValue> getClientByClientValue(name: String, clientValue: T): IConnectedClient? {
-        return this.clients.firstOrNull { it.getClientValue<T>(name) == clientValue }
+    override fun <T> getClientByProperty(name: String, clientValue: T): IConnectedClient? {
+        return this.clients.firstOrNull { it.getProperty<T>(name) == clientValue }
     }
 
     override fun getClients(): Collection<IConnectedClient> {

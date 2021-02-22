@@ -24,7 +24,7 @@ package eu.thesimplecloud.clientserverapi.testing
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
 import eu.thesimplecloud.clientserverapi.cluster.packet.PacketIOTest
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 import org.junit.After
@@ -45,9 +45,9 @@ class TestingTest {
 
     @Before
     fun before() {
-        BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST)
+        CommunicationBootstrapFactoryGetter.setEnvironment(CommunicationBootstrapFactoryGetter.ApplicationEnvironment.TEST)
 
-        val factory = BootstrapFactoryGetter.getFactory()
+        val factory = CommunicationBootstrapFactoryGetter.getFactory()
         val address = Address("127.0.0.1", 4000)
         server = factory.createServer(address)
         server.addPacketsByPackage("eu.thesimplecloud.clientserverapi.testing.packets")

@@ -23,7 +23,7 @@
 package eu.thesimplecloud.clientserverapi.cluster.auth
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
 
 /**
  * Created by IntelliJ IDEA.

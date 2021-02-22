@@ -31,8 +31,12 @@ import eu.thesimplecloud.clientserverapi.lib.handler.DefaultConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.DefaultServerHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 import eu.thesimplecloud.clientserverapi.lib.handler.IServerHandler
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketDecoder
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.impl.DefaultPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.impl.DefaultPacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.netty.NettyPacketDecoder
+import eu.thesimplecloud.clientserverapi.lib.packet.codec.netty.NettyPacketEncoder
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Address
@@ -54,8 +58,10 @@ class NettyServer(
     address: Address,
     connectionHandler: IConnectionHandler = DefaultConnectionHandler(),
     private val serverHandler: IServerHandler = DefaultServerHandler(),
+    packetEncoder: IPacketEncoder = DefaultPacketEncoder(),
+    packetDecoder: IPacketDecoder = DefaultPacketDecoder(),
     cluster: ICluster? = null
-) : AbstractCommunicationBootstrap(address, connectionHandler, cluster), INettyServer {
+) : AbstractCommunicationBootstrap(address, connectionHandler, packetEncoder, packetDecoder, cluster), INettyServer {
 
     private var bossGroup: NioEventLoopGroup? = null
     private var workerGroup: NioEventLoopGroup? = null
@@ -81,11 +87,15 @@ class NettyServer(
             override fun initChannel(ch: SocketChannel) {
                 val pipeline = ch.pipeline()
                 pipeline.addLast("frameDecoder", ProtobufVarint32FrameDecoder())
-                pipeline.addLast(PacketDecoder(instance, getPacketManager()))
+                pipeline.addLast(NettyPacketDecoder(instance))
                 pipeline.addLast("frameEncoder", ProtobufVarint32LengthFieldPrepender())
-                pipeline.addLast(PacketEncoder(instance))
+                pipeline.addLast(NettyPacketEncoder(instance))
                 //pipeline.addLast("streamer", ChunkedWriteHandler())
-                pipeline.addLast(eventExecutorGroup, "serverHandler", NettyServerHandler(instance, getConnectionHandler()))
+                pipeline.addLast(
+                    eventExecutorGroup,
+                    "serverHandler",
+                    NettyServerHandler(instance, getConnectionHandler())
+                )
                 pipeline.addLast(LoggingHandler(LogLevel.DEBUG))
 
             }

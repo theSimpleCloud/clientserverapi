@@ -23,7 +23,9 @@
 package eu.thesimplecloud.clientserverapi.cluster.packets.auth.secret
 
 import eu.thesimplecloud.clientserverapi.cluster.auth.ISecretClusterAuthProvider
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.IAuthDTO
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.PacketIOAuthentication
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ComponentDTO
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 
 /**
@@ -32,16 +34,17 @@ import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
  * Time: 12:43
  * @author Frederick Baier
  */
-class PacketIOSecretAuth() : PacketIOAuthentication<SecretAuthNodeInfo>() {
+class PacketIOSecretAuth : PacketIOAuthentication {
 
-    constructor(value: SecretAuthNodeInfo) : this() {
-        this.value = value
-    }
+    constructor() : super()
 
-    override fun handleAuth(connection: IConnection, value: SecretAuthNodeInfo): Boolean {
+    constructor(authDTO: IAuthDTO, componentDTO: ComponentDTO) : super(authDTO, componentDTO)
+
+    override fun handleAuth(connection: IConnection, authDTO: IAuthDTO): Boolean {
+        authDTO as SecretAuthDTO
         val cluster = connection.getCommunicationBootstrap().getCluster()!!
         val authProvider = cluster.getAuthProvider() as ISecretClusterAuthProvider
-        return authProvider.authenticate(connection, value.secret)
+        return authProvider.authenticate(connection, authDTO.secret)
     }
 
 }

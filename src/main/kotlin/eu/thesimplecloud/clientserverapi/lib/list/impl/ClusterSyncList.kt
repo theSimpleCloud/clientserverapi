@@ -41,10 +41,12 @@ class ClusterSyncList<T : Identifiable>(
     private val name: String
 ) : AbstractSyncList<T>() {
 
+    private val nodesPacketSender = cluster.getNodesPacketSender()
+
     override fun addElement(element: T, fromPacket: Boolean): ICommunicationPromise<Unit> {
         super.addElement(element, fromPacket)
         if (!fromPacket) {
-            return cluster.sendPacketToAllNodes(PacketIOAddElementToClusterList(name, element))
+            return nodesPacketSender.sendUnitQuery(PacketIOAddElementToClusterList(name, element))
         }
         return CommunicationPromise.UNIT_PROMISE
     }
@@ -52,13 +54,13 @@ class ClusterSyncList<T : Identifiable>(
     override fun removeElement(identifier: Any, fromPacket: Boolean): ICommunicationPromise<Unit> {
         super.removeElement(identifier, fromPacket)
         if (!fromPacket) {
-            return cluster.sendPacketToAllNodes(PacketIORemoveElementFromClusterList(name, identifier))
+            return nodesPacketSender.sendUnitQuery(PacketIORemoveElementFromClusterList(name, identifier))
         }
         return CommunicationPromise.UNIT_PROMISE
     }
 
     override fun updateElement(cachedValue: T): ICommunicationPromise<Unit> {
         val changesJson = updateElement0(cachedValue)
-        return cluster.sendPacketToAllNodes(PacketIOUpdateElementFromClusterList(name, changesJson))
+        return nodesPacketSender.sendUnitQuery(PacketIOUpdateElementFromClusterList(name, changesJson))
     }
 }

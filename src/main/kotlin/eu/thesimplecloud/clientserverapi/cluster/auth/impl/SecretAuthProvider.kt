@@ -24,10 +24,15 @@ package eu.thesimplecloud.clientserverapi.cluster.auth.impl
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.auth.ISecretClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.node.IRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.component.node.ISelfNode
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ClientComponentDTO
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ComponentDTO
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.NodeComponentDTO
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.secret.PacketIOSecretAuth
-import eu.thesimplecloud.clientserverapi.cluster.packets.auth.secret.SecretAuthNodeInfo
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.secret.SecretAuthDTO
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import java.util.*
 
 /**
  * Created by IntelliJ IDEA.
@@ -44,14 +49,42 @@ class SecretAuthProvider(
     }
 
     override fun authenticateOnRemoteNodes(cluster: ICluster, remoteNodes: List<IRemoteNode>) {
-        val ownServerAddress = cluster.getSelfNode().getServer().getAddress()
-        val startupTime = cluster.getSelfNode().getStartupTime()
-        val version = cluster.getVersion()
-        remoteNodes.forEach {
-            it.getConnection().setAuthenticated(true)
-            it.getConnection().sendUnitQuery(
-                PacketIOSecretAuth(SecretAuthNodeInfo(version, ownServerAddress, startupTime, secret)), 5000
-            ).syncUninterruptibly()
+        val selfComponent = cluster.getSelfComponent()
+        if (selfComponent is ISelfNode) {
+            authenticateAsNode(selfComponent, cluster, remoteNodes)
+        } else {
+            authenticateAsClient(cluster, remoteNodes.first())
         }
+    }
+
+    private fun authenticateAsClient(
+        cluster: ICluster,
+        remoteNode: IRemoteNode
+    ) {
+        val version = cluster.getVersion()
+        val clientComponent = ClientComponentDTO(version, UUID.randomUUID())
+        authenticateOnNode(remoteNode, clientComponent)
+    }
+
+    private fun authenticateAsNode(
+        selfComponent: ISelfNode,
+        cluster: ICluster,
+        remoteNodes: List<IRemoteNode>
+    ) {
+        val ownServerAddress = selfComponent.getServer().getAddress()
+        val startupTime = selfComponent.getStartupTime()
+        val version = cluster.getVersion()
+        val nodeComponent = NodeComponentDTO(version, ownServerAddress, startupTime, UUID.randomUUID())
+        remoteNodes.forEach {
+            authenticateOnNode(it, nodeComponent)
+        }
+    }
+
+    private fun authenticateOnNode(remoteNode: IRemoteNode, component: ComponentDTO) {
+        val connection = remoteNode.getPacketSender() as IConnection
+        connection.setAuthenticated(true)
+        connection.sendUnitQuery(
+                PacketIOSecretAuth(SecretAuthDTO(secret), component), 5000
+        ).syncUninterruptibly()
     }
 }

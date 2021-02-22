@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.directorysync
 
-import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -32,7 +32,7 @@ import java.io.File
 class DirectorySyncTest2 {
 
 
-    val factory = BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST).getFactory()
+    val factory = CommunicationBootstrapFactoryGetter.setEnvironment(CommunicationBootstrapFactoryGetter.ApplicationEnvironment.TEST).getFactory()
 
     var nettyServer = factory.createServer(Address("127.0.0.1", 1919))
     var nettyClient = factory.createClient(Address("127.0.0.1", 1919))
