@@ -22,6 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.component
 
+import eu.thesimplecloud.clientserverapi.lib.util.ICommunicationBootstrapGetter
+
 /**
  * Created by IntelliJ IDEA.
  * Date: 15/02/2021
@@ -31,4 +33,4 @@ package eu.thesimplecloud.clientserverapi.cluster.component
  * Represents the self component
  *
  */
-interface ISelfClusterComponent : IClusterComponent
+interface ISelfClusterComponent : IClusterComponent, ICommunicationBootstrapGetter

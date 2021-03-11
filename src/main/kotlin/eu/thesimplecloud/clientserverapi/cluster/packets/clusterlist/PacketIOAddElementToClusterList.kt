@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
@@ -41,12 +41,12 @@ class PacketIOAddElementToClusterList() : JsonPacket() {
             .append("item", JsonSerializedClass(clusterListItem))
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
         val name = this.jsonLib.getString("name") ?: return contentException("name")
         val jsonSerializedClass = this.jsonLib.getObject("item", JsonSerializedClass::class.java) ?: return contentException("item")
         val value = jsonSerializedClass.getValue() as Identifiable
 
-        val cluster = connection.getCommunicationBootstrap().getCluster()!!
+        val cluster = sender.getCommunicationBootstrap().getCluster()!!
         val clusterList = cluster.getClusterListManager().getSyncListByNameOrCreate<Identifiable>(name)
         clusterList.addElement(value, true)
         return unit()

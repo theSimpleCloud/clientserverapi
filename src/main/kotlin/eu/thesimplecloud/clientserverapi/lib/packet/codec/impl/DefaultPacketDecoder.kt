@@ -23,12 +23,12 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.codec.impl
 
 import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketHeader
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketDecoder
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.jsonlib.JsonLib
 import io.netty.buffer.ByteBuf
@@ -39,10 +39,10 @@ import io.netty.buffer.ByteBuf
  * Time: 13:33
  * @author Frederick Baier
  */
-class DefaultPacketDecoder: IPacketDecoder {
+class DefaultPacketDecoder : IPacketDecoder {
 
-    override fun decode(connection: IConnection, byteBuf: ByteBuf): WrappedPacket {
-        val packetManager = connection.getCommunicationBootstrap().getPacketManager()
+    override fun decode(sender: IPacketSender, byteBuf: ByteBuf): WrappedPacket {
+        val packetManager = sender.getCommunicationBootstrap().getPacketManager()
 
         val receivedString = ByteBufStringHelper.nextString(byteBuf)
         val jsonLib = JsonLib.fromJsonString(receivedString)
@@ -52,7 +52,7 @@ class DefaultPacketDecoder: IPacketDecoder {
 
         val packet = if (packetData.isResponse) {
             val objectPacket = ObjectPacket.getNewEmptyObjectPacket<Any>()
-            objectPacket.read(byteBuf, connection.getCommunicationBootstrap())
+            objectPacket.read(byteBuf, sender)
             objectPacket
         } else {
             val packetClass: Class<out IPacket>? =
@@ -64,7 +64,7 @@ class DefaultPacketDecoder: IPacketDecoder {
             }
             val packet = packetClass.newInstance()
             try {
-                packet.read(byteBuf, connection.getCommunicationBootstrap())
+                packet.read(byteBuf, sender)
             } catch (e: Exception) {
                 throw PacketException("An error occurred while reading packet: ${packetClass.name}")
             }

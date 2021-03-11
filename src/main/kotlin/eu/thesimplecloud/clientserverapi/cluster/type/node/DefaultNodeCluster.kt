@@ -23,7 +23,6 @@
 package eu.thesimplecloud.clientserverapi.cluster.type.node
 
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
 import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.component.node.ISelfNode
 import eu.thesimplecloud.clientserverapi.cluster.component.node.impl.DefaultSelfNode
@@ -32,6 +31,7 @@ import eu.thesimplecloud.clientserverapi.cluster.packetsender.impl.DefaultSelfCl
 import eu.thesimplecloud.clientserverapi.cluster.type.AbstractCluster
 import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 
 /**
@@ -53,31 +53,31 @@ class DefaultNodeCluster(
     private val selfClientsPacketSender = DefaultSelfClientsPacketSender(this)
 
     init {
-        val allRemoteNodes = if (connectAddresses.isEmpty()) {
+        println("------------Node with id ${selfNode.getUniqueId()}")
+        if (connectAddresses.isEmpty()) {
             emptyList<IRemoteNode>()
         } else {
             connectToCluster(connectAddresses, packetsPackages)
         }
 
-        this.remoteComponents.addAll(allRemoteNodes)
-
         try {
-            this.getAuthProvider().authenticateOnRemoteNodes(this, getRemoteNodes())
+            this.getAuthProvider().authenticateOnRemoteNodes(this, this.componentManager.getRemoteNodes())
         } catch (e: Exception) {
             selfNode.getServer().shutdown()
             throw e
         }
     }
 
-    private fun connectToCluster(connectAddresses: List<Address>, packetsPackages: List<String>): List<IRemoteNode> {
+    private fun connectToCluster(connectAddresses: List<Address>, packetsPackages: List<String>) {
         connectAddresses.forEach {
             try {
-                return ClusterConnector(this, it, packetsPackages, ClusterConnector.ConnectMethod.ALL_NODES).connectToNodes()
+                ClusterConnector(this, it, packetsPackages, ClusterConnector.ConnectMethod.ALL_NODES).connectToCluster()
+                return
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-       return emptyList()
+
     }
 
     override fun getSelfComponent(): ISelfNode {
@@ -89,15 +89,10 @@ class DefaultNodeCluster(
     }
 
     override fun shutdown(): ICommunicationPromise<Unit> {
-        return selfNode.getServer().shutdown()
-    }
-
-    override fun onComponentJoin(remoteComponent: IRemoteClusterComponent) {
-        this.remoteComponents.add(remoteComponent)
-    }
-
-    override fun onComponentLeave(remoteComponent: IRemoteClusterComponent) {
-        this.remoteComponents.remove(remoteComponent)
+        val remoteNodes = this.getComponentManager().getRemoteNodes()
+        val shutdownPromises = remoteNodes.map { it.getPacketSender().getCommunicationBootstrap().shutdown() }
+        val serverShutdownPromise = selfNode.getServer().shutdown()
+        return shutdownPromises.union(listOf(serverShutdownPromise)).combineAllPromises()
     }
 
 }

@@ -22,16 +22,15 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.packets.auth
 
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
-import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
-import eu.thesimplecloud.clientserverapi.cluster.component.client.impl.DefaultRemoteClusterClient
-import eu.thesimplecloud.clientserverapi.cluster.component.node.INode
-import eu.thesimplecloud.clientserverapi.cluster.component.node.impl.DefaultRemoteNode
+import eu.thesimplecloud.clientserverapi.cluster.component.factory.ClusterComponentFactory
 import eu.thesimplecloud.clientserverapi.cluster.component.type.ClusterComponentType
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ClientComponentDTO
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ComponentDTO
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.NodeComponentDTO
+import eu.thesimplecloud.clientserverapi.cluster.type.AbstractCluster
+import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
@@ -52,71 +51,37 @@ abstract class PacketIOAuthentication : JsonPacket {
             .append("componentDTO", componentDTO)
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
-
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
+        if (sender !is IConnection)
+            throw IllegalStateException("Cannot handle authentication for just a packet sender")
         val clusterComponentType = this.jsonLib.getObject("type", ClusterComponentType::class.java)
             ?: return contentException("type")
         val componentDTO = when (clusterComponentType) {
             ClusterComponentType.NODE -> this.jsonLib.getObject("componentDTO", NodeComponentDTO::class.java)!!
             ClusterComponentType.CLIENT -> this.jsonLib.getObject("componentDTO", ClientComponentDTO::class.java)!!
         }
-        val cluster = connection.getCommunicationBootstrap().getCluster()!!
-        println(cluster.getVersion())
-        println(componentDTO.version)
+        val cluster = sender.getCommunicationBootstrap().getCluster()!!
+        cluster as AbstractCluster
+        cluster as INodeCluster
         if (componentDTO.version != cluster.getVersion()) {
             return failure(NotTheSameVersionException())
         }
         val authDTOClass = Class.forName(this.jsonLib.getString("authDTOClassName"))
         val authDTO = this.jsonLib.getObject("authDTO", authDTOClass) as IAuthDTO
-        val authSuccess = handleAuth(connection, authDTO)
+        val authSuccess = handleAuth(sender, authDTO)
         if (!authSuccess) {
             return failure(AuthFailedException())
         }
 
-        connection.setAuthenticated(true)
-        val remoteComponent = createClusterComponent(connection, componentDTO)
-        connection.setProperty("type", clusterComponentType)
-        connection.setProperty("component", remoteComponent)
-        cluster.getClusterListeners().forEach { it.onComponentJoin(remoteComponent) }
+        sender.setAuthenticated(true)
+        val remoteComponent = ClusterComponentFactory.createComponent(sender, componentDTO)
+        sender.setProperty("type", clusterComponentType)
+        sender.setProperty("component", remoteComponent)
+        cluster.onComponentJoin(remoteComponent, cluster.getSelfComponent())
         return unit()
     }
 
-    private fun createClusterComponent(connection: IConnection, componentDTO: ComponentDTO): IRemoteClusterComponent {
-        val cluster = connection.getCommunicationBootstrap().getCluster()!!
-        if (componentDTO is NodeComponentDTO) {
-            return createDefaultNode(connection, cluster, componentDTO)
-        }
-        return createDefaultClient(connection, cluster, componentDTO as ClientComponentDTO)
 
-    }
-
-    private fun createDefaultClient(
-        connection: IConnection,
-        cluster: ICluster,
-        componentDTO: ClientComponentDTO
-    ): DefaultRemoteClusterClient {
-        //Clients always connect to nodes, so this must be a node
-        return DefaultRemoteClusterClient(
-            cluster,
-            connection,
-            componentDTO.uniqueId,
-            cluster.getSelfComponent() as INode
-        )
-    }
-
-    private fun createDefaultNode(
-        connection: IConnection,
-        cluster: ICluster,
-        componentDTO: NodeComponentDTO
-    ): DefaultRemoteNode {
-        return DefaultRemoteNode(
-            connection,
-            cluster,
-            componentDTO.serverAddress,
-            componentDTO.uniqueId,
-            componentDTO.startupTime
-        )
-    }
 
     abstract fun handleAuth(connection: IConnection, authDTO: IAuthDTO): Boolean
 

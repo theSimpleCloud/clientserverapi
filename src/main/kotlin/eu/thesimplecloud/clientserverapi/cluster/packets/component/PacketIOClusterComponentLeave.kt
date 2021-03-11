@@ -20,27 +20,33 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.cluster.packets
+package eu.thesimplecloud.clientserverapi.cluster.packets.component
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.component.node.INode
+import eu.thesimplecloud.clientserverapi.cluster.type.AbstractCluster
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import java.util.*
+import kotlin.NoSuchElementException
 
-/**
- * Created by IntelliJ IDEA.
- * Date: 30/01/2021
- * Time: 18:44
- * @author Frederick Baier
- */
-class PacketIOGetAllNodes : ObjectPacket<Unit>() {
+class PacketIOClusterComponentLeave() : ObjectPacket<UUID>() {
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
-        val communicationBootstrap = connection.getCommunicationBootstrap()
-        val cluster = communicationBootstrap.getCluster()!!
-        return success(cluster.getNodes().map { it.getNodeInfo() }.toTypedArray())
+    constructor(componentId: UUID) : this() {
+        this.value = componentId
     }
 
-    override fun isAuthRequired(): Boolean {
-        return false
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
+        val value = this.value ?: return contentException("value")
+        val cluster = sender.getCommunicationBootstrap().getCluster()!!
+        cluster as AbstractCluster
+        val componentByUniqueId = cluster.getComponentManager().getComponentByUniqueId(value)
+            ?: return failure(NoSuchElementException("Component not found"))
+
+        componentByUniqueId as IRemoteClusterComponent
+        val senderComponent = cluster.getComponentManager().getComponentByPacketSender(sender)
+        cluster.onComponentLeave(componentByUniqueId, senderComponent as INode)
+        return unit()
     }
 }

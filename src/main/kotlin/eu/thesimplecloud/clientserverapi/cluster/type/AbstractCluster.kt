@@ -28,11 +28,14 @@ import eu.thesimplecloud.clientserverapi.cluster.adapter.impl.DefaultClusterAdap
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
 import eu.thesimplecloud.clientserverapi.cluster.component.IClusterComponent
 import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
-import eu.thesimplecloud.clientserverapi.cluster.component.node.INode
+import eu.thesimplecloud.clientserverapi.cluster.component.manager.DefaultComponentManager
+import eu.thesimplecloud.clientserverapi.cluster.component.manager.IComponentManager
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.IClientsPacketSender
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.INodesPacketSender
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.impl.DefaultClientsPacketSender
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.impl.DefaultNodesPacketSender
+import eu.thesimplecloud.clientserverapi.cluster.type.publish.ComponentJoinPublisher
+import eu.thesimplecloud.clientserverapi.cluster.type.publish.ComponentLeavePublisher
 import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
 import eu.thesimplecloud.clientserverapi.lib.list.manager.impl.ClusterSyncListManager
 import java.util.concurrent.CopyOnWriteArrayList
@@ -46,7 +49,10 @@ import java.util.concurrent.CopyOnWriteArrayList
 abstract class AbstractCluster(
     private val version: String,
     private val authProvider: IClusterAuthProvider
-) : ICluster, IClusterListenerAdapter {
+) : ICluster {
+
+
+    protected val componentManager = DefaultComponentManager(this)
 
     private val nodesPacketSender = DefaultNodesPacketSender(this)
     private val clientsPacketSender = DefaultClientsPacketSender(this)
@@ -55,19 +61,8 @@ abstract class AbstractCluster(
 
     private val clusterListeners = CopyOnWriteArrayList<IClusterListenerAdapter>()
 
-    protected val remoteComponents: CopyOnWriteArrayList<IRemoteClusterComponent> = CopyOnWriteArrayList()
-
     init {
-        addListener(this)
         addListener(DefaultClusterAdapter())
-    }
-
-    override fun getHeadNode(): INode {
-        return getNodes().minByOrNull { it.getStartupTime() }!!
-    }
-
-    override fun getComponents(): List<IClusterComponent> {
-        return this.remoteComponents.union(listOf(getSelfComponent())).toList()
     }
 
     override fun getAuthProvider(): IClusterAuthProvider {
@@ -100,6 +95,27 @@ abstract class AbstractCluster(
 
     override fun getClientsPacketSender(): IClientsPacketSender {
         return this.clientsPacketSender
+    }
+
+    override fun getComponentManager(): IComponentManager {
+        return this.componentManager
+    }
+
+    fun onComponentJoin(joiningComponent: IRemoteClusterComponent, senderComponent: IClusterComponent) {
+        val selfComponent = joiningComponent.getCluster().getSelfComponent()
+        val selfId = selfComponent.getUniqueId()
+        if (joiningComponent.getUniqueId() == selfId)
+            throw IllegalStateException("Component may not join itself")
+        this.componentManager.addComponents(joiningComponent)
+        this.clusterListeners.forEach { it.onComponentJoin(joiningComponent) }
+        ComponentJoinPublisher(this, joiningComponent, senderComponent).publishComponentJoin()
+    }
+
+    fun onComponentLeave(leavingComponent: IRemoteClusterComponent, senderComponent: IClusterComponent) {
+        this.componentManager.removeComponents(leavingComponent)
+        this.clusterListeners.forEach { it.onComponentLeave(leavingComponent) }
+
+        ComponentLeavePublisher(this, leavingComponent, senderComponent).publishComponentLeave()
     }
 
 }

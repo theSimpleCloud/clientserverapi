@@ -20,23 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.access
+package eu.thesimplecloud.clientserverapi.cluster.packets.forward
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.util.JsonSerializedClass
 
-/**
- * Created by IntelliJ IDEA.
- * Date: 02/02/2021
- * Time: 12:26
- * @author Frederick Baier
- */
-class IPAccessHandler(
-    private val allowedIPs: List<String> = emptyList()
-) : IAccessHandler {
-
-    override fun isAccessAllowed(connection: IConnection, packet: IPacket): Boolean {
-        val host = connection.getAddress().host
-        return allowedIPs.contains(host)
-    }
-}
+class ForwardPacketResult(
+    val error: JsonSerializedClass<Throwable>?,
+    val response: JsonSerializedClass<Any>?
+)

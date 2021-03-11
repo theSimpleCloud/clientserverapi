@@ -23,10 +23,10 @@
 package eu.thesimplecloud.clientserverapi.lib.packet.codec.impl
 
 import eu.thesimplecloud.clientserverapi.lib.ByteBufStringHelper
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketHeader
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.codec.IPacketEncoder
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.jsonlib.JsonLib
 import io.netty.buffer.ByteBuf
 
@@ -38,12 +38,12 @@ import io.netty.buffer.ByteBuf
  */
 class DefaultPacketEncoder : IPacketEncoder {
 
-    override fun encode(connection: IConnection, wrappedPacket: WrappedPacket, byteBuf: ByteBuf) {
+    override fun encode(sender: IPacketSender, wrappedPacket: WrappedPacket, byteBuf: ByteBuf) {
         val headerJson = JsonLib.empty()
         val packetHeader = PacketHeader(wrappedPacket.packetHeader.uniqueId, wrappedPacket.packet::class.java.simpleName, wrappedPacket.packetHeader.isResponse)
         headerJson.append("header", packetHeader)
         ByteBufStringHelper.writeString(byteBuf, headerJson.getAsJsonString())
-        wrappedPacket.packet.write(byteBuf, connection.getCommunicationBootstrap())
+        wrappedPacket.packet.write(byteBuf, sender)
     }
 
 

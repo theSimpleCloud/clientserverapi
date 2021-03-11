@@ -23,15 +23,15 @@
 package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 
 import eu.thesimplecloud.clientserverapi.lib.connection.AbstractNettyConnection
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 class PacketIOConnectionWillClose() : ObjectPacket<Unit>() {
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
-        connection as AbstractNettyConnection
-        connection.setConnectionCloseIntended()
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
+        sender as AbstractNettyConnection
+        sender.setConnectionCloseIntended()
         return unit()
     }
 }

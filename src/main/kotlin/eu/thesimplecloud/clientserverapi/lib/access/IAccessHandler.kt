@@ -22,8 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.access
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,6 +39,6 @@ interface IAccessHandler {
      * So this function must be non-blocking
      * @return whether the access is allowed
      */
-    fun isAccessAllowed(connection: IConnection, packet: IPacket) : Boolean
+    fun isAccessAllowed(sender: IPacketSender, packet: IPacket) : Boolean
 
 }

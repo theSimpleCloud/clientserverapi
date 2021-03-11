@@ -37,17 +37,18 @@ import java.util.*
  */
 class DefaultSelfClusterClient(
     private val cluster: ICluster,
-    private val uniqueId: UUID,
-    private val nodeConnectedTo: IRemoteNode
+    private val uniqueId: UUID
 ) : ISelfClusterClient {
 
+    @Volatile
+    private var nodeConnectedTo: IRemoteNode? = null
 
     override fun getConnection(): IConnection {
-        return this.nodeConnectedTo.getPacketSender() as IConnection
+        return this.nodeConnectedTo!!.getPacketSender() as IConnection
     }
 
     override fun getNodeConnectedTo(): INode {
-        return this.nodeConnectedTo
+        return this.nodeConnectedTo!!
     }
 
     override fun getCluster(): ICluster {
@@ -56,5 +57,9 @@ class DefaultSelfClusterClient(
 
     override fun getUniqueId(): UUID {
         return this.uniqueId
+    }
+
+    fun setNodeConnectedTo(nodeConnectedTo: IRemoteNode) {
+        this.nodeConnectedTo = nodeConnectedTo
     }
 }

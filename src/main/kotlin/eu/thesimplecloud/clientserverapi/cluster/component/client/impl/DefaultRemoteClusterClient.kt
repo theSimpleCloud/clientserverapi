@@ -25,7 +25,6 @@ package eu.thesimplecloud.clientserverapi.cluster.component.client.impl
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.component.client.IRemoteClusterClient
 import eu.thesimplecloud.clientserverapi.cluster.component.node.INode
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import java.util.*
 
@@ -36,8 +35,8 @@ import java.util.*
  * @author Frederick Baier
  */
 class DefaultRemoteClusterClient(
+    private val packetSender: IPacketSender,
     private val cluster: ICluster,
-    private val connection: IConnection,
     private val uniqueId: UUID,
     private val nodeConnectedTo: INode
 ) : IRemoteClusterClient {
@@ -47,7 +46,7 @@ class DefaultRemoteClusterClient(
     }
 
     override fun getPacketSender(): IPacketSender {
-        return this.connection
+        return this.packetSender
     }
 
     override fun getCluster(): ICluster {

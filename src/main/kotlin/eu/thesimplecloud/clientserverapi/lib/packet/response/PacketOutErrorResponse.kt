@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packet.response
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 
 /**
@@ -34,5 +34,5 @@ class PacketOutErrorResponse(exception: Throwable) : ObjectPacket<Throwable>() {
         this.value = exception
     }
 
-    override suspend fun handle(connection: IConnection) = unit()
+    override suspend fun handle(sender: IPacketSender) = unit()
 }

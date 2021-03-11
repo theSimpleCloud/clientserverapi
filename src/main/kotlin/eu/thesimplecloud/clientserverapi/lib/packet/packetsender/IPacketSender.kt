@@ -24,11 +24,12 @@ package eu.thesimplecloud.clientserverapi.lib.packet.packetsender
 
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.IPropertyHolder
 
 /**
  * Represents a sender fo packets
  */
-interface IPacketSender : IUnitPacketSender {
+interface IPacketSender : IUnitPacketSender, IPropertyHolder {
 
     /**
      * Sends a query to the connection and returns a [ICommunicationPromise].
@@ -37,7 +38,6 @@ interface IPacketSender : IUnitPacketSender {
     fun <T : Any> sendQuery(packet: IPacket, expectedResponseClass: Class<T>, timeout: Long = 200): ICommunicationPromise<T>
 
     override fun sendUnitQuery(packet: IPacket, timeout: Long): ICommunicationPromise<Unit> = sendQuery(packet, Unit::class.java, timeout)
-
 }
 
 /**

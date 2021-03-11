@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.ZipUtils
@@ -34,7 +34,7 @@ class PacketIOUnzipZipFile() : JsonPacket() {
         this.jsonLib.append("pathToZipFile", pathToZipFile).append("dirToUnzipPath", dirToUnzipPath)
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
         val pathToZipFile = this.jsonLib.getString("pathToZipFile") ?: return contentException("pathToZipFile")
         val dirToUnzipPath = this.jsonLib.getString("dirToUnzipPath") ?: return contentException("dirToUnzipPath")
         val zipFile = File(pathToZipFile)

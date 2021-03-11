@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.packets.clusterlist
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
@@ -41,12 +41,12 @@ class PacketIORemoveElementFromClusterList() : JsonPacket() {
             .append("identifier", JsonSerializedClass(identifier))
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
         val name = this.jsonLib.getString("name") ?: return contentException("name")
         val jsonSerializedClass = this.jsonLib.getObject("identifier", JsonSerializedClass::class.java) ?: return contentException("identifier")
         val identifier = jsonSerializedClass.getValue()
 
-        val cluster = connection.getCommunicationBootstrap().getCluster()!!
+        val cluster = sender.getCommunicationBootstrap().getCluster()!!
         val clusterList = cluster.getClusterListManager().getSyncListByName<Identifiable>(name) ?: return failure(NoSuchElementException("List not found"))
         clusterList.removeElement(identifier, true)
         return unit()

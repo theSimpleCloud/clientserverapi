@@ -48,10 +48,7 @@ interface INode : IClusterComponent {
      */
     fun getServerAddress(): Address
 
-    /**
-     * Returns a serializable object with some information about the node
-     */
-    fun getNodeInfo(): NodeComponentDTO {
+    override fun getComponentDTO(): NodeComponentDTO {
         return NodeComponentDTO(getCluster().getVersion(), getServerAddress(), getStartupTime(), getUniqueId())
     }
 

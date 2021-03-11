@@ -25,6 +25,7 @@ package eu.thesimplecloud.clientserverapi.cluster.packetsender.impl
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.component.client.IRemoteClusterClient
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.IClientsPacketSender
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
@@ -40,9 +41,13 @@ class DefaultClientsPacketSender(
 ) : IClientsPacketSender {
 
     override fun sendUnitQuery(packet: IPacket, timeout: Long): ICommunicationPromise<Unit> {
-        val remoteComponents = this.cluster.getRemoteComponents()
+        val remoteComponents = this.cluster.getComponentManager().getRemoteComponents()
         val allClients = remoteComponents.filterIsInstance<IRemoteClusterClient>()
         return allClients.map { it.getPacketSender() }.map { it.sendUnitQuery(packet, timeout) }.combineAllPromises()
+    }
+
+    override fun getCommunicationBootstrap(): ICommunicationBootstrap {
+        return this.cluster.getSelfComponent().getCommunicationBootstrap()
     }
 
 }

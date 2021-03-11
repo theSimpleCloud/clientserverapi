@@ -24,15 +24,12 @@ package eu.thesimplecloud.clientserverapi.cluster
 
 import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.component.IClusterComponent
-import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
 import eu.thesimplecloud.clientserverapi.cluster.component.ISelfClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.component.manager.IComponentManager
 import eu.thesimplecloud.clientserverapi.cluster.component.node.INode
-import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.IClientsPacketSender
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.INodesPacketSender
 import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
-import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 /**
@@ -43,40 +40,8 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
  */
 interface ICluster {
 
-    /**
-     * Returns the head node of this cluster
-     */
-    fun getHeadNode(): INode
-
-    /**
-     * Returns the self component
-     */
-    fun getSelfComponent(): ISelfClusterComponent
-
-    /**
-     * Returns all components connected to this cluster
-     */
-    fun getComponents(): List<IClusterComponent>
-
-    /**
-    * Returns all remote components connected to this cluster
-    */
-    fun getRemoteComponents(): List<IRemoteClusterComponent> {
-        return getComponents().filterIsInstance<IRemoteClusterComponent>()
-    }
-
-    /**
-     * Returns all nodes connected to this cluster
-     */
-    fun getNodes(): List<INode> {
-        return getComponents().filterIsInstance<INode>()
-    }
-
-    /**
-     * Returns all remote nodes
-     */
-    fun getRemoteNodes(): List<IRemoteNode> {
-        return getComponents().filterIsInstance<IRemoteNode>()
+    fun getHeadNode(): INode {
+        return this.getComponentManager().getHeadNode()
     }
 
     /**
@@ -100,10 +65,15 @@ interface ICluster {
     fun removeListener(listener: IClusterListenerAdapter)
 
     /**
-     * Returns the [IRemoteClusterComponent] found by the specified connection
+     * Returns the [IComponentManager]
      */
-    fun getComponentByPacketSender(sender: IPacketSender): IRemoteClusterComponent? {
-        return getRemoteComponents().firstOrNull { it.getPacketSender() === sender }
+    fun getComponentManager(): IComponentManager
+
+    /**
+     * Returns the self component
+     */
+    fun getSelfComponent(): ISelfClusterComponent {
+        return this.getComponentManager().getSelfComponent()
     }
 
     /**

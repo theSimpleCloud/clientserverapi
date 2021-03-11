@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.component
 
+import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 
 
@@ -40,5 +41,12 @@ interface IRemoteClusterComponent : IClusterComponent {
      * Returns the packet sender to send packets to this component
      */
     fun getPacketSender(): IPacketSender
+
+    /**
+     * Returns whether the component is directly connected to the self
+     */
+    fun isConnectedDirect(): Boolean {
+        return getPacketSender() is IConnection
+    }
 
 }

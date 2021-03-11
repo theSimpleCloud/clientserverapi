@@ -32,6 +32,7 @@ import eu.thesimplecloud.clientserverapi.server.INettyServer
  * @author Frederick Baier
  */
 class ServerHandler : IServerHandler {
+
     override fun onServerStarted(nettyServer: INettyServer) {
 
     }

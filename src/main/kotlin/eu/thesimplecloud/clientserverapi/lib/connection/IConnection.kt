@@ -22,13 +22,10 @@
 
 package eu.thesimplecloud.clientserverapi.lib.connection
 
-import eu.thesimplecloud.clientserverapi.client.INettyClient
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Address
 import eu.thesimplecloud.clientserverapi.lib.util.IAuthenticatable
-import eu.thesimplecloud.clientserverapi.server.INettyServer
 import java.io.File
 
 interface IConnection : IAuthenticatable, IPacketSender {
@@ -44,13 +41,6 @@ interface IConnection : IAuthenticatable, IPacketSender {
      * Return whether the connection close was intended
      */
     fun wasConnectionCloseIntended(): Boolean
-
-    /**
-     * Returns the [ICommunicationBootstrap] of this connection
-     * [INettyServer] when this connection is instantiated on the server side
-     * [INettyClient] when this connection is instantiated on the client side
-     */
-    fun getCommunicationBootstrap(): ICommunicationBootstrap
 
     /**
      * Sends a file via this connection
@@ -70,23 +60,11 @@ interface IConnection : IAuthenticatable, IPacketSender {
      */
     fun getAddress(): Address
 
-    override fun setAuthenticated(authenticated: Boolean) {
+    fun setAuthenticated(authenticated: Boolean) {
         if (authenticated) {
             getCommunicationBootstrap().getConnectionHandler().onConnectionAuthenticated(this)
         }
     }
-
-    /**
-     * Returns the value of this [IConnection] or null if no value was set.
-     * Use this to get the stored object
-     */
-    fun <T> getProperty(name: String): T?
-
-    /**
-     * Sets the [property] of this [IConnection]
-     * Use this to store an object in this [IConnection]
-     */
-    fun <T> setProperty(name: String, property: T)
 
 
 }

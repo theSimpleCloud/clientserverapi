@@ -36,14 +36,14 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 object ClusterAssert {
 
     fun assertRemoteNodeCount(expected: Int, cluster: ICluster) {
-        val actual = cluster.getRemoteNodes().size
+        val actual = cluster.getComponentManager().getRemoteNodes().size
         if (actual != expected) {
             throw AssertionError("Expected $expected remote nodes but was $actual")
         }
     }
 
     fun assertPacketReceived(packetClass: Class<out IPacket>, cluster: ICluster) {
-        val remoteNodes = cluster.getRemoteNodes()
+        val remoteNodes = cluster.getComponentManager().getRemoteNodes()
         val allConnections = remoteNodes.map { it.getPacketSender() }
         if (!allConnections.any { hasConnectionReceivedPacket(packetClass, it) }) {
             throw AssertionError("Cluster has not received packet ${packetClass.name}")
@@ -51,7 +51,7 @@ object ClusterAssert {
     }
 
     fun assertPacketReceived(packet: IPacket, cluster: ICluster) {
-        val remoteNodes = cluster.getRemoteNodes()
+        val remoteNodes = cluster.getComponentManager().getRemoteNodes()
         val allPackets = remoteNodes.map { it.getPacketSender() }
         if (!allPackets.any { hasConnectionReceivedPacket(packet, it) }) {
             throw AssertionError("Cluster has not received packet $packet (${packet::class.java.name})")

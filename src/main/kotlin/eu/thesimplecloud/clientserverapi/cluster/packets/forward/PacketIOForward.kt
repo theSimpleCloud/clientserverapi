@@ -22,13 +22,15 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.packets.forward
 
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.component.ISelfClusterComponent
+import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractPacketSender
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.BytePacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import io.netty.buffer.ByteBuf
 import java.util.*
+import kotlin.NoSuchElementException
 
 /**
  * Created by IntelliJ IDEA.
@@ -38,32 +40,53 @@ import java.util.*
  */
 class PacketIOForward : BytePacket {
 
-    constructor(): super()
+    constructor() : super()
 
-    @Volatile
-    private var forwardComponentId: UUID? = null
-    @Volatile
-    private var packet: IPacket? = null
 
-    constructor(forwardComponentId: UUID, packet: IPacket) : super() {
-        this.forwardComponentId = forwardComponentId
-        this.packet = packet
+    constructor(forwardComponentId: UUID, fromComponentId: UUID, wrappedPacket: WrappedPacket, sender: IPacketSender) : super() {
+        writeUUID(forwardComponentId)
+        writeUUID(fromComponentId)
 
+        sender.getCommunicationBootstrap().getPacketEncoder().encode(sender, wrappedPacket, this.buffer)
     }
 
-    override fun write(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
-        val mostSignificantBits = forwardComponentId!!.mostSignificantBits
-        val leastSignificantBits = forwardComponentId!!.leastSignificantBits
+    private fun writeUUID(uuid: UUID) {
+        val mostSignificantBits = uuid.mostSignificantBits
+        val leastSignificantBits = uuid.leastSignificantBits
         this.buffer.writeLong(mostSignificantBits)
         this.buffer.writeLong(leastSignificantBits)
-        packet!!.write(this.buffer, communicationBootstrap)
     }
 
-    override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
-
+    private fun readUUID(): UUID {
+        val mostSignificantBits = this.buffer.readLong()
+        val leastSignificantBits = this.buffer.readLong()
+        return UUID(mostSignificantBits, leastSignificantBits)
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
-        TODO("Not yet implemented")
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
+        val forwardComponentId = readUUID()
+        val fromComponentId = readUUID()
+
+        val wrappedPacket = sender.getCommunicationBootstrap().getPacketDecoder().decode(sender, this.buffer)
+        val cluster = sender.getCommunicationBootstrap().getCluster()!!
+
+        val receiverComponent = cluster.getComponentManager().getComponentByUniqueId(forwardComponentId)
+                ?: return failure(NoSuchElementException("Cannot find receiver component by id $forwardComponentId (Self: ${cluster.getSelfComponent().getUniqueId()})"))
+        val fromComponent = cluster.getComponentManager().getComponentByUniqueId(fromComponentId)
+                ?: return failure(NoSuchElementException("Cannot find component to forward from by id $fromComponentId (Self: ${cluster.getSelfComponent().getUniqueId()})"))
+        fromComponent as IRemoteClusterComponent
+
+        if (receiverComponent is ISelfClusterComponent) {
+            handlePacket(wrappedPacket, fromComponent.getPacketSender())
+            return unit()
+        }
+        receiverComponent as IRemoteClusterComponent
+        val receiverPacketSender = receiverComponent.getPacketSender()
+        return receiverPacketSender.sendUnitQuery(PacketIOForward(forwardComponentId, fromComponentId, wrappedPacket, receiverPacketSender))
+    }
+
+    private fun handlePacket(wrappedPacket: WrappedPacket, sender: IPacketSender) {
+        sender as AbstractPacketSender
+        sender.incomingPacket(wrappedPacket)
     }
 }

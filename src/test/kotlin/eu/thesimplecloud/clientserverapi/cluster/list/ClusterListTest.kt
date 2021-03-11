@@ -118,6 +118,8 @@ class ClusterListTest {
 
     @Test
     fun afterElementAddAndNodeJoin_NodeWilLSeeElement() {
+        println("Shutting down")
+        println(this.clusterTwo.getComponentManager().getNodes().size)
         this.clusterTwo.shutdown().syncUninterruptibly()
 
         val clusterList = clusterOne.getClusterListManager()

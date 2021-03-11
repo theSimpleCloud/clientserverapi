@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import java.io.File
@@ -33,7 +33,7 @@ class PacketIOCreateDirectory() : ObjectPacket<String>() {
         this.value = path
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Unit> {
         val value = this.value ?: return contentException("value")
         val file = File(value)
         file.mkdirs()

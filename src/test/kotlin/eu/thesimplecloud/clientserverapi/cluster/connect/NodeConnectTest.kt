@@ -53,10 +53,10 @@ class NodeConnectTest {
         val clusterFactory = DefaultClusterFactory()
         val cluster = clusterFactory.createNewCluster("1.0", SecretAuthProvider("123"), Address("127.0.0.1", 1600))
 
-        Assert.assertEquals(0, cluster.getRemoteNodes().size)
-        Assert.assertEquals(1, cluster.getNodes().size)
+        Assert.assertEquals(0, cluster.getComponentManager().getRemoteNodes().size)
+        Assert.assertEquals(1, cluster.getComponentManager().getNodes().size)
 
-        cluster.shutdown()
+        cluster.shutdown().syncUninterruptibly()
     }
 
     @Test
@@ -74,8 +74,8 @@ class NodeConnectTest {
         ClusterAssert.assertRemoteNodeCount(1, cluster)
         ClusterAssert.assertRemoteNodeCount(1, otherCluster)
 
-        cluster.shutdown()
-        otherCluster.shutdown()
+        cluster.shutdown().syncUninterruptibly()
+        otherCluster.shutdown().syncUninterruptibly()
 
     }
 
@@ -105,15 +105,15 @@ class NodeConnectTest {
             listOf(Address("127.0.0.1", 1600))
         )
 
+        ClusterAssert.assertRemoteNodeCount(3, otherCluster3)
         ClusterAssert.assertRemoteNodeCount(3, cluster)
         ClusterAssert.assertRemoteNodeCount(3, otherCluster)
         ClusterAssert.assertRemoteNodeCount(3, otherCluster2)
-        ClusterAssert.assertRemoteNodeCount(3, otherCluster3)
 
-        cluster.shutdown()
-        otherCluster.shutdown()
-        otherCluster2.shutdown()
-        otherCluster3.shutdown()
+        cluster.shutdown().syncUninterruptibly()
+        otherCluster.shutdown().syncUninterruptibly()
+        otherCluster2.shutdown().syncUninterruptibly()
+        otherCluster3.shutdown().syncUninterruptibly()
 
     }
 }

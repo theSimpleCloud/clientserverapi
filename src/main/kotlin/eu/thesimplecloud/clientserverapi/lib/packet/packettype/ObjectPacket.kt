@@ -22,8 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packet.packettype
 
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import io.netty.buffer.ByteBuf
 
@@ -36,31 +35,31 @@ abstract class ObjectPacket<T : Any>() : JsonPacket() {
         this.value = value
     }
 
-    override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
-        super.read(byteBuf, communicationBootstrap)
+    override fun read(byteBuf: ByteBuf, sender: IPacketSender) {
+        super.read(byteBuf, sender)
         val className = this.jsonLib.getString("className")
         //return because the value to sent was null in this case.
         if (className.isNullOrBlank()) return
         val clazz = Class.forName(
                 className,
                 true,
-                communicationBootstrap.getClassLoaderToSearchObjectPacketsClasses()
+            sender.getCommunicationBootstrap().getClassLoaderToSearchObjectPacketsClasses()
         ) as Class<T>
         this.value = this.jsonLib.getObject("data", clazz)
     }
 
-    override fun write(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
+    override fun write(byteBuf: ByteBuf, sender: IPacketSender) {
         if (this.value != null) {
             this.jsonLib.append("className", value!!::class.java.name)
             this.jsonLib.append("data", value)
         }
-        super.write(byteBuf, communicationBootstrap)
+        super.write(byteBuf, sender)
     }
 
     companion object {
 
         fun <T : Any> getNewEmptyObjectPacket() = object : ObjectPacket<T>() {
-            override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+            override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
                 return success(Unit)
             }
         }

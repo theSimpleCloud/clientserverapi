@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import java.util.*
@@ -33,11 +33,11 @@ class PacketIOCreateFileTransfer() : JsonPacket() {
         this.jsonLib.append("uuid", uuid).append("path", path).append("lastModified", lastModified)
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Unit> {
         val uuid = this.jsonLib.getObject("uuid", UUID::class.java) ?: return contentException("uuid")
         val path = this.jsonLib.getString("path") ?: return contentException("path")
         val lastModified = this.jsonLib.getLong("lastModified") ?: return contentException("lastModified")
-        connection.getCommunicationBootstrap().getTransferFileManager().creteFileTransfer(uuid, path, lastModified)
+        sender.getCommunicationBootstrap().getTransferFileManager().creteFileTransfer(uuid, path, lastModified)
         return unit()
     }
 }

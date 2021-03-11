@@ -22,9 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packet.packettype
 
-import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
@@ -33,7 +32,7 @@ abstract class BytePacket : IPacket {
 
     companion object {
         fun getNewEmptyBytePacket() = object: BytePacket() {
-            override suspend fun handle(connection: IConnection): ICommunicationPromise<Unit> {
+            override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Unit> {
                 return unit()
             }
         }
@@ -52,13 +51,13 @@ abstract class BytePacket : IPacket {
 
     var buffer = Unpooled.buffer()
 
-    override fun read(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
+    override fun read(byteBuf: ByteBuf, sender: IPacketSender) {
         val byteArray = ByteArray(byteBuf.readInt())
         byteBuf.readBytes(byteArray)
         this.buffer = Unpooled.copiedBuffer(byteArray)
     }
 
-    override fun write(byteBuf: ByteBuf, communicationBootstrap: ICommunicationBootstrap) {
+    override fun write(byteBuf: ByteBuf, sender: IPacketSender) {
         val byteArray = this.buffer.array()
         byteBuf.writeInt(byteArray.size)
         byteBuf.writeBytes(byteArray)

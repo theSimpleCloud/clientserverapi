@@ -23,16 +23,20 @@
 package eu.thesimplecloud.clientserverapi.cluster.type.node
 
 import eu.thesimplecloud.clientserverapi.client.INettyClient
-import eu.thesimplecloud.clientserverapi.cluster.ICluster
+import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
 import eu.thesimplecloud.clientserverapi.cluster.component.handler.ClusterConnectionHandler
 import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.component.node.impl.DefaultRemoteNode
-import eu.thesimplecloud.clientserverapi.cluster.packets.PacketIOGetAllNodes
+import eu.thesimplecloud.clientserverapi.cluster.packets.PacketIOGetAllComponents
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ClientComponentDTO
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ComponentDTO
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.NodeComponentDTO
+import eu.thesimplecloud.clientserverapi.cluster.type.AbstractCluster
 import eu.thesimplecloud.clientserverapi.lib.access.AuthAccessHandler
 import eu.thesimplecloud.clientserverapi.lib.factory.CommunicationBootstrapFactoryGetter
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.sendQuery
 import eu.thesimplecloud.clientserverapi.lib.util.Address
+import eu.thesimplecloud.jsonlib.JsonLib
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,24 +45,45 @@ import eu.thesimplecloud.clientserverapi.lib.util.Address
  * @author Frederick Baier
  */
 class ClusterConnector(
-    private val cluster: ICluster,
+    private val cluster: AbstractCluster,
     private val connectAddress: Address,
     private val packetsPackages: List<String>,
     private val connectMethod: ConnectMethod
 ) {
 
-    fun connectToNodes(): List<IRemoteNode> {
-        val firstClient = startClusterClient(connectAddress)
-        val allNodeInfos = getAllNodeInfos(firstClient)
-        val firstRemoteNode = createFirstRemoteNode(firstClient, allNodeInfos)
+    private val firstClient: INettyClient
+    private val allComponents: List<ComponentDTO>
+    val firstRemoteNode: IRemoteNode
+
+    init {
+        firstClient = startClusterClient(connectAddress)
+        allComponents = getAllComponents(firstClient)
+        val allNodeInfos = allComponents.filterIsInstance<NodeComponentDTO>()
+        firstRemoteNode = createFirstRemoteNode(firstClient, allNodeInfos)
+        firstClient.getConnection().setProperty("component", firstRemoteNode)
+    }
+
+    fun connectToCluster() {
+        val allNodeInfos = allComponents.filterIsInstance<NodeComponentDTO>()
+        cluster.onComponentJoin(firstRemoteNode, cluster.getSelfComponent())
 
         if (connectMethod == ConnectMethod.ONE_NODE) {
-            return listOf(firstRemoteNode)
+            val missingComponents = MissingClusterComponentsCreator(cluster, listOf(firstRemoteNode), allComponents).createMissingComponents()
+            joinComponentsToCluster(missingComponents)
+            return
         }
 
         val allOtherNodeInfos = allNodeInfos.filter { it.serverAddress != firstRemoteNode.getServerAddress() }
         val otherNodes = allOtherNodeInfos.map { connectToRemoteNode(it) }
-        return otherNodes.union(listOf(firstRemoteNode)).toList()
+        joinComponentsToCluster(otherNodes)
+        val allRemoteNodes = otherNodes.union(listOf(firstRemoteNode)).toList()
+
+        val missingComponents = MissingClusterComponentsCreator(cluster, allRemoteNodes, allComponents).createMissingComponents()
+        joinComponentsToCluster(missingComponents)
+    }
+
+    private fun joinComponentsToCluster(components: List<IRemoteClusterComponent>) {
+        components.forEach { this.cluster.onComponentJoin(it, cluster.getSelfComponent()) }
     }
 
     private fun createFirstRemoteNode(client: INettyClient, allNodeInfos: List<NodeComponentDTO>): IRemoteNode {
@@ -67,9 +92,12 @@ class ClusterConnector(
         return DefaultRemoteNode(client.getConnection(), cluster, firstClientNodeInfo.serverAddress, firstClientNodeInfo.uniqueId, firstClientNodeInfo.startupTime)
     }
 
-    private fun getAllNodeInfos(client: INettyClient): List<NodeComponentDTO> {
-        val promise = client.getConnection().sendQuery<Array<NodeComponentDTO>>(PacketIOGetAllNodes(), 4000)
-        return promise.getBlocking().toList()
+    private fun getAllComponents(client: INettyClient): List<ComponentDTO> {
+        val promise = client.getConnection().sendQuery<JsonLib>(PacketIOGetAllComponents(), 4000)
+        val jsonLib = promise.getBlocking()
+        val nodesArray = jsonLib.getObject("nodes", Array<NodeComponentDTO>::class.java)!!
+        val clientsArray = jsonLib.getObject("clients", Array<ClientComponentDTO>::class.java)!!
+        return nodesArray.union(clientsArray.toList()).toList()
     }
 
     private fun startClusterClient(address: Address): INettyClient {
@@ -79,12 +107,15 @@ class ClusterConnector(
         client.addPacketsByPackage("eu.thesimplecloud.clientserverapi.cluster.packets")
         client.addPacketsByPackage(*packetsPackages.toTypedArray())
         client.start().syncUninterruptibly()
+        client.getConnection().setAuthenticated(true)
         return client
     }
 
     private fun connectToRemoteNode(nodeInfo: NodeComponentDTO): DefaultRemoteNode {
         val clusterClient = startClusterClient(nodeInfo.serverAddress)
-        return DefaultRemoteNode(clusterClient.getConnection(), cluster, nodeInfo.serverAddress, nodeInfo.uniqueId, nodeInfo.startupTime)
+        val remoteNode =  DefaultRemoteNode(clusterClient.getConnection(), cluster, nodeInfo.serverAddress, nodeInfo.uniqueId, nodeInfo.startupTime)
+        clusterClient.getConnection().setProperty("component", remoteNode)
+        return remoteNode
     }
 
     enum class ConnectMethod {

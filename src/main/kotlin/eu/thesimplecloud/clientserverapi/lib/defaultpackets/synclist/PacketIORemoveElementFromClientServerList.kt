@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.defaultpackets.synclist
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
@@ -41,12 +41,12 @@ class PacketIORemoveElementFromClientServerList() : JsonPacket() {
             .append("identifier", JsonSerializedClass(identifier))
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
         val name = this.jsonLib.getString("name") ?: return contentException("name")
         val jsonSerializedClass = this.jsonLib.getObject("identifier", JsonSerializedClass::class.java) ?: return contentException("identifier")
         val identifier = jsonSerializedClass.getValue()
 
-        val syncListManager = connection.getCommunicationBootstrap().getClientServerSyncListManager()
+        val syncListManager = sender.getCommunicationBootstrap().getClientServerSyncListManager()
         val syncList = syncListManager.getSyncListByName<Identifiable>(name) ?: return failure(NoSuchElementException("List not found"))
         return syncList.removeElement(identifier, true)
     }

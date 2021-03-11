@@ -22,17 +22,11 @@
 
 package eu.thesimplecloud.clientserverapi.lib.connection
 
-import com.google.common.collect.Maps
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOCreateFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransferComplete
 import eu.thesimplecloud.clientserverapi.lib.filetransfer.util.QueuedFile
-import eu.thesimplecloud.clientserverapi.lib.handler.packet.IncomingPacketHandler
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
-import eu.thesimplecloud.clientserverapi.lib.packet.PacketHeader
-import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.WrappedResponseHandler
-import eu.thesimplecloud.clientserverapi.lib.packetresponse.responsehandler.ObjectPacketResponseHandler
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import kotlinx.coroutines.GlobalScope
@@ -42,11 +36,9 @@ import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
-abstract class AbstractConnection() : IConnection {
+abstract class AbstractConnection() : AbstractPacketSender(), IConnection {
 
     private val BYTES_PER_FILEPACKET = 50000
-
-    private val nameToProperty = Maps.newConcurrentMap<String, Any>()
 
     @Volatile
     private var wasCloseIntended: Boolean = false
@@ -55,25 +47,6 @@ abstract class AbstractConnection() : IConnection {
     @Volatile
     private var authenticated = false
     private val fileQueue = LinkedBlockingQueue<QueuedFile>()
-    private val packetResponseManager by lazy { getCommunicationBootstrap().getPacketResponseManager() }
-
-    private val incomingPacketHandler = IncomingPacketHandler(this)
-
-    @Synchronized
-    override fun <T : Any> sendQuery(packet: IPacket, expectedResponseClass: Class<T>, timeout: Long): ICommunicationPromise<T> {
-        val packetResponseHandler = ObjectPacketResponseHandler(expectedResponseClass)
-        val uniqueId = UUID.randomUUID()
-        val packetPromise = CommunicationPromise<T>(timeout)
-        packetResponseManager.registerResponseHandler(uniqueId, WrappedResponseHandler(packetResponseHandler, packetPromise))
-        this.sendPacket(WrappedPacket(PacketHeader(uniqueId, packet::class.java.simpleName, false), packet), packetPromise)
-        return packetPromise
-    }
-
-    open fun incomingPacket(wrappedPacket: WrappedPacket) {
-        incomingPacketHandler.handleIncomingPacket(wrappedPacket)
-    }
-
-    abstract fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>)
 
     @Synchronized
     override fun sendFile(file: File, savePath: String, timeout: Long): ICommunicationPromise<Unit> {
@@ -135,14 +108,6 @@ abstract class AbstractConnection() : IConnection {
 
     override fun isAuthenticated(): Boolean {
         return this.authenticated
-    }
-
-    override fun <T> getProperty(name: String): T? {
-        return this.nameToProperty[name] as T?
-    }
-
-    override fun <T> setProperty(name: String, value: T) {
-        this.nameToProperty[name] = value
     }
 
 }

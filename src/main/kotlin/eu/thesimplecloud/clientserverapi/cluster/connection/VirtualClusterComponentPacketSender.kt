@@ -22,15 +22,17 @@
 
 package eu.thesimplecloud.clientserverapi.cluster.connection
 
-import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.component.client.IRemoteClusterClient
 import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.packets.forward.PacketIOForward
 import eu.thesimplecloud.clientserverapi.cluster.type.IClientCluster
-import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
+import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import java.util.*
 
 /**
  * Created by IntelliJ IDEA.
@@ -43,35 +45,46 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
  * b) from client to another node
  */
 class VirtualClusterComponentPacketSender(
-    private val forComponent: IRemoteClusterComponent
-) : IPacketSender {
+    private val cluster: ICluster,
+    private val componentUniqueId: UUID
+) : AbstractPacketSender() {
 
-    private val cluster = forComponent.getCluster()
-
-    override fun <T : Any> sendQuery(
-        packet: IPacket,
-        expectedResponseClass: Class<T>,
-        timeout: Long
-    ): ICommunicationPromise<T> {
+    override fun sendPacket(wrappedPacket: WrappedPacket, promise: ICommunicationPromise<Any>) {
         val packetSender = getPacketSenderToSendForwardPacketsTo()
-        return packetSender.sendQuery(PacketIOForward(forComponent.getUniqueId(), packet), expectedResponseClass, timeout)
+        val fromComponentId = cluster.getSelfComponent().getUniqueId()
+        val forwardPromise = packetSender.sendUnitQuery(PacketIOForward(componentUniqueId, fromComponentId, wrappedPacket, this))
+        forwardPromise.addCompleteListener { _ ->
+            handleForwardComplete(forwardPromise, promise)
+        }
+    }
+
+    private fun handleForwardComplete(forwardPromise: ICommunicationPromise<Unit>, packetPromise: ICommunicationPromise<Any>) {
+        if (!forwardPromise.isSuccess) {
+            packetPromise.tryFailure(forwardPromise.cause())
+        }
+    }
+
+    override fun getCommunicationBootstrap(): ICommunicationBootstrap {
+        return cluster.getSelfComponent().getCommunicationBootstrap()
     }
 
     private fun getPacketSenderToSendForwardPacketsTo(): IPacketSender {
-        //If this is a client there is not other connection that the node
+        //If this is a client there is no other connection
         if (this.cluster is IClientCluster) {
             return this.cluster.getSelfComponent().getConnection()
         }
 
 
-        //If this is not a client than `forComponent` must be a client. Otherwise the connection would not exist
-        assert(this.cluster is INodeCluster)
-        assert(forComponent is IRemoteClusterClient)
-        forComponent as IRemoteClusterClient
-        assert(forComponent.getNodeConnectedTo() is IRemoteNode)
+        //If this is not a client than `forComponent` must be a client. Otherwise the connection would not exist.
+        val remoteComponent = this.cluster.getComponentManager().getComponentByUniqueId(componentUniqueId)
+        remoteComponent as IRemoteClusterClient
 
-        val remoteNode = forComponent.getNodeConnectedTo() as IRemoteNode
+        val remoteNode = remoteComponent.getNodeConnectedTo() as IRemoteNode
         return remoteNode.getPacketSender()
+    }
+
+    override fun isAuthenticated(): Boolean {
+        return true
     }
 
 

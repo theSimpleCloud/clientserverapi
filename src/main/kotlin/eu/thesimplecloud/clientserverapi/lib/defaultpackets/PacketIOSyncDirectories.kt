@@ -22,7 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.defaultpackets
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.JsonPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import org.apache.commons.io.FileUtils
@@ -36,7 +36,7 @@ class PacketIOSyncDirectories() : JsonPacket() {
                 .append("directoriesOnOtherSide", directoriesOnOtherSide)
     }
 
-    override suspend fun handle(connection: IConnection): ICommunicationPromise<Any> {
+    override suspend fun handle(sender: IPacketSender): ICommunicationPromise<Any> {
         val dirPathOnOtherSide = this.jsonLib.getString("dirPathOnOtherSide")
                 ?: return contentException("dirPathOnOtherSide")
         val fileInfoList = this.jsonLib.getObject("directoriesOnOtherSide", Array<String>::class.java)

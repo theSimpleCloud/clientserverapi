@@ -32,7 +32,6 @@ import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.NodeComponentD
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.secret.PacketIOSecretAuth
 import eu.thesimplecloud.clientserverapi.cluster.packets.auth.secret.SecretAuthDTO
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import java.util.*
 
 /**
  * Created by IntelliJ IDEA.
@@ -62,7 +61,7 @@ class SecretAuthProvider(
         remoteNode: IRemoteNode
     ) {
         val version = cluster.getVersion()
-        val clientComponent = ClientComponentDTO(version, UUID.randomUUID())
+        val clientComponent = ClientComponentDTO(version, cluster.getSelfComponent().getUniqueId(), remoteNode.getUniqueId())
         authenticateOnNode(remoteNode, clientComponent)
     }
 
@@ -74,13 +73,14 @@ class SecretAuthProvider(
         val ownServerAddress = selfComponent.getServer().getAddress()
         val startupTime = selfComponent.getStartupTime()
         val version = cluster.getVersion()
-        val nodeComponent = NodeComponentDTO(version, ownServerAddress, startupTime, UUID.randomUUID())
+        val nodeComponent = NodeComponentDTO(version, ownServerAddress, startupTime, cluster.getSelfComponent().getUniqueId())
         remoteNodes.forEach {
             authenticateOnNode(it, nodeComponent)
         }
     }
 
     private fun authenticateOnNode(remoteNode: IRemoteNode, component: ComponentDTO) {
+        println("[${remoteNode.getCluster().getSelfComponent().getUniqueId()}] SecretAuth remote ${remoteNode.getUniqueId()} comp ${component.uniqueId}")
         val connection = remoteNode.getPacketSender() as IConnection
         connection.setAuthenticated(true)
         connection.sendUnitQuery(

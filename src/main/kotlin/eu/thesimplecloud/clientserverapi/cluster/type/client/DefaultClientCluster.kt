@@ -23,11 +23,9 @@
 package eu.thesimplecloud.clientserverapi.cluster.type.client
 
 import eu.thesimplecloud.clientserverapi.cluster.auth.IClusterAuthProvider
-import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
 import eu.thesimplecloud.clientserverapi.cluster.component.client.ISelfClusterClient
 import eu.thesimplecloud.clientserverapi.cluster.component.client.impl.DefaultSelfClusterClient
-import eu.thesimplecloud.clientserverapi.cluster.packetsender.IClientsPacketSender
-import eu.thesimplecloud.clientserverapi.cluster.packetsender.INodesPacketSender
+import eu.thesimplecloud.clientserverapi.cluster.component.node.IRemoteNode
 import eu.thesimplecloud.clientserverapi.cluster.type.AbstractCluster
 import eu.thesimplecloud.clientserverapi.cluster.type.IClientCluster
 import eu.thesimplecloud.clientserverapi.cluster.type.node.ClusterConnector
@@ -48,35 +46,23 @@ class DefaultClientCluster(
     packetsPackages: List<String>
 ) : AbstractCluster(version, authProvider), IClientCluster {
 
-    private val selfClient: ISelfClusterClient
+    private val selfClient: DefaultSelfClusterClient = DefaultSelfClusterClient(this, UUID.randomUUID())
 
     init {
-        val nodes = ClusterConnector(this, serverAddress, packetsPackages, ClusterConnector.ConnectMethod.ONE_NODE)
-            .connectToNodes()
-        selfClient = DefaultSelfClusterClient(this, UUID.randomUUID(), nodes.first())
+        val clusterConnector =
+            ClusterConnector(this, serverAddress, packetsPackages, ClusterConnector.ConnectMethod.ONE_NODE)
+        selfClient.setNodeConnectedTo(clusterConnector.firstRemoteNode)
+        clusterConnector.connectToCluster()
+        val node = this.componentManager.getNodeByServerAddress(serverAddress)!! as IRemoteNode
+        selfClient.setNodeConnectedTo(node)
+        this.getAuthProvider().authenticateOnRemoteNodes(this, listOf(node))
     }
 
     override fun getSelfComponent(): ISelfClusterClient {
         return this.selfClient
     }
 
-    override fun getNodesPacketSender(): INodesPacketSender {
-        TODO("Not yet implemented")
-    }
-
-    override fun getClientsPacketSender(): IClientsPacketSender {
-        TODO("Not yet implemented")
-    }
-
     override fun shutdown(): ICommunicationPromise<Unit> {
-        TODO("Not yet implemented")
-    }
-
-    override fun onComponentJoin(remoteComponent: IRemoteClusterComponent) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onComponentLeave(remoteComponent: IRemoteClusterComponent) {
-        TODO("Not yet implemented")
+        return this.selfClient.getClient().shutdown()
     }
 }

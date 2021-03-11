@@ -23,6 +23,7 @@
 package eu.thesimplecloud.clientserverapi.cluster.component.handler
 
 import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
+import eu.thesimplecloud.clientserverapi.cluster.type.AbstractCluster
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 
@@ -35,12 +36,10 @@ import eu.thesimplecloud.clientserverapi.lib.handler.IConnectionHandler
 class ClusterConnectionHandler : IConnectionHandler {
 
     override fun onConnectionActive(connection: IConnection) {
-        println(connection.getCommunicationBootstrap()::class.java.name)
-        println("new connection " + connection.getAddress())
+
     }
 
     override fun onConnectionAuthenticated(connection: IConnection) {
-
     }
 
     override fun onFailure(connection: IConnection, ex: Throwable) {
@@ -50,6 +49,7 @@ class ClusterConnectionHandler : IConnectionHandler {
     override fun onConnectionInactive(connection: IConnection) {
         val cluster = connection.getCommunicationBootstrap().getCluster()!!
         val remoteComponent = connection.getProperty<IRemoteClusterComponent>("component")!!
-        cluster.getClusterListeners().forEach { it.onComponentLeave(remoteComponent) }
+        cluster as AbstractCluster
+        cluster.onComponentLeave(remoteComponent, cluster.getSelfComponent())
     }
 }

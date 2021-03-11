@@ -24,6 +24,8 @@ package eu.thesimplecloud.clientserverapi.lib.packet.packetsender
 
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.util.IAuthenticatable
+import eu.thesimplecloud.clientserverapi.lib.util.ICommunicationBootstrapGetter
 
 /**
  * Created by IntelliJ IDEA.
@@ -34,12 +36,16 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
  * A packet sender for packets without a response object
  *
  */
-interface IUnitPacketSender {
+interface IUnitPacketSender : ICommunicationBootstrapGetter, IAuthenticatable {
 
     /**
      * Sends a query to the connection and returns a [ICommunicationPromise].
      * @return a [ICommunicationPromise] to wait for the result.
      */
     fun sendUnitQuery(packet: IPacket, timeout: Long = 200): ICommunicationPromise<Unit>
+
+    override fun isAuthenticated(): Boolean {
+        return true
+    }
 
 }

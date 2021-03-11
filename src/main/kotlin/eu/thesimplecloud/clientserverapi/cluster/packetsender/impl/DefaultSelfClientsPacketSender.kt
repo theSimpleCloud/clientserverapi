@@ -26,6 +26,7 @@ import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.component.node.ISelfNode
 import eu.thesimplecloud.clientserverapi.cluster.component.type.ClusterComponentType
 import eu.thesimplecloud.clientserverapi.cluster.packetsender.ISelfClientsPacketSender
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
@@ -52,6 +53,10 @@ class DefaultSelfClientsPacketSender(
         val allSelfClients = clientManager.getClients()
             .filter { it.getProperty<ClusterComponentType>("type") == ClusterComponentType.CLIENT }
         return allSelfClients.map { it.sendUnitQuery(packet, timeout) }.combineAllPromises()
+    }
+
+    override fun getCommunicationBootstrap(): ICommunicationBootstrap {
+        return this.cluster.getSelfComponent().getCommunicationBootstrap()
     }
 
 }

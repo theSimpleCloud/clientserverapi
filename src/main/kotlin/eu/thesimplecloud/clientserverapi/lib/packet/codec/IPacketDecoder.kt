@@ -22,8 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packet.codec
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import io.netty.buffer.ByteBuf
 
 /**
@@ -36,9 +36,9 @@ interface IPacketDecoder {
 
     /**
      * Decodes the received [byteBuf] to a [WrappedPacket]
-     * @param connection the sender of the packet
+     * @param sender the sender of the packet
      * @param byteBuf the bytes of the encoded packet
      */
-    fun decode(connection: IConnection, byteBuf: ByteBuf): WrappedPacket
+    fun decode(sender: IPacketSender, byteBuf: ByteBuf): WrappedPacket
 
 }

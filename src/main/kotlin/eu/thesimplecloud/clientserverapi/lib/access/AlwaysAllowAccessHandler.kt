@@ -22,8 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.access
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,7 +33,7 @@ import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
  */
 class AlwaysAllowAccessHandler : IAccessHandler {
 
-    override fun isAccessAllowed(connection: IConnection, packet: IPacket): Boolean {
+    override fun isAccessAllowed(sender: IPacketSender, packet: IPacket): Boolean {
         return true
     }
 }

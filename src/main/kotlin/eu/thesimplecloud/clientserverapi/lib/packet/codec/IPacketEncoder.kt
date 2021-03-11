@@ -22,8 +22,8 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packet.codec
 
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
 import io.netty.buffer.ByteBuf
 
 /**
@@ -36,10 +36,10 @@ interface IPacketEncoder {
 
     /**
      * Writes the content of the [wrappedPacket] to the [byteBuf]
-     * @param connection the connection this packet will be sent to
+     * @param sender the sender that will receive the packet
      * @param wrappedPacket the packet to encode
      * @param byteBuf the bytebuf the packet shall be written to
      */
-    fun encode(connection: IConnection, wrappedPacket: WrappedPacket, byteBuf: ByteBuf)
+    fun encode(sender: IPacketSender, wrappedPacket: WrappedPacket, byteBuf: ByteBuf)
 
 }

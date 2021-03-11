@@ -33,5 +33,6 @@ import java.util.*
  */
 open class ClientComponentDTO(
     version: String,
-    uniqueId: UUID
-) : ComponentDTO(ClusterComponentType.NODE, version, uniqueId)
+    uniqueId: UUID,
+    val connectedNodeComponentId: UUID
+) : ComponentDTO(ClusterComponentType.CLIENT, version, uniqueId)

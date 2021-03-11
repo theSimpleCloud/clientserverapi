@@ -35,9 +35,4 @@ interface IAuthenticatable {
      */
     fun isAuthenticated(): Boolean
 
-    /**
-     * Sets the authenticated state
-     */
-    fun setAuthenticated(authenticated: Boolean)
-
 }

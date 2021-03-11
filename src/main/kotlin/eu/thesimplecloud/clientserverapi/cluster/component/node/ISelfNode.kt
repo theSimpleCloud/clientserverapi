@@ -23,6 +23,7 @@
 package eu.thesimplecloud.clientserverapi.cluster.component.node
 
 import eu.thesimplecloud.clientserverapi.cluster.component.ISelfClusterComponent
+import eu.thesimplecloud.clientserverapi.lib.bootstrap.ICommunicationBootstrap
 import eu.thesimplecloud.clientserverapi.server.INettyServer
 
 /**
@@ -38,5 +39,9 @@ interface ISelfNode : INode, ISelfClusterComponent {
      * Returns the server of this node
      */
     fun getServer(): INettyServer
+
+    override fun getCommunicationBootstrap(): ICommunicationBootstrap {
+        return getServer()
+    }
 
 }

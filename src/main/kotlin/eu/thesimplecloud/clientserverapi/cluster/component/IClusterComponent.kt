@@ -24,6 +24,7 @@ package eu.thesimplecloud.clientserverapi.cluster.component
 
 import eu.thesimplecloud.clientserverapi.cluster.ICluster
 import eu.thesimplecloud.clientserverapi.cluster.component.type.ClusterComponentType
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ComponentDTO
 import java.util.*
 
 /**
@@ -51,5 +52,10 @@ interface IClusterComponent {
      * Returns the type of this component
      */
     fun getType(): ClusterComponentType
+
+    /**
+     * Returns a serializable object with some information about the component
+     */
+    fun getComponentDTO(): ComponentDTO
 
 }

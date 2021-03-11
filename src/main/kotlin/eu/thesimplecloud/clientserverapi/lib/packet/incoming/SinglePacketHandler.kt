@@ -20,14 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package eu.thesimplecloud.clientserverapi.lib.handler.packet
+package eu.thesimplecloud.clientserverapi.lib.packet.incoming
 
-import eu.thesimplecloud.clientserverapi.lib.connection.AbstractConnection
-import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
-import eu.thesimplecloud.clientserverapi.lib.packet.IPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketHeader
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
+import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractPacketSender
 import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
@@ -42,50 +40,52 @@ import kotlinx.coroutines.launch
  * Time: 11:07
  * @author Frederick Baier
  */
-class IncomingPacketHandler(private val connection: AbstractConnection) {
+class SinglePacketHandler(private val sender: AbstractPacketSender, private val wrappedPacket: WrappedPacket) {
 
-    fun handleIncomingPacket(wrappedPacket: WrappedPacket) {
-        if (!hasAccess(wrappedPacket)) {
-            println("IncomingPacketHandler access blocked")
+    fun handlePacket() {
+        if (!hasAccess(this.wrappedPacket)) {
             return
         }
-        if (wrappedPacket.packetHeader.isResponse) {
-            handleResponsePacket(wrappedPacket)
+        if (this.wrappedPacket.packetHeader.isResponse) {
+            handleResponsePacket()
         } else {
             GlobalScope.launch(Dispatchers.Default) {
-                handleQuery(wrappedPacket)
+                handleQuery()
             }
         }
     }
 
     private fun hasAccess(wrappedPacket: WrappedPacket): Boolean {
         if (wrappedPacket.packetHeader.isResponse) {
-            return isValidResponsePacket(connection, wrappedPacket.packetHeader)
+            return isValidResponsePacket()
         }
-
-        return checkAccess(connection, wrappedPacket.packet)
+        return checkAccess()
     }
 
-    private fun isValidResponsePacket(connection: IConnection, packetHeader: PacketHeader): Boolean {
-        val packetResponseManager = connection.getCommunicationBootstrap().getPacketResponseManager()
-        return packetResponseManager.isResponseHandlerAvailable(packetHeader.uniqueId)
+    private fun isValidResponsePacket(): Boolean {
+        val packetResponseManager = this.sender.getCommunicationBootstrap().getPacketResponseManager()
+        return packetResponseManager.isResponseHandlerAvailable(this.wrappedPacket.packetHeader.uniqueId)
     }
 
-    private fun checkAccess(connection: IConnection, packet: IPacket): Boolean {
-        return connection.getCommunicationBootstrap().getAccessHandler().isAccessAllowed(connection, packet)
+    private fun checkAccess(): Boolean {
+        return this.sender.getCommunicationBootstrap().getAccessHandler()
+                .isAccessAllowed(this.sender, this.wrappedPacket.packet)
     }
 
-    private fun handleResponsePacket(wrappedPacket: WrappedPacket) {
-        val packetResponseManager = this.connection.getCommunicationBootstrap().getPacketResponseManager()
-        packetResponseManager.incomingPacket(wrappedPacket)
+    private fun handleResponsePacket() {
+        val packetResponseManager = this.sender.getCommunicationBootstrap().getPacketResponseManager()
+        packetResponseManager.incomingPacket(this.wrappedPacket)
     }
 
-    private suspend fun handleQuery(wrappedPacket: WrappedPacket) {
+    private suspend fun handleQuery() {
         try {
-            val result = wrappedPacket.packet.handle(this.connection)
-            handleResult(result, wrappedPacket)
+            val result = this.wrappedPacket.packet.handle(this.sender)
+            handleResult(result, this.wrappedPacket)
         } catch (e: Exception) {
-            throw PacketException("An error occurred while attempting to handle packet: ${wrappedPacket.packet::class.java.simpleName}", e)
+            throw PacketException(
+                    "An error occurred while attempting to handle packet: ${wrappedPacket.packet::class.java.simpleName}",
+                    e
+            )
         }
     }
 
@@ -94,15 +94,16 @@ class IncomingPacketHandler(private val connection: AbstractConnection) {
         packetPromise.then { packetToSend ->
             sendResponsePacket(wrappedPacket, packetToSend)
         }.addFailureListener {
-            if (!this.connection.wasConnectionCloseIntended())
-                throw PacketException("An error occurred while attempting to send response for packet: " +
-                        wrappedPacket.packet::class.java.simpleName, it as java.lang.Exception)
+            throw PacketException(
+                    "An error occurred while attempting to send response for packet: " +
+                            wrappedPacket.packet::class.java.simpleName, it as java.lang.Exception
+            )
         }
     }
 
     private fun sendResponsePacket(wrappedPacket: WrappedPacket, packetToSend: ObjectPacket<out Any>) {
         val responseData = PacketHeader(wrappedPacket.packetHeader.uniqueId, packetToSend::class.java.simpleName, true)
-        this.connection.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
+        this.sender.sendPacket(WrappedPacket(responseData, packetToSend), CommunicationPromise())
     }
 
     private fun getPacketFromResult(result: ICommunicationPromise<Any>): ICommunicationPromise<ObjectPacket<out Any>> {

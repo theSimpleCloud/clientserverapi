@@ -25,6 +25,7 @@ package eu.thesimplecloud.clientserverapi.cluster.component.client
 import eu.thesimplecloud.clientserverapi.cluster.component.IClusterComponent
 import eu.thesimplecloud.clientserverapi.cluster.component.node.INode
 import eu.thesimplecloud.clientserverapi.cluster.component.type.ClusterComponentType
+import eu.thesimplecloud.clientserverapi.cluster.packets.auth.dto.ClientComponentDTO
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,6 +42,10 @@ interface IClusterClient : IClusterComponent {
 
     override fun getType(): ClusterComponentType {
         return ClusterComponentType.CLIENT
+    }
+
+    override fun getComponentDTO(): ClientComponentDTO {
+        return ClientComponentDTO(getCluster().getVersion(), getUniqueId(), getNodeConnectedTo().getUniqueId())
     }
 
 
