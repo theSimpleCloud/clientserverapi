@@ -27,6 +27,7 @@ import eu.thesimplecloud.clientserverapi.lib.defaultpackets.synclist.PacketIOAdd
 import eu.thesimplecloud.clientserverapi.lib.list.ISyncList
 import eu.thesimplecloud.clientserverapi.lib.list.impl.ClientServerSyncList
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.IPacketSender
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.util.Identifiable
 
@@ -44,11 +45,12 @@ class ClientServerSyncListManager(
         return ClientServerSyncList<T>(communicationBootstrap, name)
     }
 
-    override fun synchronizeAllWithPacketSender(packetSender: IPacketSender) {
-        this.nameToSyncList.forEach { name, list ->
-            list.getAllElements().map { packetSender.sendUnitQuery(PacketIOAddElementToClientServerList(name, it)) }
-                    .combineAllPromises().awaitUninterruptibly()
-        }
+    override fun synchronizeAllWithPacketSender(packetSender: IPacketSender): ICommunicationPromise<Unit> {
+        return this.nameToSyncList.map { (name, list) ->
+            list.getAllElements().map {
+                packetSender.sendUnitQuery(PacketIOAddElementToClientServerList(name, it))
+            }.combineAllPromises()
+        }.combineAllPromises()
     }
 
 }

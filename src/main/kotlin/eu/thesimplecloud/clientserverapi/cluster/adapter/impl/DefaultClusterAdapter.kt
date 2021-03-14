@@ -26,6 +26,8 @@ import eu.thesimplecloud.clientserverapi.cluster.adapter.IClusterListenerAdapter
 import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
 import eu.thesimplecloud.clientserverapi.cluster.component.client.IRemoteClusterClient
 import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
+import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,15 +37,17 @@ import eu.thesimplecloud.clientserverapi.cluster.type.INodeCluster
  */
 class DefaultClusterAdapter : IClusterListenerAdapter {
 
-    override fun onComponentJoin(remoteComponent: IRemoteClusterComponent) {
+    override fun onComponentJoin(remoteComponent: IRemoteClusterComponent): ICommunicationPromise<Unit> {
         val cluster = remoteComponent.getCluster()
         val shallSendLists = (cluster is INodeCluster && cluster.isHeadNode()) || remoteComponent is IRemoteClusterClient
         if (shallSendLists) {
-            cluster.getClusterListManager().synchronizeAllWithPacketSender(remoteComponent.getPacketSender())
+            //println("---Synchronizing all to ${remoteComponent::class.java.name}")
+            return cluster.getClusterListManager().synchronizeAllWithPacketSender(remoteComponent.getPacketSender())
         }
+        return CommunicationPromise.UNIT_PROMISE
     }
 
-    override fun onComponentLeave(remoteComponent: IRemoteClusterComponent) {
-
+    override fun onComponentLeave(remoteComponent: IRemoteClusterComponent): ICommunicationPromise<Unit> {
+        return CommunicationPromise.UNIT_PROMISE
     }
 }

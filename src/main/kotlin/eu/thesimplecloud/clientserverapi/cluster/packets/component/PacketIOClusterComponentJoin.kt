@@ -44,7 +44,6 @@ class PacketIOClusterComponentJoin<T : ComponentDTO>() : ObjectPacket<T>() {
         val virtualPacketSender = VirtualClusterComponentPacketSender(cluster, value.uniqueId)
         val component = ClusterComponentFactory.createComponent(virtualPacketSender, value)
         cluster as AbstractCluster
-        cluster.onComponentJoin(component, senderComponent as IRemoteClusterComponent)
-        return unit()
+        return cluster.onComponentJoin(component, senderComponent as IRemoteClusterComponent)
     }
 }

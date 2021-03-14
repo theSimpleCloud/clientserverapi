@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.packet.incoming
 
+import eu.thesimplecloud.clientserverapi.lib.coroutine.SingleThreadCoroutine
 import eu.thesimplecloud.clientserverapi.lib.packet.PacketHeader
 import eu.thesimplecloud.clientserverapi.lib.packet.WrappedPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.exception.PacketException
@@ -30,8 +31,6 @@ import eu.thesimplecloud.clientserverapi.lib.packet.packettype.ObjectPacket
 import eu.thesimplecloud.clientserverapi.lib.packet.response.PacketOutErrorResponse
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
@@ -49,7 +48,7 @@ class SinglePacketHandler(private val sender: AbstractPacketSender, private val 
         if (this.wrappedPacket.packetHeader.isResponse) {
             handleResponsePacket()
         } else {
-            GlobalScope.launch(Dispatchers.Default) {
+            SingleThreadCoroutine.scope.launch {
                 handleQuery()
             }
         }

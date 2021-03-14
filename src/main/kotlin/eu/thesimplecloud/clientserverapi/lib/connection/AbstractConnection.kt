@@ -22,6 +22,7 @@
 
 package eu.thesimplecloud.clientserverapi.lib.connection
 
+import eu.thesimplecloud.clientserverapi.lib.coroutine.SingleThreadCoroutine
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOCreateFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransfer
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.PacketIOFileTransferComplete
@@ -29,7 +30,6 @@ import eu.thesimplecloud.clientserverapi.lib.filetransfer.util.QueuedFile
 import eu.thesimplecloud.clientserverapi.lib.packet.packetsender.AbstractPacketSender
 import eu.thesimplecloud.clientserverapi.lib.promise.CommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.file.Files
@@ -66,7 +66,7 @@ abstract class AbstractConnection() : AbstractPacketSender(), IConnection {
         val transferUuid = UUID.randomUUID()
         val fileBytes = Files.readAllBytes(queuedFile.file.toPath())
         var bytes = fileBytes.size
-        GlobalScope.launch {
+        SingleThreadCoroutine.scope.launch {
             sendUnitQuery(PacketIOCreateFileTransfer(transferUuid, queuedFile.savePath, queuedFile.file.lastModified())).awaitCoroutine()
             while (bytes != 0) {
                 when {

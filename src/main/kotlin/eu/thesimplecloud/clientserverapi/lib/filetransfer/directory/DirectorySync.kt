@@ -23,6 +23,7 @@
 package eu.thesimplecloud.clientserverapi.lib.filetransfer.directory
 
 import eu.thesimplecloud.clientserverapi.lib.connection.IConnection
+import eu.thesimplecloud.clientserverapi.lib.coroutine.SingleThreadCoroutine
 import eu.thesimplecloud.clientserverapi.lib.defaultpackets.*
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatch
 import eu.thesimplecloud.clientserverapi.lib.directorywatch.IDirectoryWatchListener
@@ -33,7 +34,6 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.promise.flatten
 import eu.thesimplecloud.clientserverapi.lib.util.ZipUtils
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
@@ -62,7 +62,7 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
                 //only dirs
                 if (isFilepartFile(file))
                     return
-                GlobalScope.launch {
+                SingleThreadCoroutine.scope.launch {
                     var count = 0
                     while (true) {
                         count++

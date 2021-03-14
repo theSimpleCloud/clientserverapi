@@ -22,12 +22,12 @@
 
 package eu.thesimplecloud.clientserverapi.lib.promise
 
+import eu.thesimplecloud.clientserverapi.lib.coroutine.SingleThreadCoroutine
 import eu.thesimplecloud.clientserverapi.lib.promise.exception.CompletedWithNullException
 import eu.thesimplecloud.clientserverapi.lib.promise.exception.PromiseCreationException
 import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromiseTimeoutHandler
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -68,7 +68,7 @@ class CommunicationPromise<out T : Any>(
                 try {
                     listener(future)
                 } catch (e: Exception) {
-                    GlobalScope.launch { throw e }
+                    SingleThreadCoroutine.scope.launch { throw e }
                 }
             }
         })
@@ -143,21 +143,25 @@ class CommunicationPromise<out T : Any>(
     }
 
     override fun sync(): ICommunicationPromise<T> {
+        checkForDeadlock()
         super.sync()
         return this
     }
 
     override fun syncUninterruptibly(): ICommunicationPromise<T> {
+        checkForDeadlock()
         super.syncUninterruptibly()
         return this
     }
 
     override fun await(): ICommunicationPromise<T> {
+        checkForDeadlock()
         super.await()
         return this
     }
 
     override fun awaitUninterruptibly(): ICommunicationPromise<T> {
+        checkForDeadlock()
         super.awaitUninterruptibly()
         return this
     }
@@ -199,6 +203,12 @@ class CommunicationPromise<out T : Any>(
 
     override fun trySuccess(result: @UnsafeVariance T): Boolean {
         return super.trySuccess(result)
+    }
+
+    private fun checkForDeadlock() {
+        if (SingleThreadCoroutine.isClientServerThread()) {
+            throw BlockingOperationException("Blocking method calls in ClientServerAPI-Thread are forbidden")
+        }
     }
 
     companion object {
@@ -251,7 +261,7 @@ class CommunicationPromise<out T : Any>(
         fun <R : Any> runAsync(timeout: Long, block: suspend CoroutineScope.() -> R): ICommunicationPromise<R> {
             val timeoutEnabled = timeout > 0
             val promise = CommunicationPromise<R>(timeout, timeoutEnabled)
-            val job = GlobalScope.launch {
+            val job = SingleThreadCoroutine.scope.launch {
                 try {
                     promise.trySuccess(block())
                 } catch (ex: Exception) {

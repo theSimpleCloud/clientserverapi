@@ -23,6 +23,7 @@
 package eu.thesimplecloud.clientserverapi.cluster.adapter
 
 import eu.thesimplecloud.clientserverapi.cluster.component.IRemoteClusterComponent
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,11 +36,11 @@ interface IClusterListenerAdapter {
     /**
      * Gets called when a component joins the cluster
      */
-    fun onComponentJoin(remoteComponent: IRemoteClusterComponent)
+    fun onComponentJoin(remoteComponent: IRemoteClusterComponent): ICommunicationPromise<Unit>
 
     /**
      * Gets called when a component leaves the cluster
      */
-    fun onComponentLeave(remoteComponent: IRemoteClusterComponent)
+    fun onComponentLeave(remoteComponent: IRemoteClusterComponent): ICommunicationPromise<Unit>
 
 }

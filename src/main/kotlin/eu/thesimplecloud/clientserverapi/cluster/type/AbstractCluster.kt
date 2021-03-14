@@ -38,6 +38,8 @@ import eu.thesimplecloud.clientserverapi.cluster.type.publish.ComponentJoinPubli
 import eu.thesimplecloud.clientserverapi.cluster.type.publish.ComponentLeavePublisher
 import eu.thesimplecloud.clientserverapi.lib.list.manager.ISyncListManager
 import eu.thesimplecloud.clientserverapi.lib.list.manager.impl.ClusterSyncListManager
+import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
+import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -101,21 +103,23 @@ abstract class AbstractCluster(
         return this.componentManager
     }
 
-    fun onComponentJoin(joiningComponent: IRemoteClusterComponent, senderComponent: IClusterComponent) {
+    fun onComponentJoin(joiningComponent: IRemoteClusterComponent, senderComponent: IClusterComponent): ICommunicationPromise<Unit> {
         val selfComponent = joiningComponent.getCluster().getSelfComponent()
         val selfId = selfComponent.getUniqueId()
         if (joiningComponent.getUniqueId() == selfId)
             throw IllegalStateException("Component may not join itself")
         this.componentManager.addComponents(joiningComponent)
-        this.clusterListeners.forEach { it.onComponentJoin(joiningComponent) }
+        val promises = this.clusterListeners.map { it.onComponentJoin(joiningComponent) }
         ComponentJoinPublisher(this, joiningComponent, senderComponent).publishComponentJoin()
+        return promises.combineAllPromises()
     }
 
-    fun onComponentLeave(leavingComponent: IRemoteClusterComponent, senderComponent: IClusterComponent) {
+    fun onComponentLeave(leavingComponent: IRemoteClusterComponent, senderComponent: IClusterComponent): ICommunicationPromise<Unit> {
         this.componentManager.removeComponents(leavingComponent)
-        this.clusterListeners.forEach { it.onComponentLeave(leavingComponent) }
+        val promises = this.clusterListeners.map { it.onComponentLeave(leavingComponent) }
 
         ComponentLeavePublisher(this, leavingComponent, senderComponent).publishComponentLeave()
+        return promises.combineAllPromises()
     }
 
 }

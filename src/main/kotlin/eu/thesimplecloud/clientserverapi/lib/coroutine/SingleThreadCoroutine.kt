@@ -20,5 +20,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-rootProject.name = 'clientserverapi'
+package eu.thesimplecloud.clientserverapi.lib.coroutine
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.newSingleThreadContext
+
+class SingleThreadCoroutine {
+
+    companion object {
+        private val threadContext = newSingleThreadContext("ClientServerAPI-Thread")
+        val scope = CoroutineScope(threadContext + SupervisorJob())
+
+        fun isClientServerThread(): Boolean {
+            return Thread.currentThread().name.toLowerCase().contains("ClientServerAPI-Thread".toLowerCase())
+        }
+
+    }
+
+}

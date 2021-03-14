@@ -77,8 +77,7 @@ abstract class PacketIOAuthentication : JsonPacket {
         val remoteComponent = ClusterComponentFactory.createComponent(sender, componentDTO)
         sender.setProperty("type", clusterComponentType)
         sender.setProperty("component", remoteComponent)
-        cluster.onComponentJoin(remoteComponent, cluster.getSelfComponent())
-        return unit()
+        return cluster.onComponentJoin(remoteComponent, cluster.getSelfComponent())
     }
 
 

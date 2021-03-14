@@ -46,7 +46,6 @@ class PacketIOClusterComponentLeave() : ObjectPacket<UUID>() {
 
         componentByUniqueId as IRemoteClusterComponent
         val senderComponent = cluster.getComponentManager().getComponentByPacketSender(sender)
-        cluster.onComponentLeave(componentByUniqueId, senderComponent as INode)
-        return unit()
+        return cluster.onComponentLeave(componentByUniqueId, senderComponent as INode)
     }
 }
