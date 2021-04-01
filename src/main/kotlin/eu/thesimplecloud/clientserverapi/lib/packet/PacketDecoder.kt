@@ -67,7 +67,7 @@ class PacketDecoder(private val communicationBootstrap: ICommunicationBootstrap,
             try {
                 packet.read(byteBuf, communicationBootstrap)
             } catch (e: Exception) {
-                throw PacketException("An error occurred while reading packet: ${packetClass.name}")
+                throw PacketException("An error occurred while reading packet: ${packetClass.name}", e)
             }
             packet
         }
