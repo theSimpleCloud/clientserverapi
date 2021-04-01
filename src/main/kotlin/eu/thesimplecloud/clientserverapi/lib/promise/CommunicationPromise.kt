@@ -27,8 +27,9 @@ import eu.thesimplecloud.clientserverapi.lib.promise.exception.CompletedWithNull
 import eu.thesimplecloud.clientserverapi.lib.promise.exception.PromiseCreationException
 import eu.thesimplecloud.clientserverapi.lib.promise.timout.CommunicationPromiseTimeoutHandler
 import io.netty.util.concurrent.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class CommunicationPromise<out T : Any>(
@@ -88,7 +89,7 @@ class CommunicationPromise<out T : Any>(
     override fun <R : Any> thenDelayed(delay: Long, timeUnit: TimeUnit, function: (T) -> R?): ICommunicationPromise<R> {
         val newPromise = CommunicationPromise<R>(this.timeout + timeUnit.toMillis(delay), this.isTimeoutEnabled())
         this.addCompleteListener {
-            GlobalEventExecutor.INSTANCE.schedule({
+            executor.schedule({
                 if (this.isSuccess) {
                     try {
                         val functionValue = function(this.get())
@@ -212,6 +213,9 @@ class CommunicationPromise<out T : Any>(
     }
 
     companion object {
+
+        private val executor = Executors.newScheduledThreadPool(0)
+
         fun combineAllToUnitPromise(promises: Collection<ICommunicationPromise<*>>, sumUpTimeouts: Boolean = true): ICommunicationPromise<Unit> {
             val disableTimeout = promises.any { !it.isTimeoutEnabled() }
             val timeout = if (sumUpTimeouts) promises.sumBy { it.getTimeout().toInt() }.toLong() else 400
@@ -251,24 +255,27 @@ class CommunicationPromise<out T : Any>(
         /**
          * Runs the specified [block] async and return it result.
          */
-        fun <R : Any> runAsync(block: suspend CoroutineScope.() -> R): ICommunicationPromise<R> {
-            return runAsync(-1, block)
+        fun <R : Any> runAsync(block: () -> R, executor: ExecutorService = this.executor): ICommunicationPromise<R> {
+            return runAsync(-1, block, executor)
         }
 
         /**
          * Runs the specified [block] async and return it result.
          */
-        fun <R : Any> runAsync(timeout: Long, block: suspend CoroutineScope.() -> R): ICommunicationPromise<R> {
+        fun <R : Any> runAsync(timeout: Long, block: () -> R, executor: ExecutorService = this.executor): ICommunicationPromise<R> {
             val timeoutEnabled = timeout > 0
             val promise = CommunicationPromise<R>(timeout, timeoutEnabled)
-            val job = SingleThreadCoroutine.scope.launch {
+
+            val future = executor.submit {
                 try {
                     promise.trySuccess(block())
                 } catch (ex: Exception) {
                     promise.tryFailure(ex)
                 }
             }
-            promise.addCompleteListener { if (!job.isCompleted) job.cancel() }
+
+            promise.addCompleteListener { if (!future.isDone) future.cancel(true) }
+
             return promise
         }
 

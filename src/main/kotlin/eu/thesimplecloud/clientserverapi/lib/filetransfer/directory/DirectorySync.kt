@@ -34,8 +34,7 @@ import eu.thesimplecloud.clientserverapi.lib.promise.ICommunicationPromise
 import eu.thesimplecloud.clientserverapi.lib.promise.combineAllPromises
 import eu.thesimplecloud.clientserverapi.lib.promise.flatten
 import eu.thesimplecloud.clientserverapi.lib.util.ZipUtils
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
@@ -43,7 +42,12 @@ import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 
-class DirectorySync(private val directory: File, toDirectory: String, private val tmpZipDir: File, directoryWatch: IDirectoryWatch) : IDirectorySync {
+class DirectorySync(
+    private val directory: File,
+    toDirectory: String,
+    private val tmpZipDir: File,
+    directoryWatch: IDirectoryWatch
+) : IDirectorySync {
 
     private val receivers = CopyOnWriteArrayList<IConnection>()
     private val zipFile = File(tmpZipDir, directory.name + ".zip")
@@ -117,23 +121,30 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
 
     override fun syncDirectory(connection: IConnection): ICommunicationPromise<Unit> {
         synchronized(this) {
-            return CommunicationPromise.runAsync {
-                receivers.add(connection)
-                //only sync non dir files
-                syncDirectories(connection)
+            return CommunicationPromise.runAsync({
+                val job = GlobalScope.async {
+                    receivers.add(connection)
+                    //only sync non dir files
+                    syncDirectories(connection)
 
-                val allFiles = getAllFilesAndDirectories().filter { !it.isDirectory }
-                val filesOnOtherSide = allFiles.map { file -> FileInfo(getPathOnOtherSide(file), file.lastModified()) }
-                val neededFilesPromise = connection.sendQuery<Array<FileInfo>>(PacketIOSyncFiles(toDirectory, filesOnOtherSide), 5000)
-                val neededFileInfoList = neededFilesPromise.getCoroutineBlockingOrNull()
-                        ?: return@runAsync CommunicationPromise.failed<Unit>(neededFilesPromise.cause())
-                val neededFiles = neededFileInfoList.map { getFileFromOtherSidePath(it.relativePath) }
-                if (shouldSendViaZip(allFiles, neededFiles)) {
-                    return@runAsync sendFileAsZip(connection)
+                    val allFiles = getAllFilesAndDirectories().filter { !it.isDirectory }
+                    val filesOnOtherSide =
+                        allFiles.map { file -> FileInfo(getPathOnOtherSide(file), file.lastModified()) }
+                    val neededFilesPromise =
+                        connection.sendQuery<Array<FileInfo>>(PacketIOSyncFiles(toDirectory, filesOnOtherSide), 5000)
+                    val neededFileInfoList = neededFilesPromise.getCoroutineBlockingOrNull()
+                        ?: return@async CommunicationPromise.failed<Unit>(neededFilesPromise.cause())
+                    val neededFiles = neededFileInfoList.map { getFileFromOtherSidePath(it.relativePath) }
+                    if (shouldSendViaZip(allFiles, neededFiles)) {
+                        return@async sendFileAsZip(connection)
+                    }
+                    val filePromises = neededFiles.map { file -> sendFileOrDirectory(file, connection, false) }
+                    filePromises.combineAllPromises()
                 }
-                val filePromises = neededFiles.map { file -> sendFileOrDirectory(file, connection, false) }
-                filePromises.combineAllPromises()
-            }.flatten()
+                return@runAsync runBlocking {
+                    return@runBlocking job.await()
+                }
+            }).flatten()
         }
     }
 
@@ -146,7 +157,12 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
     private suspend fun syncDirectories(connection: IConnection) {
         val allDirectories = getAllFilesAndDirectories().filter { it.isDirectory }
         val relativePathsOnOtherSide = allDirectories.map { getPathOnOtherSide(it) }
-        connection.sendUnitQuery(PacketIOSyncDirectories(getToDirectoryPathWithoutEndingSlash(), relativePathsOnOtherSide), 5000).awaitCoroutine()
+        connection.sendUnitQuery(
+            PacketIOSyncDirectories(
+                getToDirectoryPathWithoutEndingSlash(),
+                relativePathsOnOtherSide
+            ), 5000
+        ).awaitCoroutine()
     }
 
     private suspend fun sendFileAsZip(connection: IConnection): ICommunicationPromise<Unit> {
@@ -156,9 +172,25 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
             zipDirectory()
         val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(2))
         val sizeInMB = (zipFile.length() / 1000) / 1000
-        val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, getToDirectoryPathWithoutEndingSlash()), (sizeInMB * 100) * 2) }.flatten()
+        val unzippedPromise = promise.then {
+            connection.sendUnitQuery(
+                PacketIOUnzipZipFile(
+                    tmpZipDir.path + "/C-" + zipFile.name,
+                    getToDirectoryPathWithoutEndingSlash()
+                ), (sizeInMB * 100) * 2
+            )
+        }.flatten()
         return unzippedPromise.then {
-            val modifyPromises = getAllFilesAndDirectories().map { file -> connection.sendUnitQuery(PacketIOSetLastModified(FileInfo(getPathOnOtherSide(file), file.lastModified()))) }
+            val modifyPromises = getAllFilesAndDirectories().map { file ->
+                connection.sendUnitQuery(
+                    PacketIOSetLastModified(
+                        FileInfo(
+                            getPathOnOtherSide(file),
+                            file.lastModified()
+                        )
+                    )
+                )
+            }
             modifyPromises.combineAllPromises()
         }.flatten()
     }
@@ -170,7 +202,11 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
         return toDirectory
     }
 
-    private fun sendFileOrDirectory(file: File, connection: IConnection, sendSubFilesOfDir: Boolean): ICommunicationPromise<Unit> {
+    private fun sendFileOrDirectory(
+        file: File,
+        connection: IConnection,
+        sendSubFilesOfDir: Boolean
+    ): ICommunicationPromise<Unit> {
         if (file.isDirectory) {
             val createDirPromise = connection.sendUnitQuery(PacketIOCreateDirectory(getPathOnOtherSide(file)))
             if (!sendSubFilesOfDir) return createDirPromise
@@ -216,7 +252,11 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
 
     private fun zipDirectory() {
         synchronized(this) {
-            ZipUtils.zipFiles(zipFile, getAllFilesAndDirectories().filter { !it.isDirectory }, subtractRelativePath = directory.path)
+            ZipUtils.zipFiles(
+                zipFile,
+                getAllFilesAndDirectories().filter { !it.isDirectory },
+                subtractRelativePath = directory.path
+            )
         }
     }
 

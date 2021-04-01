@@ -59,7 +59,7 @@ class TestNettyClient(
     }
 
     override fun start(): ICommunicationPromise<Unit> {
-        return CommunicationPromise.runAsync { NetworkTestManager.connectToServer(this@TestNettyClient) }
+        return CommunicationPromise.runAsync({ NetworkTestManager.connectToServer(this@TestNettyClient) })
     }
 
     override fun shutdown(): ICommunicationPromise<Unit> {
