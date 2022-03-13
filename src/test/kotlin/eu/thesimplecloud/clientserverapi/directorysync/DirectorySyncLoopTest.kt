@@ -22,6 +22,14 @@
 
 package eu.thesimplecloud.clientserverapi.directorysync
 
+import eu.thesimplecloud.clientserverapi.client.NettyClient
+import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
+import eu.thesimplecloud.clientserverapi.server.NettyServer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.junit.Test
+import java.io.File
+
 class DirectorySyncLoopTest {
 
     /*
@@ -41,7 +49,7 @@ class DirectorySyncLoopTest {
             nettyClient.start()
         }
 
-        while (!nettyClient.isOpen()) {
+        while (!nettyClient.getConnection().isOpen()) {
             Thread.sleep(10)
         }
         Thread.sleep(1000)
@@ -49,16 +57,20 @@ class DirectorySyncLoopTest {
         dir.mkdirs()
         nettyServer.getDirectorySyncManager().setTmpZipDirectory(File("storage/zippedTemplates/"))
         val directorySync = nettyServer.getDirectorySyncManager().createDirectorySync(dir, "templatesOtherSide/")
-        val clientOnServerSide = this.nettyServer.clientManager.getClients().firstOrNull()!!
+        val clientOnServerSide = this.nettyServer.getClientManager().getClients().firstOrNull()!!
         val promise = directorySync.syncDirectory(clientOnServerSide)
         promise.awaitUninterruptibly()
         promise.cause()?.let { throw it }
         println("finished")
 
+        while (true) {
+            Thread.sleep(200)
+        }
+
         Thread.sleep(3000)
     }
 
-     */
+    */
 
 
 

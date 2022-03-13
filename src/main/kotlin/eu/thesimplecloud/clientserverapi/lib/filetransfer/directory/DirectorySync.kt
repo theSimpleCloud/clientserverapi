@@ -40,15 +40,20 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
 import java.io.IOException
+import java.lang.Double.max
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class DirectorySync(private val directory: File, toDirectory: String, private val tmpZipDir: File, directoryWatch: IDirectoryWatch) : IDirectorySync {
+class DirectorySync(
+    private val directory: File,
+    private val toDirectory: String,
+    private val tmpZipDir: File,
+    directoryWatch: IDirectoryWatch
+) : IDirectorySync {
 
     private val receivers = CopyOnWriteArrayList<IConnection>()
     private val zipFile = File(tmpZipDir, directory.name + ".zip")
-    private val toDirectory = toDirectory.replace("/", "\\")
 
     init {
         tmpZipDir.mkdirs()
@@ -59,10 +64,15 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
 
         directoryWatch.addWatchListener(object : IDirectoryWatchListener {
             override fun fileCreated(file: File) {
+                println("File created " + file.absolutePath)
                 //normal files will be sent in [fileModified]
                 //only dirs
                 if (isFilepartFile(file))
                     return
+                if (!file.isDirectory) {
+                    normalFileModified(file, repeat = true)
+                    return
+                }
                 GlobalScope.launch {
                     var count = 0
                     while (true) {
@@ -83,15 +93,17 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
                 }
             }
 
-            override fun fileModified(file: File) {
-                if (isFilepartFile(file))
-                    return
-                if (file.isDirectory) return
+            private fun normalFileModified(file: File, repeat: Boolean = false) {
                 val lastModified = file.lastModified()
+                val size = file.length()
                 GlobalScope.launch {
                     delay(5_000)
                     val wasFileModified = lastModified != file.lastModified()
-                    if (wasFileModified) return@launch
+                    val hasLengthChanged = size != file.length()
+                    if (wasFileModified || hasLengthChanged) {
+                        if (repeat) normalFileModified(file, true)
+                        return@launch
+                    }
                     try {
                         changesDetected()
                         receivers.forEach { connection -> sendFileOrDirectory(file, connection, false) }
@@ -99,10 +111,18 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
                         throw IOException(e)
                     }
                 }
+            }
 
+            override fun fileModified(file: File) {
+                println("File modified " + file.absolutePath)
+                if (isFilepartFile(file))
+                    return
+                if (file.isDirectory) return
+                normalFileModified(file, repeat = false)
             }
 
             override fun fileDeleted(file: File) {
+                println("File deleted " + file.absolutePath)
                 if (isFilepartFile(file))
                     return
                 changesDetected()
@@ -164,7 +184,8 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
             zipDirectory()
         val promise = connection.sendFile(zipFile, tmpZipDir.path + "/C-" + zipFile.name, TimeUnit.MINUTES.toMillis(2))
         val sizeInMB = (zipFile.length() / 1000) / 1000
-        val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, getToDirectoryPathWithoutEndingSlash()), (sizeInMB * 100) * 2) }.flatten()
+        val timeout = Math.max((sizeInMB * 100) * 2, 1000)
+        val unzippedPromise = promise.then { connection.sendUnitQuery(PacketIOUnzipZipFile(tmpZipDir.path + "/C-" + zipFile.name, getToDirectoryPathWithoutEndingSlash()), timeout) }.flatten()
         return unzippedPromise.then {
             val modifyPromises = getAllFilesAndDirectories().map { file -> connection.sendUnitQuery(PacketIOSetLastModified(FileInfo(getPathOnOtherSide(file), file.lastModified()))) }
             modifyPromises.combineAllPromises()
@@ -220,7 +241,10 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
         }
     }
 
-    private fun getFileFromOtherSidePath(path: String) = File(path.replace(toDirectory, this.directory.path + "\\"))
+    private fun getFileFromOtherSidePath(path: String): File {
+        println("Path to replace ${path}, ${toDirectory}, ${this.directory.path}")
+        return File(path.replace(toDirectory, this.directory.path + "/"))
+    }
 
     private fun zipDirectory() {
         synchronized(this) {
