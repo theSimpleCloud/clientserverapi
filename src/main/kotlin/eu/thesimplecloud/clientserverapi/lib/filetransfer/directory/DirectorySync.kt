@@ -41,6 +41,7 @@ import org.apache.commons.io.filefilter.IOFileFilter
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class DirectorySync(private val directory: File, toDirectory: String, private val tmpZipDir: File, directoryWatch: IDirectoryWatch) : IDirectorySync {
@@ -86,12 +87,19 @@ class DirectorySync(private val directory: File, toDirectory: String, private va
                 if (isFilepartFile(file))
                     return
                 if (file.isDirectory) return
-                try {
-                    changesDetected()
-                    receivers.forEach { connection -> sendFileOrDirectory(file, connection, false) }
-                } catch (e: Exception) {
-                    throw IOException(e)
+                val lastModified = file.lastModified()
+                GlobalScope.launch {
+                    delay(5_000)
+                    val wasFileModified = lastModified != file.lastModified()
+                    if (wasFileModified) return@launch
+                    try {
+                        changesDetected()
+                        receivers.forEach { connection -> sendFileOrDirectory(file, connection, false) }
+                    } catch (e: Exception) {
+                        throw IOException(e)
+                    }
                 }
+
             }
 
             override fun fileDeleted(file: File) {
