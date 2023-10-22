@@ -54,14 +54,10 @@ dependencies {
 
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
+    archiveClassifier.set('sources')
     from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
 }
 
 publishing {
@@ -80,25 +76,16 @@ publishing {
             }
 
             credentials {
-                username = project.hasProperty("mavenUser") ? project.property("mavenUser") : ""
-                password = project.hasProperty("mavenPassword") ? project.property("mavenPassword") : ""
+                username = project.hasProperty("mavenUser") ? project.property("mavenUser") : System.getenv("MAVEN_USERNAME")
+                password = project.hasProperty("mavenPassword") ? project.property("mavenPassword") : System.getenv("MAVEN_PASSWORD")
             }
         }
     }
 }
 
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
 compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    kotlinOptions.jvmTarget = "1.8"
 }
 compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    kotlinOptions.jvmTarget = "1.8"
 }
