@@ -43,6 +43,7 @@ import eu.thesimplecloud.clientserverapi.lib.packetmanager.PacketManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.IPacketResponseManager
 import eu.thesimplecloud.clientserverapi.lib.packetresponse.PacketResponseManager
 import org.reflections.Reflections
+import org.reflections.util.ConfigurationBuilder
 
 /**
  * Created by IntelliJ IDEA.
@@ -92,7 +93,7 @@ abstract class AbstractCommunicationBootstrap(
 
     override fun addPacketsByPackage(vararg packages: String) {
         packages.forEach { packageName ->
-            val reflections = Reflections(packageName, this.packetSearchClassLoader)
+            val reflections = Reflections(ConfigurationBuilder().forPackages(*packages).setClassLoaders(arrayOf(this.packetSearchClassLoader)))
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))
