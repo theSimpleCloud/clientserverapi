@@ -22,6 +22,17 @@
 
 package eu.thesimplecloud.clientserverapi.directorysync
 
+import eu.thesimplecloud.clientserverapi.communication.testclasses.TestConnectedClientValue
+import eu.thesimplecloud.clientserverapi.lib.factory.BootstrapFactoryGetter
+import eu.thesimplecloud.jsonlib.JsonLib
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.apache.commons.io.FileUtils
+import org.junit.After
+import org.junit.Assert
+import org.junit.Test
+import java.io.File
+
 class DirectorySyncTest {
     /*
     val factory = BootstrapFactoryGetter.setEnvironment(BootstrapFactoryGetter.ApplicationEnvironment.TEST).getFactory()
@@ -66,7 +77,7 @@ class DirectorySyncTest {
 
         JsonLib.empty().append("first", "test5").saveAsFile(file1)
         file2.delete()
-        Thread.sleep(3600)
+        Thread.sleep(7_000)
         //test2
         Assert.assertEquals("test5", JsonLib.fromJsonFile(File(otherSideDir, "json1.json"))?.getString("first"))
         Assert.assertFalse(File(otherSideDir, "json2.json").exists())
