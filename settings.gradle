@@ -21,5 +21,4 @@
  */
 
 rootProject.name = 'clientserverapi'
-include 'api'
 
