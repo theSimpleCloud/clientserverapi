@@ -44,6 +44,7 @@ class NettyClientHandler(private val nettyClient: NettyClient, private val conne
         connectionHandler.onConnectionInactive(nettyClient.getConnection())
     }
 
+    @Deprecated("Deprecated in Java")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         //ignore because the error does not have any affect
         if (cause is IOException && cause.message?.contains("reset by peer") == true) {
