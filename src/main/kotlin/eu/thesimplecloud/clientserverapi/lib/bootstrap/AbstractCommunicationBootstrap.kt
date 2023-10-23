@@ -93,7 +93,7 @@ abstract class AbstractCommunicationBootstrap(
 
     override fun addPacketsByPackage(vararg packages: String) {
         packages.forEach { packageName ->
-            val reflections = Reflections(ConfigurationBuilder().forPackages(*packages).setClassLoaders(arrayOf(this.packetSearchClassLoader)))
+            val reflections = Reflections(ConfigurationBuilder().forPackage(packageName, this.packetSearchClassLoader))
             val allClasses = reflections.getSubTypesOf(IPacket::class.java)
                     .union(reflections.getSubTypesOf(JsonPacket::class.java))
                     .union(reflections.getSubTypesOf(ObjectPacket::class.java))
