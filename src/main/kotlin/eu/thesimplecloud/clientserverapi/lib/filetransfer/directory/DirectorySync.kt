@@ -64,7 +64,6 @@ class DirectorySync(
 
         directoryWatch.addWatchListener(object : IDirectoryWatchListener {
             override fun fileCreated(file: File) {
-                println("File created " + file.absolutePath)
                 //normal files will be sent in [fileModified]
                 //only dirs
                 if (isFilepartFile(file))
@@ -114,7 +113,6 @@ class DirectorySync(
             }
 
             override fun fileModified(file: File) {
-                println("File modified " + file.absolutePath)
                 if (isFilepartFile(file))
                     return
                 if (file.isDirectory) return
@@ -122,7 +120,6 @@ class DirectorySync(
             }
 
             override fun fileDeleted(file: File) {
-                println("File deleted " + file.absolutePath)
                 if (isFilepartFile(file))
                     return
                 changesDetected()
@@ -242,7 +239,6 @@ class DirectorySync(
     }
 
     private fun getFileFromOtherSidePath(path: String): File {
-        println("Path to replace ${path}, ${toDirectory}, ${this.directory.path}")
         return File(path.replace(toDirectory, this.directory.path + "/"))
     }
 

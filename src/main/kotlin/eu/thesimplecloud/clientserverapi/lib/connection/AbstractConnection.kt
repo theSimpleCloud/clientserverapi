@@ -86,7 +86,6 @@ abstract class AbstractConnection() : IConnection {
         }
         this.sendingFile = true
         val transferUuid = UUID.randomUUID()
-        println("AbstractConnection sending file " + queuedFile)
         val fileBytes = Files.readAllBytes(queuedFile.file.toPath())
         var bytes = fileBytes.size
         GlobalScope.launch {
